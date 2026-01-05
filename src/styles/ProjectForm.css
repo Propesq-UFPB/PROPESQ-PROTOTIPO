@@ -1,4 +1,3 @@
-
 .page-project-form {
   display: flex;
   flex-direction: column;
@@ -49,7 +48,7 @@
 }
 .page-project-form .aside {
   position: sticky;
-  top: 12px; 
+  top: 12px;
   display: grid;
   gap: 12px;
 }
@@ -119,7 +118,6 @@
   cursor: pointer;
 }
 
-
 .page-project-form .help {
   margin-top: 4px;
   font-size: 11px;
@@ -149,12 +147,12 @@
   border: 1px solid rgba(30, 64, 175, 0.15);
 }
 .page-project-form .status-pill.draft {
-  --pill-bg: #fff7ed;  
+  --pill-bg: #fff7ed;
   --pill-fg: #9a3412;
   border-color: rgba(154, 52, 18, 0.15);
 }
 .page-project-form .status-pill.ok {
-  --pill-bg: #ecfdf5;  
+  --pill-bg: #ecfdf5;
   --pill-fg: #065f46;
   border-color: rgba(6, 95, 70, 0.15);
 }
@@ -174,10 +172,9 @@
   display: grid;
   gap: 6px;
   font-size: 13px;
-  color: #475569; /
+  color: #475569;
 }
 
 .page-project-form .card + .card {
   margin-top: 0;
 }
-
