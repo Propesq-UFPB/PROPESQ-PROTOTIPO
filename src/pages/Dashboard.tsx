@@ -1,81 +1,119 @@
-// src/pages/Dashboard.tsx - inicio
+import React from "react"
+import Card from "@/components/Card"
+import { Helmet } from "react-helmet"
 
-import React from 'react'
-import Card from '@/components/Card'
-import '@/styles/Dashboard.css'
-import { Helmet } from 'react-helmet'
+/* ================= INDICADORES ================= */
 
-// Dados fake 
 const indicadores = [
-  { title: 'Projetos Ativos', value: 42, icon: '📁' },
-  { title: 'Editais Abertos', value: 5, icon: '📄' },
-  { title: 'Bolsistas Ativos', value: 28, icon: '🎓' },
-  { title: 'Certificados Emitidos', value: 120, icon: '🏆' },
-  { title: 'Resumos Submetidos', value: 75, icon: '📝' },
+  { title: "Projetos ativos", value: "120+" },
+  { title: "Editais em andamento", value: "5" },
+  { title: "Bolsistas vinculados", value: "28" },
+  { title: "Relatórios pendentes", value: "11" },
+  { title: "Certificados emitidos", value: "120" },
 ]
 
-const atividades = [
-  'Novo projeto de Física cadastrado',
-  'Resumo submetido para o edital de Biologia',
-  'Bolsista aprovado no edital PIBIC 2025',
-  'Certificado emitido para Maria da Silva',
+const prazos = [
+  { titulo: "Encerramento do Edital PIBIC 2025", data: "15/11/2025" },
+  { titulo: "Prazo final para relatórios parciais", data: "20/11/2025" },
+  { titulo: "Homologação de bolsistas (Extensão)", data: "30/11/2025" },
 ]
 
-const proximosPrazos = [
-  { titulo: 'Fim do edital de Química', data: '15/11/2025' },
-  { titulo: 'Entrega de relatórios de PIBIC', data: '20/11/2025' },
-  { titulo: 'Inscrição de bolsistas de extensão', data: '30/11/2025' },
-]
+/* ================= COMPONENTE ================= */
 
-export default function Home() {
+export default function Dashboard() {
   return (
-    <div className="home-page">
-      {/* Favicon e título da página */}
+    <div className="min-h-screen bg-white">
       <Helmet>
-        <link rel="icon" type="image/png" href="/src/styles/imgs/favicon-32x32.png" />
+        <title>Dashboard • PROPESQ</title>
       </Helmet>
 
-      <header className="home-header">
-        <h1>Bem-vindo, Administrador</h1>
-        <p>Resumo rápido das atividades e indicadores da universidade</p>
-      </header>
+      <div className="max-w-7xl mx-auto px-6 py-6 space-y-10">
+        {/* HEADER */}
+        <header>
+          <h1 className="text-3xl font-bold text-primary">
+            Painel Administrativo
+          </h1>
+          <p className="mt-1 text-base text-neutral">
+            Olá, Admistrador.
+          </p>
+        </header>
 
-      {/* Indicadores */}
-      <section className="indicators">
-        {indicadores.map((ind) => (
-          <Card key={ind.title} className="indicator-card" title={''}>
-            <div className="card-content">
-              <span className="icon">{ind.icon}</span>
-              <div className="info">
-                <h3>{ind.value}</h3>
-                <p>{ind.title}</p>
+        {/* INDICADORES */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {indicadores.map((ind) => (
+            <Card
+              key={ind.title}
+              title=""
+              className="
+                bg-white
+                border-2
+                border-primary
+                rounded-3xl
+                py-4
+                text-center
+              "
+            >
+              <div className="space-y-2">
+                <div className="text-4xl font-bold text-primary">
+                  {ind.value}
+                </div>
+
+                <div className="text-base font-medium text-primary">
+                  {ind.title}
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
-      </section>
-
-      <div className="home-lower">
-        {/* Últimas atividades */}
-        <section className="activities">
-          <h2>Últimas Atividades</h2>
-          <ul>
-            {atividades.map((act, i) => (
-              <li key={i}>• {act}</li>
-            ))}
-          </ul>
+            </Card>
+          ))}
         </section>
 
-        {/* Próximos prazos */}
-        <section className="deadlines">
-          <h2>Próximos Prazos</h2>
-          <ul>
-            {proximosPrazos.map((prazo, i) => (
-              <li key={i}>
-                <strong>{prazo.data}</strong> - {prazo.titulo}
-              </li>
-            ))}
-          </ul>
+        {/* PRAZOS*/}
+        <section className="grid grid-cols-1">
+          <Card
+            title={
+              <h2 className="text-xl font-semibold text-primary">
+                Próximos prazos
+              </h2>
+            }
+            className="bg-white border border-neutral/30 rounded-2xl p-8"
+          >
+            <ul className="space-y-4">
+              {prazos.map((prazo, i) => (
+                <li
+                  key={i}
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    border-b
+                    border-neutral/20
+                    pb-3
+                    text-sm
+                  "
+                >
+                  <span className="text-neutral">
+                    {prazo.titulo}
+                  </span>
+
+                  <span
+                    className="
+                      px-4
+                      py-1.5
+                      rounded-full
+                      text-xs
+                      font-semibold
+                      border
+                      border-primary
+                      text-primary
+                      min-w-[110px]
+                      text-center
+                    "
+                  >
+                    {prazo.data}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Card>
         </section>
       </div>
     </div>

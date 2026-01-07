@@ -15,7 +15,6 @@ import {
   Check,
 } from 'lucide-react';
 import Card from '@/components/Card';
-import '@/styles/CertificateView.css';
 import { Helmet } from 'react-helmet'
 
 export default function CertificateView() {
@@ -57,7 +56,6 @@ export default function CertificateView() {
 
   return (
     <div className="page-cert-view">
-      <Card title="Verificação de Certificado">
         {/* Faixa superior */}
         <header>
           <ShieldCheck />
@@ -215,7 +213,6 @@ export default function CertificateView() {
             </p>
           </div>
         </section>
-      </Card>
     </div>
   )
 }

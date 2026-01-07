@@ -1,5 +1,4 @@
 import React from "react";
-import "@/styles/Table.css";
 
 export type Col<T> = {
   key: keyof T;

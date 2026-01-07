@@ -1,252 +1,225 @@
-
-// src/components/AppHeader.tsx - menu superior da aplicação
-
-import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react"
+import { NavLink, useLocation } from "react-router-dom"
 import {
   Bell,
-  FileText,
-  Files,
-  GraduationCap,
   Home,
+  FolderKanban,
+  Files,
+  Notebook,
+  FileText,
+  ShieldCheck,
+  GraduationCap,
   LineChart,
   LogOut,
-  Notebook,
-  ShieldCheck,
-  User,
-  Settings,
-  Menu as MenuIcon,
-  X as CloseIcon,
-  FolderKanban,
-} from "lucide-react";
+  Menu,
+  X,
+} from "lucide-react"
 
-import LogoImg from "@/styles/imgs/logo_propesq_imagem.png";
-import { useAuth } from "@/context/AuthContext";
-import "@/styles/AppHeader.css";
+import LogoImg from "@/utils/img/logo_propesq.png"
+import { useAuth } from "@/context/AuthContext"
 
-type Item = { to: string; label: string; icon: React.ReactNode; badge?: string };
-type Section = { title?: string; items: Item[] };
+/* ================= TIPOS ================= */
 
-function matchPathStartsWith(current: string, base: string) {
-  if (base === "/") return current === "/";
-  return current === base || current.startsWith(base + "/");
+type Role = "DISCENTE" | "COORDENADOR" | "ADMINISTRADOR"
+type Item = { to: string; label: string; icon: React.ReactNode }
+
+/* ================= UTILS ================= */
+
+function isActive(pathname: string, to: string) {
+  if (to === "/") return pathname === "/"
+  return pathname === to || pathname.startsWith(to + "/")
 }
-function cx(...cls: Array<string | false | null | undefined>) {
-  return cls.filter(Boolean).join(" ");
-}
+
+/* ================= COMPONENT ================= */
 
 export default function AppHeader() {
-  const { user, logout } = useAuth();
-  const location = useLocation();
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [scrolled, setScrolled] = React.useState(false);
+  const { user, logout } = useAuth()
+  const location = useLocation()
 
-  React.useEffect(() => setMobileOpen(false), [location.pathname]);
-  React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 4);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const role = (user?.role as Role) || "DISCENTE"
 
-  const role =
-    (user?.role as "DISCENTE" | "COORDENADOR" | "ADMINISTRADOR") || "DISCENTE";
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4)
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
 
-  const base: Item[] =
-    role === "ADMINISTRADOR"
-      ? [{ to: "/", label: "Início", icon: <Home size={18} /> }]
-      : [];
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [location.pathname])
 
-  const discente: Section = {
-    title: "Discente",
-    items: [
-      { to: "/projetos", label: "Projetos", icon: <FolderKanban size={18} /> },
-      { to: "/meus-projetos", label: "Meus Projetos", icon: <Files size={18} /> },
-      { to: "/planos", label: "Planos de Trabalho", icon: <Notebook size={18} /> },
-      { to: "/relatorios", label: "Relatórios", icon: <FileText size={18} /> },
-      { to: "/certificados", label: "Certificados", icon: <ShieldCheck size={18} /> },
-    ],
-  };
+  /* ================= MENU POR PAPEL ================= */
 
-  const coordenador: Section = {
-    title: "Coordenador",
-    items: [
-      { to: "/projetos", label: "Projetos", icon: <FolderKanban size={18} /> },
-      { to: "/meus-projetos", label: "Meus Projetos", icon: <GraduationCap size={18} /> },
-      { to: "/planos", label: "Planos de Trabalho", icon: <Notebook size={18} /> },
-      { to: "/avaliacoes", label: "Avaliações", icon: <FileText size={18} /> },
-      { to: "/relatorios", label: "Relatórios", icon: <Notebook size={18} /> },
-    ],
-  };
+  const menu: Item[] = [
+    ...(role === "ADMINISTRADOR"
+      ? [{ to: "/dashboard", label: "Início", icon: <Home size={16} /> }]
+      : []),
 
-  const administrador: Section = {
-    title: "Administrador",
-    items: [
-      { to: "/painel-gerencial", label: "Painel Gerencial", icon: <LineChart size={18} /> },
-      // { to: "/configuracoes", label: "Configurações do Sistema", icon: <Settings size={18} /> },
-      { to: "/acompanhamento", label: "Editais", icon: <Notebook size={18} /> },
-    ],
-  };
+    { to: "/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
 
-  const account: Section = {
-    title: "Conta",
-    items: [{ to: "/configuracoes", label: "Conta", icon: <User size={18} /> }],
-  };
+    ...(role !== "ADMINISTRADOR"
+      ? [{ to: "/meus-projetos", label: "Meus Projetos", icon: <Files size={16} /> }]
+      : []),
 
-  const sections: Section[] = [
-    { items: base },
-    ...(role === "DISCENTE" ? [discente] : []),
-    ...(role === "COORDENADOR" ? [coordenador] : []),
-    ...(role === "ADMINISTRADOR" ? [administrador] : []),
-    account,
-  ];
+    ...(role !== "ADMINISTRADOR"
+      ? [{ to: "/planos", label: "Planos de Trabalho", icon: <Notebook size={16} /> }]
+      : []),
 
-  const flatItems: Item[] = sections.flatMap((s) => s.items);
+    ...(role === "COORDENADOR"
+      ? [
+          { to: "/avaliacoes", label: "Avaliações", icon: <FileText size={16} /> },
+          { to: "/relatorios", label: "Relatórios", icon: <Notebook size={16} /> },
+        ]
+      : []),
+
+    ...(role === "DISCENTE"
+      ? [
+          { to: "/relatorios", label: "Relatórios", icon: <FileText size={16} /> },
+          { to: "/certificados", label: "Certificados", icon: <ShieldCheck size={16} /> },
+        ]
+      : []),
+
+    ...(role === "ADMINISTRADOR"
+      ? [
+          {
+            to: "/painel-gerencial",
+            label: "Painel Gerencial",
+            icon: <LineChart size={16} />,
+          },
+          { to: "/acompanhamento", label: "Editais", icon: <Notebook size={16} /> },
+        ]
+      : []),
+  ]
+
+  /* ================= RENDER ================= */
 
   return (
-    <header className={cx("appheader", scrolled && "is-scrolled")} role="banner">
-      <div className="appheader__rainbow" aria-hidden />
-      <div className="appheader__row appheader__row--top">
-        <a
-          className="appheader__brand appheader__brand--logo"
-          href="/"
-          aria-label="Página inicial"
-        >
-          <img src={LogoImg} alt="PROPESQ" />
-        </a>
+    <header
+      className={`
+        sticky top-0 z-50 p-3
+        bg-white
+        border-b border-neutral-light
+        transition-shadow
+        ${scrolled ? "shadow-sm" : ""}
+      `}
+    >
+      {/* ===== BAR ===== */}
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        {/* LOGO */}
+        <NavLink to="/" className="flex items-center gap-3">
+          <img src={LogoImg} alt="PROPESQ" className="h-8 w-auto select-none" />
+        </NavLink>
 
-        <div className="appheader__actions">
-          {user && (
-            <div className="appheader__user">
-              {user.photoURL ? (
-                <img
-                  className="appheader__avatar appheader__avatar-img"
-                  src={user.photoURL}
-                  alt={user.name || "Usuário"}
-                  onError={(e) => ((e.currentTarget.style.display = "none"))}
-                />
-              ) : null}
-              <div className="appheader__avatar appheader__avatar-fallback">
-                {user.name?.[0]?.toUpperCase() || "U"}
-              </div>
-              <div className="appheader__user-meta">
-                <span className="appheader__user-name">{user.name}</span>
-                <span className="appheader__user-role">{role}</span>
-              </div>
-            </div>
-          )}
-          <button className="appheader__notify" aria-label="Notificações">
-            <Bell size={18} />
-            <span className="appheader__notify-dot" />
-          </button>
+        {/* MENU DESKTOP */}
+        <nav className="hidden md:flex items-center gap-6">
+          {menu.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive: strict }) => {
+                const active = isActive(location.pathname, item.to) || strict
+
+                return `
+                  relative flex items-center gap-2 text-sm font-medium
+                  pb-2
+                  transition-colors
+                  ${active ? "text-primary" : "text-neutral hover:text-primary"}
+                  after:content-['']
+                  after:absolute after:left-0 after:right-0 after:-bottom-[1px]
+                  after:h-[3px] after:rounded-full
+                  after:bg-accent
+                  after:transition-transform after:duration-300
+                  ${active ? "after:scale-x-100" : "after:scale-x-0"}
+                `
+              }}
+            >
+              {item.icon}
+              {item.label}
+            </NavLink>
+
+          ))}
+        </nav>
+
+        {/* AÇÕES */}
+        <div className="flex items-center gap-3">
           <button
-            className="appheader__iconbtn"
+            className="hidden md:flex p-2 rounded-full hover:bg-neutral-light"
+            aria-label="Notificações"
+          >
+            <Bell size={18} />
+          </button>
+
+          <button
             onClick={logout}
-            title="Sair"
-            aria-label="Sair"
+            className="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors"
           >
             <LogOut size={16} />
+            Sair
           </button>
+
+          {/* BURGER */}
           <button
-            className="appheader__burger"
-            aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((v) => !v)}
+            className="md:hidden p-2 rounded-lg hover:bg-neutral-light"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Abrir menu"
           >
-            {mobileOpen ? <CloseIcon size={18} /> : <MenuIcon size={18} />}
+            <Menu size={20} />
           </button>
         </div>
       </div>
 
-      {/* Navegação principal */}
-      <nav
-        className="appheader__row appheader__row--nav"
-        role="navigation"
-        aria-label="Menu principal"
-      >
-        <ul className="appheader__navlist" role="menubar">
-          {flatItems.map((it) => {
-            const isActive = matchPathStartsWith(location.pathname, it.to);
-            return (
-              <li key={it.to} role="none">
+      {/* ===== MOBILE DRAWER ===== */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 md:hidden">
+          <aside className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl flex flex-col">
+            {/* HEADER */}
+            <div className="h-16 px-6 flex items-center justify-between border-b">
+              <img src={LogoImg} alt="PROPESQ" className="h-7" />
+              <button onClick={() => setMobileOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* LINKS */}
+            <nav className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+              {menu.map((item) => (
                 <NavLink
-                  to={it.to}
+                  key={item.to}
+                  to={item.to}
                   className={({ isActive: strict }) =>
-                    cx("appheader__link", (isActive || strict) && "is-active")
-                  }
-                  role="menuitem"
-                >
-                  <span className="appheader__link-icon" aria-hidden>
-                    {it.icon}
-                  </span>
-                  <span className="appheader__link-label">{it.label}</span>
-                  {it.badge && (
-                    <span className="appheader__link-badge">{it.badge}</span>
-                  )}
-                </NavLink>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/* MENU MOBILE - falta ajustes*/}
-      <nav
-        className={cx("appheader__mobile", mobileOpen && "is-open")}
-        aria-label="Menu principal (mobile)"
-      >
-        <ul className="appheader__mobile-list">
-          <li className="appheader__mobile-user">
-            <div className="appheader__avatar appheader__avatar--lg">
-              {user?.name?.[0]?.toUpperCase() || "U"}
-            </div>
-            <div className="appheader__mobile-user-meta">
-              <div className="appheader__user-name">{user?.name || "Usuário"}</div>
-              <div className="appheader__user-role">{role}</div>
-            </div>
-          </li>
-
-          {sections.map((section, i) => (
-            <React.Fragment key={i}>
-              {section.title && (
-                <li className="appheader__section-title">{section.title}</li>
-              )}
-              {section.items.map((it) => {
-                const isActive = matchPathStartsWith(location.pathname, it.to);
-                return (
-                  <li key={it.to}>
-                    <NavLink
-                      to={it.to}
-                      className={({ isActive: strict }) =>
-                        cx("appheader__mobile-link", (isActive || strict) && "is-active")
+                    `
+                      flex items-center gap-3 text-sm font-medium
+                      ${
+                        isActive(location.pathname, item.to) || strict
+                          ? "text-primary"
+                          : "text-neutral"
                       }
-                    >
-                      <span className="appheader__link-icon" aria-hidden>
-                        {it.icon}
-                      </span>
-                      <span className="appheader__link-label">{it.label}</span>
-                    </NavLink>
-                  </li>
-                );
-              })}
-            </React.Fragment>
-          ))}
+                    `
+                  }
+                >
+                  {item.icon}
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
 
-          <li className="appheader__mobile-bottom">
-            <a
-              className="appheader__org appheader__org--mobile"
-              href="/"
-              aria-label="Página inicial"
-            >
-              <img src={LogoImg} alt="PROPESQ" />
-            </a>
-            <button className="appheader__mobile-logout" onClick={logout}>
-              <LogOut size={16} /> <span>Sair</span>
-            </button>
-          </li>
-        </ul>
-      </nav>
+            {/* FOOTER */}
+            <div className="border-t px-6 py-4">
+              <button
+                onClick={logout}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors"
+              >
+                <LogOut size={16} />
+                Sair
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
     </header>
-  );
+  )
 }

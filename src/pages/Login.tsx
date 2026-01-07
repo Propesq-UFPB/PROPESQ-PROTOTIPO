@@ -1,111 +1,231 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useAuth, Role } from '@/context/AuthContext'
-import '@/styles/Login.css'
-import logo from '@/styles/imgs/logo_propesq.png'
-import { Helmet } from 'react-helmet'
+import React, { useEffect, useMemo, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { useAuth, Role } from "@/context/AuthContext"
+import logo from "@/utils/img/logo_propesq.png"
+import { Helmet } from "react-helmet"
 
 export default function Login() {
   const { login } = useAuth()
-  const nav = useNavigate()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-
-  const Roles = ['DISCENTE', 'COORDENADOR', 'ADMINISTRADOR']
+  const Roles: Role[] = ["DISCENTE", "COORDENADOR", "ADMINISTRADOR"]
 
   const initialRole = useMemo(() => {
-    const fromUrl = (searchParams.get('role') || '').toUpperCase()
-    const validFromUrl = Roles.includes(fromUrl)
-      ? (fromUrl as Role)
-      : null
+    const fromUrl = (searchParams.get("role") || "").toUpperCase()
+    if (Roles.includes(fromUrl as Role)) return fromUrl as Role
 
-    const fromStorage = (localStorage.getItem('role') || '').toUpperCase()
-    const validFromStorage = Roles.includes(fromStorage)
-      ? (fromStorage as Role)
-      : null
+    const fromStorage = (localStorage.getItem("role") || "").toUpperCase()
+    if (Roles.includes(fromStorage as Role)) return fromStorage as Role
 
-    return validFromUrl || validFromStorage || ('DISCENTE' as Role)
+    return "DISCENTE"
   }, [searchParams])
 
   const [role, setRole] = useState<Role>(initialRole)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
-  useEffect(() => { setRole(initialRole) }, [initialRole])
+  useEffect(() => {
+    setRole(initialRole)
+  }, [initialRole])
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    localStorage.setItem('role', role)
-    login(email || 'usuario@ufpb.br', password, role)
+    localStorage.setItem("role", role)
+    login(email || "usuario@ufpb.br", password, role)
 
-    // Redirecionamento por função
-    if (role === 'ADMINISTRADOR') {
-      nav('/') // Dashboard
-    } else if (role === 'DISCENTE' || role === 'COORDENADOR') {
-      nav('/projetos')
-    } else {
-      nav('/') // fallback
-    }
+    if (role === "ADMINISTRADOR") navigate("/dashboard") 
+    else navigate("/projetos")
   }
 
   return (
-    <div className="login-container">
-      <form onSubmit={onSubmit} className="login-card login-card--elevated">
-        <div className="login-header">
-          <img src={logo} alt="UFPB / PROPESQ" className="login-logo" />
-          <h1 className="login-title-sigaa">PRÓ-REITORIA DE PESQUISA - UFPB</h1>
-        </div>
+    <div className="
+      min-h-screen
+      flex flex-col
+      bg-gradient-to-br
+      from-neutral-light
+      via-white
+      to-primary/5
+    ">
+      <Helmet>
+        <title>Login • PROPESQ UFPB</title>
+      </Helmet>
 
-        <div className="login-panel">
-          <label className="login-label">E-mail Institucional</label>
-          <input
-            className="login-input login-input--outlined"
-            type="email"
-            placeholder="E-mail Institucional"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+      {/* CONTEÚDO */}
+      <main className="flex flex-1 items-center justify-center px-4">
+        <form
+          onSubmit={onSubmit}
+          className="
+            w-full max-w-sm
+            bg-white
+            rounded-2xl
+            border border-neutral-light
+            shadow-card
+            px-6 py-7
+          "
+        >
+          {/* HEADER */}
+          <div className="flex flex-col items-center gap-3 mb-7 text-center">
+            <img
+              src={logo}
+              alt="PROPESQ UFPB"
+              className="h-10 w-auto select-none"
+            />
 
-          <label className="login-label">Senha</label>
-          <input
-            className="login-input login-input--outlined"
-            type="password"
-            placeholder="Senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <div className="role-group" role="group" aria-label="Escolher perfil">
-            {Roles.map((r) => (
-              <button
-                type="button"
-                key={r}
-                className={`role-chip ${role === r ? 'is-active' : ''}`}
-                onClick={() => setRole(r as Role)}
-                aria-pressed={role === r}
-              >
-                {r}
-              </button>
-            ))}
+            <div>
+              <h1 className="text-base font-bold text-primary">
+                Acesso à Plataforma
+              </h1>
+              <p className="text-xs text-neutral">
+                Pró-Reitoria de Pesquisa • UFPB
+              </p>
+            </div>
           </div>
 
-          <div className="login-actions">
-            <button type="submit" className="btn-primary-lg">ENTRAR</button>
+          {/* INPUTS */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-neutral mb-1">
+                E-mail institucional
+              </label>
+              <input
+                type="email"
+                placeholder="usuario@ufpb.br"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="
+                  w-full
+                  rounded-lg
+                  border border-neutral-light
+                  px-3 py-2
+                  text-xs
+
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-primary-lighter/40
+                  focus:border-primary
+                "
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-neutral mb-1">
+                Senha
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="
+                  w-full
+                  rounded-lg
+                  border border-neutral-light
+                  px-3 py-2
+                  text-xs
+
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-primary-lighter/40
+                  focus:border-primary
+                "
+              />
+            </div>
           </div>
 
-          <div className="login-links login-links--inline">
-            <a href="#" className="login-link">Recuperar Senha</a>
-            <span className="link-sep">•</span>
-            <a href="#" className="login-link">Cadastrar</a>
-          </div>
-        </div>
-      </form>
+          {/* PERFIL */}
+          <div className="mt-6">
+            <p className="text-[10px] font-semibold text-primary mb-2 uppercase tracking-wide">
+              Perfil de acesso
+            </p>
 
-      <div className="login-footer">
-        PROPESQ - UFPB - © 2025
-      </div>
+            <div className="flex flex-wrap gap-2">
+              {Roles.map((r) => {
+                const active = role === r
+
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRole(r)}
+                    className={`
+                      px-3 py-1.5
+                      rounded-full
+                      text-[10px] font-semibold
+                      border
+                      transition-all duration-200
+
+                      ${
+                        active
+                          ? "bg-primary text-white border-primary"
+                          : "bg-white text-primary border-primary/30 hover:bg-primary hover:text-white"
+                      }
+                    `}
+                  >
+                    {r}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* AÇÕES */}
+          <div className="mt-7 space-y-2">
+            <button
+              type="submit"
+              className="
+                w-full
+                rounded-lg
+                bg-primary
+                text-white
+                py-2.5
+                text-xs font-semibold
+
+                transition-all duration-200
+                shadow-sm
+
+                hover:bg-primary-light
+                hover:shadow-md
+              "
+            >
+              Entrar
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="
+                w-full
+                rounded-lg
+                border border-primary
+                bg-white
+                py-2.5
+                text-xs font-medium
+                text-primary
+
+                transition-colors duration-200
+                hover:bg-neutral-light
+              "
+            >
+              Voltar para a página inicial
+            </button>
+          </div>
+
+          {/* LINK */}
+          <div className="mt-4 text-center">
+            <a href="#" className="text-[10px] text-primary hover:underline">
+              Esqueci minha senha
+            </a>
+          </div>
+        </form>
+      </main>
+
+      {/* FOOTER */}
+      <footer className="py-4 text-center text-[10px] text-neutral">
+        © {new Date().getFullYear()} PROPESQ • Universidade Federal da Paraíba
+      </footer>
     </div>
   )
 }

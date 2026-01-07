@@ -1,9 +1,9 @@
-// src/pages/Settings.tsx
+// src/pages/Settings.tsx - sem usar pq os dados vão vir do contexto de autenticação
+
 import React, { useRef, useState } from 'react'
 import Card from '@/components/Card'
 import { useAuth } from '@/context/AuthContext'
-import '@/styles/Settings.css'
-import { Helmet } from 'react-helmet'
+//import { Helmet } from 'react-helmet'
 
 export default function Settings() {
   const { user } = useAuth()

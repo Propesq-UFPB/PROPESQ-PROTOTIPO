@@ -1,23 +1,33 @@
-import React from 'react'
-import { Route, Routes, Navigate } from 'react-router-dom'
-import AppHeader from './components/AppHeader'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import Projects from './pages/Projects'
-import ProjectForm from './pages/ProjectForm'
-import Plans from './pages/Plans'
-import PlanForm from './pages/PlanForm'
-import Evaluations from './pages/Evaluations'
-import EvaluationDetail from './pages/EvaluationDetail'
-import Monitoring from './pages/Monitoring'
-import Reports from './pages/Reports'
-import Certificates from './pages/Certificates'
-import CertificateView from './pages/CertificateView'
-import AdminAnalytics from './pages/AdminAnalytics'
-import Settings from './pages/Settings'
-import NotFound from './pages/NotFound'
-import MyProjects from './pages/MyProjects'
-import { AuthProvider, useAuth } from './context/AuthContext'
+import { Route, Routes, Navigate } from "react-router-dom"
+import { AuthProvider, useAuth } from "./context/AuthContext"
+
+// Landing
+import LandingHome from "./landing"
+import LandingLayout from "./landing/LandingLayout"
+
+// Landing / Publications
+import Publications from "./landing/Publications"
+import Papers from "./landing/Papers"
+import AwardedWorks from "./landing/AwardedWorks"
+
+// Sistema
+import AppHeader from "./components/AppHeader"
+import Login from "./pages/Login"
+import Dashboard from "./pages/Dashboard"
+import Projects from "./pages/Projects"
+import MyProjects from "./pages/MyProjects"
+import ProjectForm from "./pages/ProjectForm"
+import Plans from "./pages/Plans"
+import PlanForm from "./pages/PlanForm"
+import Evaluations from "./pages/Evaluations"
+import EvaluationDetail from "./pages/EvaluationDetail"
+import Monitoring from "./pages/Monitoring"
+import Reports from "./pages/Reports"
+import Certificates from "./pages/Certificates"
+import CertificateView from "./pages/CertificateView"
+import AdminAnalytics from "./pages/AdminAnalytics"
+import Settings from "./pages/Settings"
+import NotFound from "./pages/NotFound"
 
 const Protected: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth()
@@ -26,45 +36,29 @@ const Protected: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 }
 
 const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="min-h-screen w-full bg-ufpb-light grid grid-rows-[auto_1fr_auto]">
+  <div className="min-h-screen grid grid-rows-[auto_1fr_auto]">
     <AppHeader />
-    <main className="overflow-auto p-4 md:p-6">{children}</main>
-    <footer className="px-6 py-4 text-center border-t border-gray-200 bg-gray-100 text-gray-500">
-      <div className="flex items-center justify-center">
-        <span className="text-sm md:text-xs tracking-wide">
-          © {new Date().getFullYear()} UFPB • PROPESQ
-        </span>
-      </div>
-    </footer>
+    <main className="p-4 md:p-6">{children}</main>
   </div>
 )
-
-const HomeRedirect: React.FC = () => {
-  const { user } = useAuth()
-  if (!user) return <Navigate to="/login" replace />
-
-  // Redireciona conforme o papel
-  if (user.role === 'DISCENTE' || user.role === 'COORDENADOR') {
-    return <Navigate to="/projetos" replace />
-  }
-
-  if (user.role === 'ADMINISTRADOR') {
-    return <Navigate to="/dashboard" replace />
-  }
-
-  // fallback
-  return <Navigate to="/login" replace />
-}
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
+
+        {/* 🌐 LANDING PÚBLICA */}
+        <Route element={<LandingLayout />}>
+          <Route path="/" element={<LandingHome />} />
+          <Route path="/publications" element={<Publications />} />
+          <Route path="/publications/anais" element={<Papers />} />
+          <Route path="/publications/iniciados" element={<AwardedWorks />} />
+        </Route>
+
+        {/* 🔐 LOGIN */}
         <Route path="/login" element={<Login />} />
 
-        <Route path="/" element={<Protected><HomeRedirect /></Protected>} />
-
-        {/* Rotas principais */}
+        {/* 🔒 SISTEMA */}
         <Route path="/dashboard" element={<Protected><Shell><Dashboard /></Shell></Protected>} />
         <Route path="/projetos" element={<Protected><Shell><Projects /></Shell></Protected>} />
         <Route path="/meus-projetos" element={<Protected><Shell><MyProjects /></Shell></Protected>} />
@@ -80,8 +74,11 @@ export default function App() {
         <Route path="/painel-gerencial" element={<Protected><Shell><AdminAnalytics /></Shell></Protected>} />
         <Route path="/configuracoes" element={<Protected><Shell><Settings /></Shell></Protected>} />
 
+        {/* 404 */}
         <Route path="*" element={<NotFound />} />
+
       </Routes>
     </AuthProvider>
   )
 }
+

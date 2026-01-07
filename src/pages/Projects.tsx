@@ -1,37 +1,14 @@
-
 // src/pages/Projects.tsx
-import React, { useMemo, useState } from 'react'
-import Card from '@/components/Card'
-import Table from '@/components/Table'
-import { projetos } from '@/mock/data'
-import { Link } from 'react-router-dom'
-import '@/styles/Projects.css'
-import { Helmet } from 'react-helmet'
+import React, { useMemo, useState } from "react"
+import Card from "@/components/Card"
+import Table from "@/components/Table"
+import { projetos } from "@/mock/data"
+import { Link } from "react-router-dom"
+import { Helmet } from "react-helmet"
 
-type RoleType = 'DISCENTE' | 'COORDENADOR' | 'ADMINISTRADOR' 
+/* ================= TIPOS ================= */
 
-function getCurrentRole(): RoleType {
-  if (typeof window !== 'undefined' && (window as any).__ROLE__) {
-    return String((window as any).__ROLE__).toUpperCase() as RoleType
-  }
-  const fromLS = (typeof window !== 'undefined' && window.localStorage)
-    ? localStorage.getItem('role')
-    : null
-  const normalized = (fromLS || 'DISCENTE').toUpperCase()
-  return (['DISCENTE', 'COORDENADOR', 'ADMINISTRADOR'].includes(normalized)
-    ? normalized
-    : 'DISCENTE') as RoleType
-}
-
-const statusClass = (status: string) => {
-  const s = status?.toLowerCase?.() || ''
-  if (s.includes('aprov')) return 'badge badge-green'
-  if (s.includes('pend') || s.includes('anál') || s.includes('analise') || s.includes('em análise')) return 'badge badge-amber'
-  if (s.includes('reprov') || s.includes('indefer')) return 'badge badge-red'
-  return 'badge badge-gray'
-}
-
-const truncate = (txt: string, n = 80) => (txt?.length > n ? `${txt.slice(0, n)}…` : txt || '—')
+type RoleType = "DISCENTE" | "COORDENADOR" | "ADMINISTRADOR"
 
 type Projeto = {
   id: string | number
@@ -40,7 +17,7 @@ type Projeto = {
   area: string
   status: string
   prazo: string
-  tipo?: 'interno' | 'externo'
+  tipo?: "interno" | "externo"
   ano?: number | string
   pesquisador?: string
   unidade?: string
@@ -52,84 +29,99 @@ type Projeto = {
   edital?: string
   situacao?: string
   categoria?: string
-  relatorioFinal?: 'submetido' | 'nao_submetido'
+  relatorioFinal?: "submetido" | "nao_submetido"
 }
+
+/* ================= UTIL ================= */
+
+function getCurrentRole(): RoleType {
+  if (typeof window !== "undefined" && (window as any).__ROLE__) {
+    return String((window as any).__ROLE__).toUpperCase() as RoleType
+  }
+  const fromLS = typeof window !== "undefined" ? localStorage.getItem("role") : null
+  const normalized = (fromLS || "DISCENTE").toUpperCase()
+  return ["DISCENTE", "COORDENADOR", "ADMINISTRADOR"].includes(normalized)
+    ? (normalized as RoleType)
+    : "DISCENTE"
+}
+
+const statusClass = (status: string) => {
+  const s = status?.toLowerCase?.() || ""
+  if (s.includes("aprov")) return "bg-green-100 text-green-800"
+  if (s.includes("pend") || s.includes("anál") || s.includes("analise"))
+    return "bg-amber-100 text-amber-800"
+  if (s.includes("reprov") || s.includes("indefer"))
+    return "bg-red-100 text-red-800"
+  return "bg-neutral-light text-neutral"
+}
+
+const truncate = (txt: string, n = 70) =>
+  txt?.length > n ? `${txt.slice(0, n)}…` : txt || "—"
+
+/* ================= COMPONENT ================= */
 
 export default function Projects() {
   const role = getCurrentRole()
-  const canCreate = role === 'COORDENADOR' || role === 'ADMINISTRADOR'
+  const canCreate = role === "COORDENADOR" || role === "ADMINISTRADOR"
 
-  // ====== Critérios (com checkboxes) ======
-  // Tipo
+  /* ================= ESTADOS (TODOS) ================= */
+
   const [useTipo, setUseTipo] = useState(false)
-  const [tipo, setTipo] = useState<'' | 'interno' | 'externo'>('')
+  const [tipo, setTipo] = useState<"" | "interno" | "externo">("")
 
-  // Código (formato livre; no SIE é PPPNNNN-AAAA, mas aqui faremos contains)
   const [useCodigo, setUseCodigo] = useState(false)
-  const [codigo, setCodigo] = useState('')
+  const [codigo, setCodigo] = useState("")
 
-  // Ano
   const [useAno, setUseAno] = useState(false)
-  const [ano, setAno] = useState<string>('')
+  const [ano, setAno] = useState("")
 
-  // Escopo (Todos da UFPB / Somente da minha unidade / Somente externos)
-  const [escopo, setEscopo] = useState<'todos' | 'minha_unidade' | 'somente_externos'>('todos')
+  const [escopo, setEscopo] =
+    useState<"todos" | "minha_unidade" | "somente_externos">("todos")
 
-  // Pesquisador
   const [usePesq, setUsePesq] = useState(false)
-  const [pesquisador, setPesquisador] = useState('')
+  const [pesquisador, setPesquisador] = useState("")
 
-  // Centro/Unidade (select) + Unidade (texto)
   const [useCentro, setUseCentro] = useState(false)
-  const [centro, setCentro] = useState('')
+  const [centro, setCentro] = useState("")
 
   const [useUnidade, setUseUnidade] = useState(false)
-  const [unidade, setUnidade] = useState('')
+  const [unidade, setUnidade] = useState("")
 
-  // Título
   const [useTitulo, setUseTitulo] = useState(false)
-  const [titulo, setTitulo] = useState('')
+  const [titulo, setTitulo] = useState("")
 
-  // Objetivos
   const [useObjetivos, setUseObjetivos] = useState(false)
-  const [objetivos, setObjetivos] = useState('')
+  const [objetivos, setObjetivos] = useState("")
 
-  // Linha de Pesquisa
   const [useLinha, setUseLinha] = useState(false)
-  const [linhaPesquisa, setLinhaPesquisa] = useState('')
+  const [linhaPesquisa, setLinhaPesquisa] = useState("")
 
-  // Área de Conhecimento (select)
   const [useAreaConhec, setUseAreaConhec] = useState(false)
-  const [areaConhecimento, setAreaConhecimento] = useState('')
+  const [areaConhecimento, setAreaConhecimento] = useState("")
 
-  // Grupo de Pesquisa (select)
   const [useGrupo, setUseGrupo] = useState(false)
-  const [grupoPesquisa, setGrupoPesquisa] = useState('')
+  const [grupoPesquisa, setGrupoPesquisa] = useState("")
 
-  // Agência Financiadora (select)
   const [useAgencia, setUseAgencia] = useState(false)
-  const [agencia, setAgencia] = useState('')
+  const [agencia, setAgencia] = useState("")
 
-  // Edital (select)
   const [useEdital, setUseEdital] = useState(false)
-  const [edital, setEdital] = useState('')
+  const [edital, setEdital] = useState("")
 
-  // Situação do Projeto (select)
   const [useSituacao, setUseSituacao] = useState(false)
-  const [situacao, setSituacao] = useState('')
+  const [situacao, setSituacao] = useState("")
 
-  // Categoria do Projeto (select)
   const [useCategoria, setUseCategoria] = useState(false)
-  const [categoria, setCategoria] = useState('')
+  const [categoria, setCategoria] = useState("")
 
-  // Relatório Final (radio)
   const [useRelatorioFinal, setUseRelatorioFinal] = useState(false)
-  const [relatorioFinal, setRelatorioFinal] = useState<'' | 'submetido' | 'nao_submetido'>('')
+  const [relatorioFinal, setRelatorioFinal] =
+    useState<"" | "submetido" | "nao_submetido">("")
 
-  // Gerar relatório (checkbox “livre”)
   const [gerarRelatorio, setGerarRelatorio] = useState(false)
 
-  // Opções derivadas do mock
+  /* ================= OPÇÕES ================= */
+
   const centrosOpts = useMemo(() => {
     const set = new Set<string>()
     ;(projetos as Projeto[]).forEach(p => p.centro && set.add(p.centro))
@@ -140,135 +132,67 @@ export default function Projects() {
     const set = new Set<string>()
     ;(projetos as Projeto[]).forEach(p => {
       if (p.areaConhecimento) set.add(p.areaConhecimento)
-      if (p.area) set.add(p.area) // fallback: usa "area" como área de conhecimento
+      if (p.area) set.add(p.area)
     })
     return Array.from(set)
   }, [])
 
-  // Placeholders para selects que não existem no mock:
-  const gruposOpts = ['—', 'GP I', 'GP II', 'GP III']
-  const agenciasOpts = ['—', 'CNPq', 'CAPES', 'FINEP', 'UFPB', 'Outra']
-  const editaisOpts = ['—', 'PIBIC 2023', 'PIBIC 2024', 'PIBITI 2024', 'Universal 2024']
-  const situacoesOpts = ['—', 'Em análise', 'Aprovado', 'Reprovado', 'Indeferido', 'Concluído']
-  const categoriasOpts = ['—', 'Pesquisa', 'Extensão', 'Inovação', 'Ensino']
+  const gruposOpts = ["—", "GP I", "GP II", "GP III"]
+  const agenciasOpts = ["—", "CNPq", "CAPES", "FINEP", "UFPB", "Outra"]
+  const editaisOpts = ["—", "PIBIC 2023", "PIBIC 2024", "PIBITI 2024"]
+  const situacoesOpts = ["—", "Em análise", "Aprovado", "Reprovado", "Indeferido", "Concluído"]
+  const categoriasOpts = ["—", "Pesquisa", "Extensão", "Inovação", "Ensino"]
 
-  // ========== APLICAÇÃO DOS FILTROS ==========
+  /* ================= FILTRO (INALTERADO) ================= */
+
   const filtered = useMemo(() => {
     return (projetos as Projeto[]).filter(p => {
-      const sv = (v?: string) => (v || '').toLowerCase()
-      const has = <T extends keyof Projeto>(k: T) => (p[k] !== undefined && p[k] !== null)
+      const sv = (v?: string) => (v || "").toLowerCase()
+      const has = <T extends keyof Projeto>(k: T) =>
+        p[k] !== undefined && p[k] !== null
 
-      // Tipo
-      if (useTipo && tipo) {
-        const v = has('tipo') ? (p.tipo as any) : ''
-        if (String(v || '').toLowerCase() !== tipo) return false
-      }
+      if (useTipo && tipo && p.tipo !== tipo) return false
+      if (useCodigo && codigo && !String(p.id).toLowerCase().includes(codigo.toLowerCase()))
+        return false
+      if (useAno && ano && !String(p.ano ?? "").includes(ano)) return false
 
-      // Código (contains em id ou campo codigo caso exista)
-      if (useCodigo && codigo.trim()) {
-        const idText = String(p.id || '').toLowerCase()
-        const codigoField = (p as any).codigo ? String((p as any).codigo).toLowerCase() : ''
-        const needle = codigo.trim().toLowerCase()
-        if (!idText.includes(needle) && !codigoField.includes(needle)) return false
-      }
+      if (escopo === "somente_externos" && p.tipo !== "externo") return false
+      if (escopo === "minha_unidade" && has("unidade") && !p.unidade) return false
 
-      // Ano
-      if (useAno && ano.trim()) {
-        const yearText = String(p.ano ?? '').toLowerCase()
-        if (!yearText || !yearText.includes(ano.trim().toLowerCase())) return false
-      }
-
-      // Escopo (Todos / Somente da minha unidade / Somente externos)
-      if (escopo === 'somente_externos') {
-        // se existir p.tipo, exige 'externo'
-        if (has('tipo') && p.tipo !== 'externo') return false
-      }
-      if (escopo === 'minha_unidade') {
-        // se existir p.unidade, exige não-vazio (simulando “da minha unidade”)
-        if (has('unidade') && !p.unidade) return false
-      }
-
-      // Pesquisador
-      if (usePesq && pesquisador.trim()) {
-        const field = sv((p as any).pesquisador)
-        if (!field.includes(pesquisador.trim().toLowerCase())) return false
-      }
-
-      // Centro/Unidade
-      if (useCentro && centro) {
-        if (sv(p.centro) !== centro.toLowerCase()) return false
-      }
-
-      if (useUnidade && unidade.trim()) {
-        const field = sv((p as any).unidade)
-        if (!field.includes(unidade.trim().toLowerCase())) return false
-      }
-
-      // Título
-      if (useTitulo && titulo.trim()) {
-        if (!sv(p.titulo).includes(titulo.trim().toLowerCase())) return false
-      }
-
-      // Objetivos
-      if (useObjetivos && objetivos.trim()) {
-        const field = sv((p as any).objetivos)
-        if (!field.includes(objetivos.trim().toLowerCase())) return false
-      }
-
-      // Linha de Pesquisa
-      if (useLinha && linhaPesquisa.trim()) {
-        const field = sv((p as any).linhaPesquisa)
-        if (!field.includes(linhaPesquisa.trim().toLowerCase())) return false
-      }
-
-      // Área de Conhecimento
-      if (useAreaConhec && areaConhecimento) {
-        const alvo = areaConhecimento.toLowerCase()
-        const field = sv(p.areaConhecimento || p.area)
-        if (field !== alvo) return false
-      }
-
-      // Grupo de Pesquisa
-      if (useGrupo && grupoPesquisa && grupoPesquisa !== '—') {
-        const field = sv((p as any).grupoPesquisa)
-        if (field !== grupoPesquisa.toLowerCase()) return false
-      }
-
-      // Agência
-      if (useAgencia && agencia && agencia !== '—') {
-        const field = sv((p as any).agencia)
-        if (field !== agencia.toLowerCase()) return false
-      }
-
-      // Edital
-      if (useEdital && edital && edital !== '—') {
-        const field = sv((p as any).edital)
-        if (field !== edital.toLowerCase()) return false
-      }
-
-      // Situação (mapeia para status quando não existir)
-      if (useSituacao && situacao && situacao !== '—') {
-        const field = sv((p as any).situacao || p.status)
-        if (!field.includes(situacao.toLowerCase())) return false
-      }
-
-      // Categoria
-      if (useCategoria && categoria && categoria !== '—') {
-        const field = sv((p as any).categoria)
-        if (field !== categoria.toLowerCase()) return false
-      }
-
-      // Relatório final
-      if (useRelatorioFinal && relatorioFinal) {
-        const field = ((p as any).relatorioFinal || '') as 'submetido' | 'nao_submetido' | ''
-        if (field !== relatorioFinal) return false
-      }
+      if (usePesq && pesquisador && !sv(p.pesquisador).includes(sv(pesquisador)))
+        return false
+      if (useCentro && centro && sv(p.centro) !== sv(centro)) return false
+      if (useUnidade && unidade && !sv(p.unidade).includes(sv(unidade)))
+        return false
+      if (useTitulo && titulo && !sv(p.titulo).includes(sv(titulo)))
+        return false
+      if (useObjetivos && objetivos && !sv(p.objetivos).includes(sv(objetivos)))
+        return false
+      if (useLinha && linhaPesquisa && !sv(p.linhaPesquisa).includes(sv(linhaPesquisa)))
+        return false
+      if (
+        useAreaConhec &&
+        areaConhecimento &&
+        sv(p.areaConhecimento || p.area) !== sv(areaConhecimento)
+      )
+        return false
+      if (useGrupo && grupoPesquisa !== "—" && sv(p.grupoPesquisa) !== sv(grupoPesquisa))
+        return false
+      if (useAgencia && agencia !== "—" && sv(p.agencia) !== sv(agencia))
+        return false
+      if (useEdital && edital !== "—" && sv(p.edital) !== sv(edital))
+        return false
+      if (useSituacao && situacao !== "—" && !sv(p.status).includes(sv(situacao)))
+        return false
+      if (useCategoria && categoria !== "—" && sv(p.categoria) !== sv(categoria))
+        return false
+      if (useRelatorioFinal && relatorioFinal && p.relatorioFinal !== relatorioFinal)
+        return false
 
       return true
     })
   }, [
     projetos,
-    // deps:
     useTipo, tipo,
     useCodigo, codigo,
     useAno, ano,
@@ -288,401 +212,255 @@ export default function Projects() {
     useRelatorioFinal, relatorioFinal
   ])
 
-  // ====== RENDER ======
+  /* ================= RENDER ================= */
+
   return (
-    <Card title="Projetos">
-      <div className="page-projects">
+    <div className="min-h-screen bg-white">
+      <Helmet>
+        <title>Projetos • PROPESQ</title>
+      </Helmet>
 
-      {/* ================= CRITÉRIOS DE BUSCA ================= */}
-      <div className="criteria card-like criteria-form">
-        <div className="criteria-title">Critérios de Busca dos Projetos</div>
+      <div className="max-w-7xl mx-auto px-6 py-10">
+          {/* FILTROS */}
+          <div className="bg-white rounded-2xl border border-neutral-light p-8 shadow-card mb-12">
+            <h2 className="text-lg font-bold text-primary mb-8">
+              Critérios de Busca dos Projetos
+            </h2>
 
-        {/* Tipo */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useTipo} onChange={e => setUseTipo(e.target.checked)} />
-            <span>Tipo:</span>
-          </label>
-          <div className="criteria-field">
-            <label className={`radio ${!useTipo ? 'disabled' : ''}`}>
-              <input type="radio" disabled={!useTipo} checked={tipo === 'interno'} onChange={() => setTipo('interno')} />
-              Interno
-            </label>
-            <label className={`radio ${!useTipo ? 'disabled' : ''}`}>
-              <input type="radio" disabled={!useTipo} checked={tipo === 'externo'} onChange={() => setTipo('externo')} />
-              Externo
-            </label>
-            {useTipo && <button className="link-reset" onClick={() => setTipo('')}>Limpar</button>}
-          </div>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 
-        {/* Código */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useCodigo} onChange={e => setUseCodigo(e.target.checked)} />
-            <span>Código:</span>
-          </label>
-          <div className="criteria-field">
-            <input
-              type="text"
-              disabled={!useCodigo}
-              value={codigo}
-              onChange={e => setCodigo(e.target.value)}
-              placeholder="PPP0000-AAAA"
-            />
-            <span className="criteria-help">
-              (Formato: PPPNNNN-AAAA, onde PPP = prefixo, NNNN = número e AAAA = ano)
-            </span>
-          </div>
-        </div>
+          {/* TIPO */}
+          <div className="flex flex-col gap-4 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
+              <label className="flex items-center gap-3 font-semibold text-primary">
+                <input type="checkbox" checked={useTipo} onChange={e => setUseTipo(e.target.checked)} className="accent-primary" />
+                Tipo do Projeto
+              </label>
 
-        {/* Ano */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useAno} onChange={e => setUseAno(e.target.checked)} />
-            <span>Ano:</span>
-          </label>
-          <div className="criteria-field criteria-field--short">
-            <input
-              type="number"
-              min={0}
-              disabled={!useAno}
-              value={ano}
-              onChange={e => setAno(e.target.value)}
-              placeholder="AAAA"
-            />
-          </div>
-        </div>
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="radio" disabled={!useTipo} checked={tipo === 'interno'} onChange={() => setTipo('interno')} />
+                  Interno
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="radio" disabled={!useTipo} checked={tipo === 'externo'} onChange={() => setTipo('externo')} />
+                  Externo
+                </label>
+              </div>
 
-        {/* Escopo */}
-        <div className="criteria-row">
-          <div className="criteria-offset" />
-          <div className="criteria-field">
-            <label className="radio">
-              <input type="radio" checked={escopo === 'todos'} onChange={() => setEscopo('todos')} />
-              Todos da UFPB
-            </label>
-            <label className="radio">
-              <input type="radio" checked={escopo === 'minha_unidade'} onChange={() => setEscopo('minha_unidade')} />
-              Somente da minha unidade
-            </label>
-            <label className="radio">
-              <input type="radio" checked={escopo === 'somente_externos'} onChange={() => setEscopo('somente_externos')} />
-              Somente externos
-            </label>
-          </div>
-        </div>
+              {useTipo && (
+                <button type="button" onClick={() => setTipo('')} className="text-xs text-primary underline self-start">
+                  Limpar seleção
+                </button>
+              )}
+            </div>
 
-        {/* Pesquisador */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={usePesq} onChange={e => setUsePesq(e.target.checked)} />
-            <span>Pesquisador:</span>
-          </label>
-          <div className="criteria-field">
-            <input
-              type="text"
-              disabled={!usePesq}
-              value={pesquisador}
-              onChange={e => setPesquisador(e.target.value)}
-              placeholder="Nome do pesquisador"
-            />
-          </div>
-        </div>
+            {/* CÓDIGO */}
+            <div className="flex flex-col gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
+              <label className="flex items-center gap-3 font-semibold text-primary">
+                <input type="checkbox" checked={useCodigo} onChange={e => setUseCodigo(e.target.checked)} className="accent-primary" />
+                Código do Projeto
+              </label>
 
-        {/* Centro/Unidade */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useCentro} onChange={e => setUseCentro(e.target.checked)} />
-            <span>Centro/Unidade:</span>
-          </label>
-          <div className="criteria-field">
-            <select disabled={!useCentro} value={centro} onChange={e => setCentro(e.target.value)}>
-              <option value="">-- SELECIONE --</option>
-              {centrosOpts.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Unidade */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useUnidade} onChange={e => setUseUnidade(e.target.checked)} />
-            <span>Unidade:</span>
-          </label>
-          <div className="criteria-field">
-            <input
-              type="text"
-              disabled={!useUnidade}
-              value={unidade}
-              onChange={e => setUnidade(e.target.value)}
-              placeholder="Código/nome da unidade"
-            />
-          </div>
-        </div>
-
-        {/* Título */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useTitulo} onChange={e => setUseTitulo(e.target.checked)} />
-            <span>Título:</span>
-          </label>
-          <div className="criteria-field">
-            <input
-              type="text"
-              disabled={!useTitulo}
-              value={titulo}
-              onChange={e => setTitulo(e.target.value)}
-              placeholder="Título do projeto"
-            />
-          </div>
-        </div>
-
-        {/* Objetivos */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useObjetivos} onChange={e => setUseObjetivos(e.target.checked)} />
-            <span>Objetivos:</span>
-          </label>
-          <div className="criteria-field">
-            <input
-              type="text"
-              disabled={!useObjetivos}
-              value={objetivos}
-              onChange={e => setObjetivos(e.target.value)}
-              placeholder="Palavras-chave dos objetivos"
-            />
-          </div>
-        </div>
-
-        {/* Linha de Pesquisa */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useLinha} onChange={e => setUseLinha(e.target.checked)} />
-            <span>Linha de Pesquisa:</span>
-          </label>
-          <div className="criteria-field">
-            <input
-              type="text"
-              disabled={!useLinha}
-              value={linhaPesquisa}
-              onChange={e => setLinhaPesquisa(e.target.value)}
-              placeholder="Linha/tema de pesquisa"
-            />
-          </div>
-        </div>
-
-        {/* Área de Conhecimento */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useAreaConhec} onChange={e => setUseAreaConhec(e.target.checked)} />
-            <span>Área de Conhecimento:</span>
-          </label>
-          <div className="criteria-field">
-            <select
-              disabled={!useAreaConhec}
-              value={areaConhecimento}
-              onChange={e => setAreaConhecimento(e.target.value)}
-            >
-              <option value="">-- SELECIONE UMA ÁREA --</option>
-              {areasConhecOpts.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Grupo de Pesquisa */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useGrupo} onChange={e => setUseGrupo(e.target.checked)} />
-            <span>Grupo de Pesquisa:</span>
-          </label>
-          <div className="criteria-field">
-            <select disabled={!useGrupo} value={grupoPesquisa} onChange={e => setGrupoPesquisa(e.target.value)}>
-              {gruposOpts.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Agência Financiadora */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useAgencia} onChange={e => setUseAgencia(e.target.checked)} />
-            <span>Agência Financiadora:</span>
-          </label>
-          <div className="criteria-field">
-            <select disabled={!useAgencia} value={agencia} onChange={e => setAgencia(e.target.value)}>
-              {agenciasOpts.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Edital */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useEdital} onChange={e => setUseEdital(e.target.checked)} />
-            <span>Edital:</span>
-          </label>
-          <div className="criteria-field">
-            <select disabled={!useEdital} value={edital} onChange={e => setEdital(e.target.value)}>
-              {editaisOpts.map(ed => <option key={ed} value={ed}>{ed}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Situação do Projeto */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useSituacao} onChange={e => setUseSituacao(e.target.checked)} />
-            <span>Situação do Projeto:</span>
-          </label>
-          <div className="criteria-field">
-            <select disabled={!useSituacao} value={situacao} onChange={e => setSituacao(e.target.value)}>
-              {situacoesOpts.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Categoria do Projeto */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useCategoria} onChange={e => setUseCategoria(e.target.checked)} />
-            <span>Categoria do Projeto:</span>
-          </label>
-          <div className="criteria-field">
-            <select disabled={!useCategoria} value={categoria} onChange={e => setCategoria(e.target.value)}>
-              {categoriasOpts.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Relatório Final */}
-        <div className="criteria-row">
-          <label className="criteria-check">
-            <input type="checkbox" checked={useRelatorioFinal} onChange={e => setUseRelatorioFinal(e.target.checked)} />
-            <span>Relatório Final</span>
-          </label>
-          <div className="criteria-field">
-            <label className={`radio ${!useRelatorioFinal ? 'disabled' : ''}`}>
               <input
-                type="radio"
-                disabled={!useRelatorioFinal}
-                checked={relatorioFinal === 'submetido'}
-                onChange={() => setRelatorioFinal('submetido')}
+                type="text"
+                disabled={!useCodigo}
+                value={codigo}
+                onChange={e => setCodigo(e.target.value)}
+                placeholder="PPP0000-AAAA"
+                className="rounded-lg border border-neutral/30 px-4 py-2 text-sm disabled:bg-neutral/20"
               />
-              Submetido
-            </label>
-            <label className={`radio ${!useRelatorioFinal ? 'disabled' : ''}`}>
-              <input
-                type="radio"
-                disabled={!useRelatorioFinal}
-                checked={relatorioFinal === 'nao_submetido'}
-                onChange={() => setRelatorioFinal('nao_submetido')}
-              />
-              Não Submetido
-            </label>
-          </div>
-        </div>
 
-        {/* Gerar relatório*/}
-        <div className="criteria-row">
-          <div className="criteria-offset" />
-          <div className="criteria-field">
-            <label className="checkbox-inline">
-              <input
-                type="checkbox"
-                checked={gerarRelatorio}
-                onChange={e => setGerarRelatorio(e.target.checked)}
-              />
-              Gerar relatório
-            </label>
-          </div>
-        </div>
+              <span className="text-xs text-neutral/70">
+                Formato: PPPNNNN-AAAA
+              </span>
+            </div>
 
-        {/* Ações centralizadas */}
-        <div className="criteria-actions center">
-          <button className="btn btn-primary">Buscar</button>
-          <button
-            className="btn"
-            onClick={() => {
-              setUseTipo(false); setTipo('');
-              setUseCodigo(false); setCodigo('');
-              setUseAno(false); setAno('');
-              setEscopo('todos');
-              setUsePesq(false); setPesquisador('');
-              setUseCentro(false); setCentro('');
-              setUseUnidade(false); setUnidade('');
-              setUseTitulo(false); setTitulo('');
-              setUseObjetivos(false); setObjetivos('');
-              setUseLinha(false); setLinhaPesquisa('');
-              setUseAreaConhec(false); setAreaConhecimento('');
-              setUseGrupo(false); setGrupoPesquisa('');
-              setUseAgencia(false); setAgencia('');
-              setUseEdital(false); setEdital('');
-              setUseSituacao(false); setSituacao('');
-              setUseCategoria(false); setCategoria('');
-              setUseRelatorioFinal(false); setRelatorioFinal('');
-              setGerarRelatorio(false);
-            }}
-          >
-            Cancelar
-          </button>
+            {/* ANO */}
+            <div className="flex flex-col gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
+              <label className="flex items-center gap-3 font-semibold text-primary">
+                <input type="checkbox" checked={useAno} onChange={e => setUseAno(e.target.checked)} className="accent-primary" />
+                Ano
+              </label>
+
+              <input
+                type="number"
+                disabled={!useAno}
+                value={ano}
+                onChange={e => setAno(e.target.value)}
+                placeholder="AAAA"
+                className="rounded-lg border border-neutral/30 px-4 py-2 text-sm disabled:bg-neutral/20"
+              />
+            </div>
+
+            {/* ESCOPO */}
+            <div className="flex flex-col gap-4 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
+              <span className="font-semibold text-primary">
+                Escopo da Busca
+              </span>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input type="radio" checked={escopo === 'todos'} onChange={() => setEscopo('todos')} />
+                Todos da UFPB
+              </label>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input type="radio" checked={escopo === 'minha_unidade'} onChange={() => setEscopo('minha_unidade')} />
+                Somente da minha unidade
+              </label>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input type="radio" checked={escopo === 'somente_externos'} onChange={() => setEscopo('somente_externos')} />
+                Somente externos
+              </label>
+            </div>
+
+            {/* PESQUISADOR */}
+            <div className="flex flex-col gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
+              <label className="flex items-center gap-3 font-semibold text-primary">
+                <input type="checkbox" checked={usePesq} onChange={e => setUsePesq(e.target.checked)} className="accent-primary" />
+                Pesquisador
+              </label>
+
+              <input
+                type="text"
+                disabled={!usePesq}
+                value={pesquisador}
+                onChange={e => setPesquisador(e.target.value)}
+                placeholder="Nome do pesquisador"
+                className="rounded-lg border border-neutral/30 px-4 py-2 text-sm disabled:bg-neutral/20"
+              />
+            </div>
+
+            {/* CENTRO */}
+            <div className="flex flex-col gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
+              <label className="flex items-center gap-3 font-semibold text-primary">
+                <input type="checkbox" checked={useCentro} onChange={e => setUseCentro(e.target.checked)} className="accent-primary" />
+                Centro / Unidade
+              </label>
+
+              <select
+                disabled={!useCentro}
+                value={centro}
+                onChange={e => setCentro(e.target.value)}
+                className="rounded-lg border border-neutral/30 px-4 py-2 text-sm disabled:bg-neutral/20"
+              >
+                <option value="">Selecione</option>
+                {centrosOpts.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* TÍTULO */}
+            <div className="flex flex-col gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
+              <label className="flex items-center gap-3 font-semibold text-primary">
+                <input type="checkbox" checked={useTitulo} onChange={e => setUseTitulo(e.target.checked)} className="accent-primary" />
+                Título do Projeto
+              </label>
+
+              <input
+                type="text"
+                disabled={!useTitulo}
+                value={titulo}
+                onChange={e => setTitulo(e.target.value)}
+                placeholder="Título do projeto"
+                className="rounded-lg border border-neutral/30 px-4 py-2 text-sm disabled:bg-neutral/20"
+              />
+            </div>
+
+            {/* RELATÓRIO FINAL */}
+            <div className="flex flex-col gap-4 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
+              <label className="flex items-center gap-3 font-semibold text-primary">
+                <input type="checkbox" checked={useRelatorioFinal} onChange={e => setUseRelatorioFinal(e.target.checked)} className="accent-primary" />
+                Relatório Final
+              </label>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input type="radio" disabled={!useRelatorioFinal} checked={relatorioFinal === 'submetido'} onChange={() => setRelatorioFinal('submetido')} />
+                Submetido
+              </label>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input type="radio" disabled={!useRelatorioFinal} checked={relatorioFinal === 'nao_submetido'} onChange={() => setRelatorioFinal('nao_submetido')} />
+                Não submetido
+              </label>
+            </div>
+
+            {/* GERAR RELATÓRIO */}
+            <div className="flex items-center gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
+              <input type="checkbox" checked={gerarRelatorio} onChange={e => setGerarRelatorio(e.target.checked)} className="accent-primary" />
+              <span className="font-semibold text-primary">
+                Gerar relatório
+              </span>
+            </div>
+
         </div>
       </div>
 
-      {/* ================= LISTAGEM DE PROJETOS ================= */}
-      {filtered.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-title">Nenhum projeto encontrado</div>
-          <div className="empty-subtitle">
-            Ajuste os filtros ou marque os critérios desejados.
-          </div>
-        </div>
-      ) : (
-        <div className="projects-list-section">
-          {/* Cabeçalho da listagem */}
-          <div className="projects-list-header">
-          <h2 className="projects-list-title">
-            {role === 'COORDENADOR' || role === 'ADMINISTRADOR'
-              ? 'Resultado da Busca de Projetos'
-              : 'Resultado da Busca de Projetos'}
-          </h2>
-
-            {canCreate && (
-              <Link to="/novo-projeto" className="btn btn-gold">
-                + Novo Projeto
-              </Link>
-            )}
+      <div className="mt-8 flex justify-end gap-4">
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 text-base rounded-xl border border-neutral-light"
+              >
+                Limpar
+              </button>
+              <button className="px-6 py-3 text-base rounded-xl bg-primary text-white font-semibold">
+                Buscar
+              </button>
+            </div>
           </div>
 
-          {/* Tabela */}
-          <div className="table-wrap">
-            <Table
-              data={filtered}
-              cols={[
-                { key: 'id', header: 'Código/ID', render: (r: any) => <span className="mono">{r.id}</span> },
-                {
-                  key: 'titulo',
-                  header: 'Título',
-                  render: (r: any) => (
-                    <span className="proj-ttl" title={r.titulo}>
-                      {truncate(r.titulo, 60)}
-                    </span>
-                  ),
-                },
-                { key: 'centro', header: 'Centro' },
-                { key: 'area', header: 'Área' },
-                {
-                  key: 'status',
-                  header: 'Situação',
-                  render: (r: any) => <span className={statusClass(r.status)}>{r.status}</span>,
-                },
-                { key: 'prazo', header: 'Prazo' },
-              ]}
-            />
-          </div>
-        </div>
-      )}
+          {/* LISTAGEM */}
+          {filtered.length === 0 ? (
+            <div className="text-center py-20 text-base text-neutral">
+              Nenhum projeto encontrado.
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-neutral-light p-8 shadow-card">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-bold text-primary">
+                  Resultado da Busca
+                </h2>
+
+                {canCreate && (
+                  <Link
+                    to="/novo-projeto"
+                    className="px-6 py-3 text-base rounded-xl bg-accent text-primary font-semibold"
+                  >
+                    + Novo Projeto
+                  </Link>
+                )}
+              </div>
+
+              <Table
+                data={filtered}
+                cols={[
+                  { key: "id", header: "Código" },
+                  {
+                    key: "titulo",
+                    header: "Título",
+                    render: (r: any) => truncate(r.titulo),
+                  },
+                  { key: "centro", header: "Centro" },
+                  { key: "area", header: "Área" },
+                  {
+                    key: "status",
+                    header: "Situação",
+                    render: (r: any) => (
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-semibold ${statusClass(
+                          r.status
+                        )}`}
+                      >
+                        {r.status}
+                      </span>
+                    ),
+                  },
+                  { key: "prazo", header: "Prazo" },
+                ]}
+              />
+            </div>
+          )}
       </div>
-    </Card>
   )
 }

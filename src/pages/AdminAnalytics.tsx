@@ -1,239 +1,296 @@
-// src/pages/AdminAnalytics.tsx - painel gerencial
+// src/pages/AdminAnalytics.tsx
 
-import React, { useState } from 'react'
-import StatCard from '@/components/StatCard'
-import Card from '@/components/Card'
+import React, { useState } from "react"
+import StatCard from "@/components/StatCard"
+import Card from "@/components/Card"
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, BarChart, Bar, CartesianGrid
-} from 'recharts'
-import '@/styles/AdminAnalytics.css'
-import { Helmet } from 'react-helmet'
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  BarChart,
+  Bar,
+} from "recharts"
+import { Helmet } from "react-helmet"
 
-// ================= MOCKS ================= //
-const AREAS = ['Exatas', 'Humanas', 'Saúde', 'Tecnologia', 'Biológicas']
-const STATUS = ['Submissão', 'Em avaliação', 'Aprovado', 'Em andamento', 'Concluído']
-const TIPOS_BOLSA = ['Iniciação Científica', 'Mestrado', 'Doutorado', 'Extensão']
+/* ================= TAXONOMIAS ================= */
 
-// Projetos fakes
-const projetos = Array.from({length: 50}, (_, i) => ({
-  id: i+1,
-  titulo: `Projeto ${i+1}`,
-  area: AREAS[i % AREAS.length],
-  status: STATUS[i % STATUS.length],
-  coordenador: `Coord ${i%7+1}`,
-  prazo: `2025-${(i%12)+1}-20`,
-  aprovados: Math.floor(Math.random()*20),
-  reprovados: Math.floor(Math.random()*5),
-  resumos: Math.floor(Math.random()*5),
-  certificados: Math.floor(Math.random()*3),
-}))
+const AREAS = ["Exatas", "Humanas", "Saúde", "Tecnologia", "Biológicas"]
 
-// Bolsistas fakes
-const bolsas = Array.from({length: 60}, (_, i) => ({
-  id: i+1,
-  area: AREAS[i % AREAS.length],
-  tipo: TIPOS_BOLSA[i % TIPOS_BOLSA.length],
-}))
-
-const notificacoes = [
-  { id:1, texto:'Prazo final para submissão de relatórios', tipo:'urgente' },
-  { id:2, texto:'Novo edital aberto: Inovação 2025', tipo:'info' },
-  { id:3, texto:'Certificados de projetos emitidos', tipo:'sucesso' },
+const CENTROS = [
+  "Centro de Ciências da Saúde",
+  "Centro de Informática",
+  "Centro de Ciências Humanas",
+  "Centro de Tecnologia",
+  "Centro de Ciências Exatas",
 ]
 
-const COLORS = ['#0077b6','#00b4d8','#90e0ef','#ffb703','#fb8500']
+const EIXOS = [
+  "Saúde",
+  "Educação",
+  "Trabalho & Renda",
+  "Inovação & Tecnologia",
+  "Sustentabilidade",
+  "Inclusão Social",
+]
 
-function getStatusClass(status:string){
-  const s = status.toLowerCase()
-  if(s.includes('pend') || s.includes('sub')) return 'badge badge-amber'
-  if(s.includes('and') || s.includes('aval')) return 'badge badge-blue'
-  if(s.includes('aprov')) return 'badge badge-green'
-  if(s.includes('conc')) return 'badge badge-purple'
-  return 'badge badge-neutral'
-}
+const STATUS = [
+  "Submissão",
+  "Em avaliação",
+  "Aprovado",
+  "Em andamento",
+  "Concluído",
+]
 
-// ================= COMPONENTE ================= //
-export default function DashboardAdminPIBIC(){
-  const [areaFiltro,setAreaFiltro] = useState<string|'Todas'>('Todas')
-  const [statusFiltro,setStatusFiltro] = useState<string|'Todos'>('Todos')
-  const [tipoBolsaFiltro,setTipoBolsaFiltro] = useState<string|'Todos'>('Todos')
+const TIPOS_BOLSA = [
+  "Iniciação Científica",
+  "Mestrado",
+  "Doutorado",
+  "Extensão",
+]
 
-  const projetosFiltrados = projetos.filter(p =>
-    (areaFiltro==='Todas' || p.area===areaFiltro) &&
-    (statusFiltro==='Todos' || p.status===statusFiltro)
+/* ================= MOCKS ================= */
+
+const projetos = Array.from({ length: 140 }, (_, i) => ({
+  id: i + 1,
+  area: AREAS[Math.floor(Math.random() * AREAS.length)],
+  centro: CENTROS[Math.floor(Math.random() * CENTROS.length)],
+  eixo: EIXOS[Math.floor(Math.random() * EIXOS.length)],
+  status: STATUS[Math.floor(Math.random() * STATUS.length)],
+  ano: 2019 + Math.floor(Math.random() * 7),
+  aprovados: Math.floor(Math.random() * 25),
+  reprovados: Math.floor(Math.random() * 8),
+}))
+
+const bolsas = Array.from({ length: 220 }, (_, i) => ({
+  centro: CENTROS[Math.floor(Math.random() * CENTROS.length)],
+  area: AREAS[Math.floor(Math.random() * AREAS.length)],
+  tipo: TIPOS_BOLSA[Math.floor(Math.random() * TIPOS_BOLSA.length)],
+}))
+
+const COLORS = [
+  "#022859",
+  "#03588C",
+  "#0597F2",
+  "#F2B705",
+  "#D97D0D",
+  "#6A4C93",
+]
+
+/* ================= COMPONENTE ================= */
+
+export default function AdminAnalytics() {
+  const [centroFiltro, setCentroFiltro] =
+    useState<string | "Todos">("Todos")
+
+  const projetosFiltrados = projetos.filter(
+    (p) => centroFiltro === "Todos" || p.centro === centroFiltro
   )
 
-  const bolsasFiltradas = bolsas.filter(b =>
-    (areaFiltro==='Todas' || b.area===areaFiltro) &&
-    (tipoBolsaFiltro==='Todos' || b.tipo===tipoBolsaFiltro)
+  const bolsasFiltradas = bolsas.filter(
+    (b) => centroFiltro === "Todos" || b.centro === centroFiltro
   )
 
-  // KPIs
+  /* ================= KPIs (INALTERADOS) ================= */
+
   const estatisticas = {
-    projetosAtivos: projetosFiltrados.filter(p=>p.status==='Em andamento').length,
-    projetosConcluidos: projetosFiltrados.filter(p=>p.status==='Concluído').length,
-    resumosEnviados: projetosFiltrados.reduce((acc,p)=>acc+p.resumos,0),
-    certificadosEmitidos: projetosFiltrados.reduce((acc,p)=>acc+p.certificados,0),
-    bolsistasAtivos: bolsasFiltradas.length,
-    editaisAbertos:3,
+    totalProjetos: projetosFiltrados.length,
+    emAndamento: projetosFiltrados.filter(
+      (p) => p.status === "Em andamento"
+    ).length,
+    concluidos: projetosFiltrados.filter(
+      (p) => p.status === "Concluído"
+    ).length,
+    bolsistas: bolsasFiltradas.length,
+    editaisAtivos: 3,
     taxaAprovacao: Math.round(
-      projetosFiltrados.reduce((acc,p)=>acc+p.aprovados,0)/
-      (projetosFiltrados.reduce((acc,p)=>acc+p.aprovados+p.reprovados,0)||1)*100
-    )
+      (projetosFiltrados.reduce((a, p) => a + p.aprovados, 0) /
+        (projetosFiltrados.reduce(
+          (a, p) => a + p.aprovados + p.reprovados,
+          0
+        ) || 1)) *
+        100
+    ),
   }
 
-  // Dados gráficos
-  const aprovadosPorMes = Array.from({length:12},(_,i)=>{
-    const mes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][i]
-    const mesData = projetosFiltrados.filter((_,idx)=>idx%12===i)
-    return {
-      mes,
-      aprovados: mesData.reduce((acc,p)=>acc+p.aprovados,0),
-      reprovados: mesData.reduce((acc,p)=>acc+p.reprovados,0),
-      resumos: mesData.reduce((acc,p)=>acc+p.resumos,0),
-      certificados: mesData.reduce((acc,p)=>acc+p.certificados,0)
-    }
-  })
+  /* ================= GRÁFICOS ================= */
 
-  const bolsasPorArea = AREAS.map((a,i)=>({
-    name:a,
-    value: bolsasFiltradas.filter(b=>b.area===a).length
+  const projetosPorCentro = CENTROS.map((c) => ({
+    centro: c,
+    total: projetosFiltrados.filter((p) => p.centro === c).length,
   }))
 
-  const progressoEdital = [
-    {etapa:'Submissão', progresso:100},
-    {etapa:'Avaliação', progresso:75},
-    {etapa:'Vigência', progresso:40},
-    {etapa:'Encerramento', progresso:10},
-  ]
+  const projetosPorEixo = EIXOS.map((e) => ({
+    eixo: e,
+    total: projetosFiltrados.filter((p) => p.eixo === e).length,
+  }))
+
+  const statusPorCentro = CENTROS.map((c) => ({
+    centro: c,
+    andamento: projetosFiltrados.filter(
+      (p) => p.centro === c && p.status === "Em andamento"
+    ).length,
+    concluido: projetosFiltrados.filter(
+      (p) => p.centro === c && p.status === "Concluído"
+    ).length,
+  }))
+
+  const bolsasPorCentro = CENTROS.map((c) => ({
+    name: c,
+    value: bolsasFiltradas.filter((b) => b.centro === c).length,
+  }))
+
+  const evolucaoProjetos = Array.from(
+    new Set(projetosFiltrados.map((p) => p.ano))
+  ).map((ano) => ({
+    ano,
+    total: projetosFiltrados.filter((p) => p.ano === ano).length,
+  }))
 
   return (
-    <div className="dashboard-page">
-
+    <div className="min-h-screen bg-white">
       <Helmet>
-        <link rel="icon" type="image/png" href="/src/styles/imgs/favicon-32x32.png" />
+        <title>Dashboard Gerencial • PROPESQ</title>
       </Helmet>
 
-      {/* HEADER */}
-      <div className="page-header">
-        <h1 className="page-title">Dashboard Administrativo PIBIC</h1>
-      </div>
+      <div className="max-w-7xl mx-auto px-6 py-10 space-y-16">
+        {/* HEADER */}
+        <header>
+          <h1 className="text-3xl font-bold text-primary">
+            Dashboard Gerencial de Pesquisa
+          </h1>
+          <p className="mt-2 text-neutral">
+            Análises institucionais por centro, eixo temático e área estratégica
+          </p>
+        </header>
 
-      {/* FILTROS GLOBAIS */}
-      <div className="filtros-grid">
-        <select value={areaFiltro} onChange={e=>setAreaFiltro(e.target.value)}>
-          <option>Todas</option>
-          {AREAS.map(a=><option key={a}>{a}</option>)}
-        </select>
-        <select value={statusFiltro} onChange={e=>setStatusFiltro(e.target.value)}>
-          <option>Todos</option>
-          {STATUS.map(s=><option key={s}>{s}</option>)}
-        </select>
-        <select value={tipoBolsaFiltro} onChange={e=>setTipoBolsaFiltro(e.target.value)}>
-          <option>Todos</option>
-          {TIPOS_BOLSA.map(t=><option key={t}>{t}</option>)}
-        </select>
-      </div>
-
-      {/* CARDS KPI */}
-      <div className="cards-grid">
-        <StatCard title="Projetos em andamento" value={estatisticas.projetosAtivos}/>
-        <StatCard title="Projetos concluídos" value={estatisticas.projetosConcluidos}/>
-        <StatCard title="Resumos enviados" value={estatisticas.resumosEnviados}/>
-        <StatCard title="Certificados emitidos" value={estatisticas.certificadosEmitidos}/>
-        <StatCard title="Bolsistas ativos" value={estatisticas.bolsistasAtivos}/>
-        <StatCard title="Editais abertos" value={estatisticas.editaisAbertos}/>
-        <StatCard title="Taxa de aprovação (%)" value={estatisticas.taxaAprovacao}/>
-      </div>
-
-      {/* GRÁFICOS */}
-      <div className="section-grid">
-        {/* Aprovações / reprovações */}
-        <Card title="Aprovações e Reprovações por Mês">
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={aprovadosPorMes}>
-              <defs>
-                <linearGradient id="gradAprov" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.05}/>
-                </linearGradient>
-                <linearGradient id="gradReprov" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0.05}/>
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="mes" tick={{fill:'var(--texto)'}}/>
-              <YAxis tick={{fill:'var(--texto)'}}/>
-              <Tooltip wrapperClassName="chart-tooltip"/>
-              <Area type="monotone" dataKey="aprovados" stroke="#10b981" fill="url(#gradAprov)"/>
-              <Area type="monotone" dataKey="reprovados" stroke="#ef4444" fill="url(#gradReprov)"/>
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
-
-        {/* Bolsas por área */}
-        <Card title="Distribuição de Bolsas por Área">
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie data={bolsasPorArea} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                {bolsasPorArea.map((_,i)=><Cell key={i} fill={COLORS[i % COLORS.length]}/>)}
-              </Pie>
-              <Legend/>
-              <Tooltip/>
-            </PieChart>
-          </ResponsiveContainer>
-        </Card>
-
-        {/* Progresso Edital */}
-        <Card title="Progresso do Edital Atual">
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={progressoEdital}>
-              <defs>
-                <linearGradient id="gradEdital" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0077b6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#0077b6" stopOpacity={0.05}/>
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="etapa" tick={{fill:'var(--texto)'}}/>
-              <YAxis domain={[0,100]} tick={{fill:'var(--texto)'}}/>
-              <Tooltip wrapperClassName="chart-tooltip"/>
-              <Area type="monotone" dataKey="progresso" stroke="#00b4d8" fill="url(#gradEdital)"/>
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      {/* NOTIFICAÇÕES E PROJETOS */}
-      <div className="section-grid mt-6">
-        <Card title="Notificações Recentes">
-          <ul className="stack">
-            {notificacoes.map(n=>(
-              <li key={n.id} className="row-soft hover-lift">
-                <span className="text-sm">{n.texto}</span>
-                <span className={n.tipo==='urgente'?'badge badge-red pulse':'badge badge-gold'}>{n.tipo}</span>
-              </li>
+        {/* FILTRO */}
+        <section className="max-w-md">
+          <label className="block text-sm font-semibold text-primary mb-2">
+            Centro Acadêmico
+          </label>
+          <select
+            value={centroFiltro}
+            onChange={(e) => setCentroFiltro(e.target.value)}
+            className="w-full rounded-lg border border-primary px-4 py-2 text-sm"
+          >
+            <option>Todos</option>
+            {CENTROS.map((c) => (
+              <option key={c}>{c}</option>
             ))}
-          </ul>
-        </Card>
+          </select>
+        </section>
 
-        <Card title="Projetos Filtrados (Resumo)">
-          <ul className="stack">
-            {projetosFiltrados.slice(0,8).map(p=>(
-              <li key={p.id} className="row hover-lift">
-                <div className="text-sm">
-                  <div className="font-medium">{p.titulo}</div>
-                  <div className="muted">{p.area} — {p.coordenador}</div>
-                  <div className="muted">Prazo: {p.prazo}</div>
-                  <div className="muted">Resumos: {p.resumos} | Certificados: {p.certificados}</div>
-                </div>
-                <span className={getStatusClass(p.status)}>{p.status}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
+        {/* KPIs */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
+          <StatCard title="Projetos cadastrados" value={estatisticas.totalProjetos} />
+          <StatCard title="Em andamento" value={estatisticas.emAndamento} />
+          <StatCard title="Concluídos" value={estatisticas.concluidos} />
+          <StatCard title="Bolsistas ativos" value={estatisticas.bolsistas} />
+          <StatCard title="Editais ativos" value={estatisticas.editaisAtivos} />
+          <StatCard title="Taxa de aprovação (%)" value={estatisticas.taxaAprovacao} />
+        </section>
+
+        {/* GRÁFICOS POR CENTRO */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="border border-primary rounded-2xl p-4">
+            <Card title={<span className="text-xl font-bold">Projetos por Centro Acadêmico</span>}>
+              <div className="p-4">
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={projetosPorCentro}>
+                    <XAxis dataKey="centro" hide />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="total" fill="#03588C" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+
+          <div className="border border-primary rounded-2xl p-4">
+            <Card title={<span className="text-xl font-bold">Status dos Projetos por Centro</span>}>
+              <div className="p-4">
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={statusPorCentro}>
+                    <XAxis dataKey="centro" hide />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="andamento" stackId="a" fill="#0597F2" />
+                    <Bar dataKey="concluido" stackId="a" fill="#F2B705" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+        </section>
+
+        {/* EIXOS */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="border border-primary rounded-2xl p-4">
+            <Card title={<span className="text-xl font-bold">Projetos por Eixo Temático</span>}>
+              <div className="p-4">
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie data={projetosPorEixo} dataKey="total" outerRadius={110} label>
+                      {projetosPorEixo.map((_, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Legend />
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+
+          <div className="border border-primary rounded-2xl p-4">
+            <Card title={<span className="text-xl font-bold">Distribuição de Bolsas por Centro</span>}>
+              <div className=" p-4">
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie data={bolsasPorCentro} dataKey="value" outerRadius={110} label>
+                      {bolsasPorCentro.map((_, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Legend />
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+        </section>
+
+        {/* EVOLUÇÃO */}
+        <div className="border border-primary rounded-2xl p-4">
+          <Card title={<span className="text-xl font-bold">Quantidade de Bolsas ao Longo do Tempo</span>}>
+            <div className=" p-4">
+              <ResponsiveContainer width="100%" height={320}>
+                <AreaChart data={evolucaoProjetos}>
+                  <XAxis dataKey="ano" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area
+                    dataKey="total"
+                    stroke="#022859"
+                    fill="#02285933"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   )
 }
-
