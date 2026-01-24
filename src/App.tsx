@@ -13,7 +13,32 @@ import AwardedWorks from "./landing/AwardedWorks"
 // Sistema
 import AppHeader from "./components/AppHeader"
 import Login from "./pages/Login"
-import Dashboard from "./pages/Dashboard"
+
+//admin pages
+import Dashboard from "./pages/adm/Dashboard"
+import EvaluationScore from "./pages/adm/avaliacao/EvaluationScore"
+import Classification from "./pages/adm/avaliacao/Classification"
+import IPIScore from "./pages/adm/avaliacao/IPIScore"
+import Evaluators from "./pages/adm/avaliacao/Evaluators"
+
+import MonitoringCertification from "./pages/adm/monitoring/MonitoringCertification"
+import StudentReplacements from "./pages/adm/monitoring/StudentReplacements"
+import ReportValidation from "./pages/adm/monitoring/ReportValidation"
+import AdmCertificates from "./pages/adm/monitoring/AdmCertificates"
+
+import CallsManagement from "./pages/adm/calls/CallsManagement"
+import CreateCall from "./pages/adm/calls/CreateCall"
+import CallSchedule from "./pages/adm/calls/CallSchedule"
+import CallWorkflow from "./pages/adm/calls/CallWorkflow"
+
+import GlobalSettings from "./pages/adm/settings/GlobalSettings"
+import ScholarshipEntities from "./pages/adm/settings/ScholarshipEntities"
+import AcademicUnits from "./pages/adm/settings/AcademicUnits"
+import RolesDictionary from "./pages/adm/settings/RolesDictionary"
+import UserTypes from "./pages/adm/settings/UserTypes"
+
+
+
 import Projects from "./pages/Projects"
 import MyProjects from "./pages/MyProjects"
 import ProjectForm from "./pages/ProjectForm"
@@ -47,7 +72,7 @@ export default function App() {
     <AuthProvider>
       <Routes>
 
-        {/* 🌐 LANDING PÚBLICA */}
+        {/* LANDING PÚBLICA */}
         <Route element={<LandingLayout />}>
           <Route path="/" element={<LandingHome />} />
           <Route path="/publications" element={<Publications />} />
@@ -58,8 +83,31 @@ export default function App() {
         {/* 🔐 LOGIN */}
         <Route path="/login" element={<Login />} />
 
-        {/* 🔒 SISTEMA */}
+        {/*SISTEMA */}
+        {/*SISTEMA - ADMIN */}
         <Route path="/dashboard" element={<Protected><Shell><Dashboard /></Shell></Protected>} />
+        <Route path="/adm/avaliacao" element={<Protected><Shell><EvaluationScore /></Shell></Protected>} />
+        <Route path="/adm/avaliacao/classificacao" element={<Protected><Shell><Classification /></Shell></Protected>} />
+        <Route path="/adm/avaliacao/pontuacao" element={<Protected><Shell><IPIScore /></Shell></Protected>} />
+        <Route path="/adm/avaliacao/avaliadores" element={<Protected><Shell><Evaluators /></Shell></Protected>} />
+
+        <Route path="/adm/monitoring" element={<Protected><Shell><MonitoringCertification /></Shell></Protected>} />
+        <Route path="/adm/monitoring/replacements" element={<Protected><Shell><StudentReplacements /></Shell></Protected>} />
+        <Route path="/adm/monitoring/report-validation" element={<Protected><Shell><ReportValidation /></Shell></Protected>} />
+        <Route path="/adm/monitoring/AdmCertificates" element={<Protected><Shell><AdmCertificates /></Shell></Protected>} />
+
+        <Route path="/adm/calls" element={<Protected><Shell><CallsManagement /></Shell></Protected>} />
+        <Route path="/adm/calls/CreateCall" element={<Protected><Shell><CreateCall /></Shell></Protected>} />
+        <Route path="/adm/calls/CallSchedule" element={<Protected><Shell><CallSchedule /></Shell></Protected>} />
+        <Route path="/adm/calls/CallWorkflow" element={<Protected><Shell><CallWorkflow /></Shell></Protected>} />
+
+        <Route path="/adm/settings" element={<Protected><Shell><GlobalSettings /></Shell></Protected>} />
+        <Route path="/adm/settings/scholarships" element={<Protected><Shell><ScholarshipEntities /></Shell></Protected>} />
+        <Route path="/adm/settings/academic-units" element={<Protected><Shell><AcademicUnits /></Shell></Protected>} />
+        <Route path="/adm/settings/roles" element={<Protected><Shell><RolesDictionary /></Shell></Protected>} />
+        <Route path="/adm/settings/user-types" element={<Protected><Shell><UserTypes /></Shell></Protected>} />
+
+
         <Route path="/projetos" element={<Protected><Shell><Projects /></Shell></Protected>} />
         <Route path="/meus-projetos" element={<Protected><Shell><MyProjects /></Shell></Protected>} />
         <Route path="/novo-projeto" element={<Protected><Shell><ProjectForm /></Shell></Protected>} />

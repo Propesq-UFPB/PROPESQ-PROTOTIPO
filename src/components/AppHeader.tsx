@@ -1,18 +1,24 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import {
-  Bell,
   Home,
   FolderKanban,
-  Files,
-  Notebook,
-  FileText,
+  LineChart,
   ShieldCheck,
   GraduationCap,
-  LineChart,
+  FileText,
+  Notebook,
+  Bell,
   LogOut,
   Menu,
   X,
+  Settings,
+  Users,
+  ClipboardList,
+  Building2,
+  BookUser,
+  BadgeCheck,
+  FileSignature,
 } from "lucide-react"
 
 import LogoImg from "@/utils/img/logo_propesq.png"
@@ -21,21 +27,17 @@ import { useAuth } from "@/context/AuthContext"
 /* ================= TIPOS ================= */
 
 type Role = "DISCENTE" | "COORDENADOR" | "ADMINISTRADOR"
-type Item = { to: string; label: string; icon: React.ReactNode }
+type NavItem = { to: string; label: string; icon?: React.ReactNode; end?: boolean }
 
-/* ================= UTILS ================= */
-
-function isActive(pathname: string, to: string) {
+function isActive(pathname: string, to: string, end?: boolean) {
   if (to === "/") return pathname === "/"
+  if (end) return pathname === to
   return pathname === to || pathname.startsWith(to + "/")
 }
-
-/* ================= COMPONENT ================= */
 
 export default function AppHeader() {
   const { user, logout } = useAuth()
   const location = useLocation()
-
   const role = (user?.role as Role) || "DISCENTE"
 
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -52,48 +54,115 @@ export default function AppHeader() {
     setMobileOpen(false)
   }, [location.pathname])
 
-  /* ================= MENU POR PAPEL ================= */
+  /* ================= MENU ================= */
 
-  const menu: Item[] = [
-    ...(role === "ADMINISTRADOR"
-      ? [{ to: "/dashboard", label: "Início", icon: <Home size={16} /> }]
-      : []),
+  const adminPrimary: NavItem[] = [
+    { to: "/dashboard", label: "Dashboard", icon: <Home size={16} /> },
+    { to: "/adm/avaliacao", label: "Avaliação de Projetos e Pontuação", icon: <FileSignature size={16} /> },
+    { to: "/adm/monitoring", label: "Acompanhamento & Certificação", icon: <BadgeCheck size={16} /> },
+    { to: "/adm/calls", label: "Gestão de Editais", icon: <LineChart size={16} /> },
+    { to: "/adm/settings", label: "Configurações Globais", icon: <Settings size={16} /> },
+  ]
 
+  const adminSecondaryByPrimary: Record<string, NavItem[]> = {
+    "/dashboard": [
+      { to: "/dashboard", label: "Overview", icon: <Home size={16} />, end: true },
+      { to: "/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
+      // { to: "/adm/relatorios", label: "Relatórios", icon: <FileText size={16} /> },
+    ],
+
+    "/adm/avaliacao": [
+      { to: "/adm/avaliacao", label: "Overview", icon: <FileSignature size={16} />, end: true },
+      { to: "/adm/avaliacao/classificacao", label: "Classificação", icon: <GraduationCap size={16} /> },
+      { to: "/adm/avaliacao/pontuacao", label: "Pontuação & IPI", icon: <LineChart size={16} /> },
+      { to: "/adm/avaliacao/avaliadores", label: "Avaliadores", icon: <Users size={16} /> },
+    ],
+
+    "/adm/monitoring": [
+      { to: "/adm/monitoring", label: "Overview", icon: <BadgeCheck size={16} />, end: true },
+      { to: "/adm/monitoring/replacements", label: "Substituições de Discentes", icon: <Users size={16} /> },
+      { to: "/adm/monitoring/report-validation", label: "Validação de Relatórios", icon: <FileText size={16} /> },
+      { to: "/adm/monitoring/AdmCertificates", label: "Certificados", icon: <BadgeCheck size={16} /> },
+    ],
+
+    "/adm/calls": [
+      { to: "/adm/calls", label: "Overview", icon: <FolderKanban size={16} />, end: true },
+      { to: "/adm/calls/CreateCall", label: "Criar Editais", icon: <Notebook size={16} /> },
+      { to: "/adm/calls/CallSchedule", label: "Cronograma", icon: <ClipboardList size={16} /> },
+      { to: "/adm/calls/CallWorkflow", label: "Gestão de Estados (Workflow)", icon: <LineChart size={16} /> },
+    ],
+
+    "/adm/settings": [
+      { to: "/adm/settings", label: "Overview", icon: <Settings size={16} />, end: true },
+      { to: "/adm/settings/scholarships", label: "Entidades & Tipos de Bolsa", icon: <ShieldCheck size={16} /> },
+      { to: "/adm/settings/academic-units", label: "Unidades Acadêmicas", icon: <Building2 size={16} /> },
+      { to: "/adm/settings/roles", label: "Dicionário de Funções", icon: <BookUser size={16} /> },
+      { to: "/adm/settings/user-types", label: "Tipos de Usuários", icon: <Users size={16} /> },
+    ],
+  }
+
+  const adminActivePrimary = useMemo(() => {
+    const pathname = location.pathname
+    const found = adminPrimary.find((p) => isActive(pathname, p.to, p.end))
+    if (!found) return "/dashboard"
+    return found.to
+  }, [location.pathname])
+
+  const adminSecondary = adminSecondaryByPrimary[adminActivePrimary] ?? []
+
+  /* ================= MENU (OUTROS PAPÉIS) ================= */
+
+  const nonAdminMenu: NavItem[] = [
     { to: "/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
-
     ...(role !== "ADMINISTRADOR"
-      ? [{ to: "/meus-projetos", label: "Meus Projetos", icon: <Files size={16} /> }]
+      ? [{ to: "/meus-projetos", label: "Meus Projetos", icon: <FolderKanban size={16} /> }]
       : []),
-
     ...(role !== "ADMINISTRADOR"
       ? [{ to: "/planos", label: "Planos de Trabalho", icon: <Notebook size={16} /> }]
       : []),
-
     ...(role === "COORDENADOR"
       ? [
           { to: "/avaliacoes", label: "Avaliações", icon: <FileText size={16} /> },
           { to: "/relatorios", label: "Relatórios", icon: <Notebook size={16} /> },
         ]
       : []),
-
     ...(role === "DISCENTE"
       ? [
           { to: "/relatorios", label: "Relatórios", icon: <FileText size={16} /> },
           { to: "/certificados", label: "Certificados", icon: <ShieldCheck size={16} /> },
         ]
       : []),
-
-    ...(role === "ADMINISTRADOR"
-      ? [
-          {
-            to: "/painel-gerencial",
-            label: "Painel Gerencial",
-            icon: <LineChart size={16} />,
-          },
-          { to: "/acompanhamento", label: "Editais", icon: <Notebook size={16} /> },
-        ]
-      : []),
   ]
+
+  const primaryMenu = role === "ADMINISTRADOR" ? adminPrimary : nonAdminMenu
+
+  /* ================= CLASSES ================= */
+
+  // Linha 1 (mantém seu design atual)
+  const desktopLinkClass = (active: boolean) => `
+    relative inline-flex items-center gap-2 text-sm font-medium
+    pb-2
+    transition-colors
+    ${active ? "text-primary" : "text-neutral hover:text-primary"}
+    after:content-['']
+    after:absolute after:left-0 after:bottom-0
+    after:h-[3px] after:w-full after:rounded-full
+    after:bg-accent
+    after:transform after:origin-center
+    after:transition-transform after:duration-300
+    ${active ? "after:scale-x-100" : "after:scale-x-0"}
+  `
+
+  // Linha 2 (SUBPÁGINAS) - estilo "segmented control" igual a referência
+  const subSegmentClass = (active: boolean) => `
+    relative inline-flex items-center gap-2
+    px-5 py-2.5
+    text-xs font-semibold
+    rounded-full
+    transition-all
+    ${active ? "bg-primary text-white shadow-sm" : "text-neutral hover:text-primary hover:bg-neutral-light"}
+    focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60
+  `
 
   /* ================= RENDER ================= */
 
@@ -108,48 +177,33 @@ export default function AppHeader() {
       `}
     >
       {/* ===== BAR ===== */}
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-16 grid grid-cols-[auto,1fr,auto] items-center gap-6">
         {/* LOGO */}
         <NavLink to="/" className="flex items-center gap-3">
           <img src={LogoImg} alt="PROPESQ" className="h-8 w-auto select-none" />
         </NavLink>
 
-        {/* MENU DESKTOP */}
-        <nav className="hidden md:flex items-center gap-6">
-          {menu.map((item) => (
+        {/* MENU DESKTOP (LINHA 1) - CENTRALIZADO */}
+        <nav className="hidden md:flex items-center justify-center gap-6">
+          {primaryMenu.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              className={({ isActive: strict }) => {
-                const active = isActive(location.pathname, item.to) || strict
-
-                return `
-                  relative flex items-center gap-2 text-sm font-medium
-                  pb-2
-                  transition-colors
-                  ${active ? "text-primary" : "text-neutral hover:text-primary"}
-                  after:content-['']
-                  after:absolute after:left-0 after:right-0 after:-bottom-[1px]
-                  after:h-[3px] after:rounded-full
-                  after:bg-accent
-                  after:transition-transform after:duration-300
-                  ${active ? "after:scale-x-100" : "after:scale-x-0"}
-                `
+              end={item.end}
+              className={({ isActive: rrActive }) => {
+                const active = isActive(location.pathname, item.to, item.end) || rrActive
+                return desktopLinkClass(active)
               }}
             >
               {item.icon}
               {item.label}
             </NavLink>
-
           ))}
         </nav>
 
         {/* AÇÕES */}
-        <div className="flex items-center gap-3">
-          <button
-            className="hidden md:flex p-2 rounded-full hover:bg-neutral-light"
-            aria-label="Notificações"
-          >
+        <div className="flex items-center gap-3 justify-end">
+          <button className="hidden md:flex p-2 rounded-full hover:bg-neutral-light" aria-label="Notificações">
             <Bell size={18} />
           </button>
 
@@ -172,6 +226,42 @@ export default function AppHeader() {
         </div>
       </div>
 
+      {/* ================= SUBMENU DESKTOP (LINHA 2 - SÓ ADM) =================
+          Agora as SUBPÁGINAS ficam no modelo da imagem (pill/segmented),
+          mantendo cores e fontes (só o design mudou).
+      */}
+      {role === "ADMINISTRADOR" && adminSecondary.length > 0 && (
+        <div className="max-w-7xl mx-auto px-6 mt-2 pb-1">
+          <div className="hidden md:flex justify-center">
+            <div
+              className="
+                inline-flex items-center gap-1
+                rounded-full
+                bg-white
+                border border-neutral-light
+                shadow-lg
+                p-1
+              "
+            >
+              {adminSecondary.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive: rrActive }) => {
+                    const active = isActive(location.pathname, item.to, item.end) || rrActive
+                    return subSegmentClass(active)
+                  }}
+                >
+                  {item.icon}
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ===== MOBILE DRAWER ===== */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 md:hidden">
@@ -179,32 +269,56 @@ export default function AppHeader() {
             {/* HEADER */}
             <div className="h-16 px-6 flex items-center justify-between border-b">
               <img src={LogoImg} alt="PROPESQ" className="h-7" />
-              <button onClick={() => setMobileOpen(false)}>
+              <button onClick={() => setMobileOpen(false)} aria-label="Fechar menu">
                 <X size={20} />
               </button>
             </div>
 
             {/* LINKS */}
-            <nav className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
-              {menu.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive: strict }) =>
-                    `
-                      flex items-center gap-3 text-sm font-medium
-                      ${
-                        isActive(location.pathname, item.to) || strict
-                          ? "text-primary"
-                          : "text-neutral"
+            <nav className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+              {/* LINHA 1 (primário) */}
+              <div className="space-y-4">
+                {primaryMenu.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive: rrActive }) =>
+                      `
+                        flex items-center gap-3 text-sm font-medium
+                        ${isActive(location.pathname, item.to, item.end) || rrActive ? "text-primary" : "text-neutral"}
+                      `
+                    }
+                  >
+                    {item.icon}
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+
+              {/* LINHA 2 (submenu) - só ADM (mobile mantém igual) */}
+              {role === "ADMINISTRADOR" && adminSecondary.length > 0 && (
+                <div className="pt-4 border-t space-y-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-neutral">Seções</p>
+
+                  {adminSecondary.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.end}
+                      className={({ isActive: rrActive }) =>
+                        `
+                          flex items-center gap-3 text-sm font-medium
+                          ${isActive(location.pathname, item.to, item.end) || rrActive ? "text-primary" : "text-neutral"}
+                        `
                       }
-                    `
-                  }
-                >
-                  {item.icon}
-                  {item.label}
-                </NavLink>
-              ))}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
             </nav>
 
             {/* FOOTER */}

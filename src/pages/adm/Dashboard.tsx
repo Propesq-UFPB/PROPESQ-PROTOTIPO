@@ -27,10 +27,10 @@ export default function Dashboard() {
         <title>Dashboard • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-6 space-y-10">
+      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
         {/* HEADER */}
         <header>
-          <h1 className="text-3xl font-bold text-primary">
+          <h1 className="text-2xl font-bold text-primary">
             Painel Administrativo
           </h1>
           <p className="mt-1 text-base text-neutral">
@@ -39,7 +39,7 @@ export default function Dashboard() {
         </header>
 
         {/* INDICADORES */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
           {indicadores.map((ind) => (
             <Card
               key={ind.title}
@@ -49,12 +49,12 @@ export default function Dashboard() {
                 border-2
                 border-primary
                 rounded-3xl
-                py-4
+                py-3
                 text-center
               "
             >
-              <div className="space-y-2">
-                <div className="text-4xl font-bold text-primary">
+              <div className="space-y-1">
+                <div className="text-base font-bold text-primary">
                   {ind.value}
                 </div>
 
@@ -70,7 +70,7 @@ export default function Dashboard() {
         <section className="grid grid-cols-1">
           <Card
             title={
-              <h2 className="text-xl font-semibold text-primary">
+              <h2 className="text-sm font-semibold text-primary">
                 Próximos prazos
               </h2>
             }
@@ -99,7 +99,7 @@ export default function Dashboard() {
                       px-4
                       py-1.5
                       rounded-full
-                      text-xs
+                      text-sm
                       font-semibold
                       border
                       border-primary
