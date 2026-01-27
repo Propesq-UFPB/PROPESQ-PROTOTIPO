@@ -377,9 +377,7 @@ export default function CreateCall() {
                 className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="Ex.: PROPESQ / UFPB"
               />
-              <p className="text-[11px] text-neutral mt-1">
-                Depois pode virar um select integrado a “Entidades & Tipos de Bolsa”.
-              </p>
+              {/*Nota: Idealmente é pra ser um select integrado a “Entidades & Tipos de Bolsa”.*/}
             </label>
 
             <label className="text-sm">

@@ -148,7 +148,7 @@ export default function EvaluationScore() {
         />
       </section>
 
-      {/* Outras seções do módulo*/}
+      {/* Outras seções do módulo
       <section className="rounded-xl border border-neutral-light bg-white p-5">
         <h2 className="text-sm font-semibold text-primary mb-3">Outras configurações do módulo</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -171,7 +171,7 @@ export default function EvaluationScore() {
             icon={<Bell size={18} />}
           />
         </div>
-      </section>
+      </section>*/}
     </div>
   )
 }

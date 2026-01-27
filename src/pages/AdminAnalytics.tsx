@@ -97,7 +97,7 @@ export default function AdminAnalytics() {
     (b) => centroFiltro === "Todos" || b.centro === centroFiltro
   )
 
-  /* ================= KPIs (INALTERADOS) ================= */
+  /* ================= KPIs ================= */
 
   const estatisticas = {
     totalProjetos: projetosFiltrados.length,

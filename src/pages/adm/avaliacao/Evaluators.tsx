@@ -289,11 +289,11 @@ export default function Evaluators() {
       <header className="space-y-1">
         <h1 className="text-xl font-bold text-primary">Gestão de Avaliadores & Distribuição (Ad-Hoc)</h1>
         <p className="text-sm text-neutral">
-          Cadastre avaliadores (internos/externos), distribua projetos de forma cega e monitore pendências de parecer.
+          Distribua projetos de forma cega e monitore pendências de parecer.
         </p>
       </header>
 
-      {/* ===== Banco de avaliadores ===== */}
+      {/* ===== Banco de avaliadores =====
       <Section
         title="Banco de Avaliadores"
         icon={<Users size={18} />}
@@ -308,7 +308,7 @@ export default function Evaluators() {
           </button>
         }
       >
-        {/* filtros */}
+        {/* filtros *}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4">
           <label className="md:col-span-5 text-sm">
             <span className="block text-xs text-neutral mb-1">Buscar</span>
@@ -366,7 +366,7 @@ export default function Evaluators() {
           </label>
         </div>
 
-        {/* lista */}
+        {/* lista *}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -439,7 +439,7 @@ export default function Evaluators() {
           </table>
         </div>
 
-        {/* modal inline */}
+        {/* modal inline *}
         {creating && (
           <div className="mt-5 rounded-xl border border-neutral-light bg-neutral-50 p-4 space-y-3">
             <div className="flex items-center justify-between gap-3">
@@ -534,7 +534,7 @@ export default function Evaluators() {
             Recomendação: importar/validar áreas por tabela oficial (CNPq/CNAE) e manter auditoria de alterações.
           </p>
         </div>
-      </Section>
+      </Section> */}
 
       {/* ===== Distribuição cega (ad-hoc) ===== */}
       <Section
