@@ -668,12 +668,7 @@ export default function ReportValidation() {
                       })}
                   </div>
 
-                  <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 flex items-start gap-2">
-                    <Info size={16} className="mt-0.5 text-neutral" />
-                    <p className="text-xs text-neutral">
-                      Recomendação: manter logs (append-only), versão do arquivo, e permitir comentários do administrador/orientador.
-                    </p>
-                  </div>
+                  {/* Recomendação: manter logs (append-only), versão do arquivo, e permitir comentários do administrador/orientador */}
                 </div>
               </div>
             )}

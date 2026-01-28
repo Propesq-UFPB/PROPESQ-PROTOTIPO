@@ -186,27 +186,37 @@ export default function IPIScore() {
         <h1 className="text-xl font-bold text-primary">Pontuação & IPI</h1>
         <p className="text-sm text-neutral">
           Configure por edital: tabela de pontos (pesos e limites), validade temporal e tratamento de docentes PQ.
+          <br></br>
+          <span className="font-semibold text-red-700">É necessária a definição da regra de negócio para esta página.</span>
         </p>
       </header>
 
       {/* ===== Seleção do edital ===== */}
-      <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-3">
-        <div className="flex items-center gap-2">
+      <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
           <BookOpen size={18} />
           <h2 className="text-sm font-semibold text-primary">Edital</h2>
+
           {dirty && (
-            <span className="ml-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border bg-amber-50 text-amber-800 border-amber-200">
+            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border bg-amber-50 text-amber-800 border-amber-200">
               <AlertTriangle size={14} />
               Alterações não salvas
             </span>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-          <label className="text-sm md:col-span-2">
-            <span className="block text-xs text-neutral mb-1">Escolha o edital</span>
+        <div className="flex flex-col gap-3">
+          <label className="text-sm">
+            <span className="block text-xs text-neutral mb-1">
+              Escolha o edital
+            </span>
+
             <div className="relative">
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none" />
+              <ChevronDown
+                size={16}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none"
+              />
+
               <select
                 value={selectedCallId}
                 onChange={(e) => {
@@ -378,12 +388,9 @@ export default function IPIScore() {
           </label>
         </div>
 
-        <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 flex gap-2">
-          <Info size={16} className="mt-0.5 text-neutral" />
-          <p className="text-xs text-neutral">
-            A flag PQ deve existir no cadastro do docente. Aqui você define apenas como o edital trata docentes PQ no cálculo do IPI.
-          </p>
-        </div>
+        {/* 
+        A flag PQ deve existir no cadastro do docente. Aqui você define apenas como o edital trata docentes PQ no cálculo do IPI.
+        */}
       </section>
 
       {/* ===== Editor de Tabela de Pontos (por edital) ===== */}

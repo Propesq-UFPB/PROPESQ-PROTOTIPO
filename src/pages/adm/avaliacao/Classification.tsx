@@ -18,6 +18,10 @@ import {
   RefreshCcw,
   Mail,
   UserCheck,
+  Pencil,
+  Trash2,
+  FileText,
+  X,
 } from "lucide-react"
 
 type Call = { id: string; title: string; baseYear: number }
@@ -350,6 +354,19 @@ export default function Classification() {
     alert(`E-mail enviado (placeholder) para recurso ${appealId}.`)
   }
 
+  // ===== UI estilo (cotas) =====
+  const [quotaSearchRanking, setQuotaSearchRanking] = useState<"IPI" | "NOTA_FINAL">("IPI")
+  const [quotaCenter, setQuotaCenter] = useState("CCHLA")
+  const [quotaUnit, setQuotaUnit] = useState("Departamento de Computação")
+  const [quotaOrderBy, setQuotaOrderBy] = useState<"IPI" | "NOME_DOCENTE">("IPI")
+
+  type ExceptionalLimit = { id: string; editalId: string; docente: string; limite: number; justificativa?: string }
+  const [exceptionalLimits, setExceptionalLimits] = useState<ExceptionalLimit[]>([
+    { id: "el1", editalId: "call_2026_01", docente: "Profa. Ana Souza", limite: 2, justificativa: "Projeto multi-cota (excepcional)" },
+  ])
+  const [selectedExceptionalId, setSelectedExceptionalId] = useState<string>("")
+
+
   if (!selectedCall) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
@@ -367,28 +384,39 @@ export default function Classification() {
         <h1 className="text-xl font-bold text-primary">Classificação & Resultados</h1>
         <p className="text-sm text-neutral">
           Ranking por projeto, distribuição de cotas e gestão de recursos <span className="font-semibold">por edital</span>.
+          <br></br>
+          <span className="font-semibold text-red-700">É necessária a definição da regra de negócio para esta página.</span>
         </p>
       </header>
 
       {/* ===== Contexto do edital ===== */}
-      <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-3">
-        <div className="flex items-center gap-2">
+      <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
           <BookOpen size={18} />
-          <h2 className="text-sm font-semibold text-primary">Edital em configuração</h2>
+          <h2 className="text-sm font-semibold text-primary">
+            Edital em configuração
+          </h2>
 
           {dirty && (
-            <span className="ml-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border bg-amber-50 text-amber-800 border-amber-200">
+            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border bg-amber-50 text-amber-800 border-amber-200">
               <AlertTriangle size={14} />
               Alterações não salvas
             </span>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-          <label className="text-sm md:col-span-2">
-            <span className="block text-xs text-neutral mb-1">Escolha o edital</span>
+        <div className="flex flex-col gap-3">
+          <label className="text-sm">
+            <span className="block text-xs text-neutral mb-1">
+              Escolha o edital
+            </span>
+
             <div className="relative">
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none" />
+              <ChevronDown
+                size={16}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none"
+              />
+
               <select
                 value={selectedCallId}
                 onChange={(e) => {
@@ -408,24 +436,9 @@ export default function Classification() {
               </select>
             </div>
           </label>
-
-          <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4">
-            <p className="text-xs text-neutral">Resumo</p>
-            <p className="text-sm font-semibold text-primary">{selectedCall.title}</p>
-            <p className="text-xs text-neutral mt-1">
-              Ano-base: <span className="font-semibold text-primary">{selectedCall.baseYear}</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 flex gap-2">
-          <Info size={16} className="mt-0.5 text-neutral" />
-          <p className="text-xs text-neutral">
-            Nota final = combinação de <span className="font-semibold">Nota do Projeto</span> +{" "}
-            <span className="font-semibold">IPI</span>. A tabela do IPI é configurada em “Pontuação & IPI”.
-          </p>
         </div>
       </section>
+
 
       {/* ===== Configurações (fórmula + auto) ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -543,87 +556,355 @@ export default function Classification() {
       </div>
 
       {/* ===== Distribuição de cotas ===== */}
-      <Section
-        title="Distribuição de Cotas"
-        icon={<ShieldCheck size={18} />}
-        right={
-          <button
-            type="button"
-            onClick={runDistribution}
-            disabled={!!quotaError}
-            className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white
-              ${quotaError ? "bg-primary/40 cursor-not-allowed" : "bg-primary hover:opacity-90"}
-            `}
-          >
-            <Play size={16} />
-            Rodar distribuição
-          </button>
-        }
-      >
-        <p className="text-sm text-neutral mb-4">
-          Execute a distribuição seguindo a ordem do ranking e o limite por pesquisador.
-        </p>
+      <section className="rounded-xl border border-neutral-light bg-white overflow-hidden">
+        {/* Breadcrumb + título (barra superior) */}
+        <div className="px-5 py-3 border-b border-neutral-light bg-neutral-50">
+          <div className="mt-1 flex items-center justify-between gap-3 flex-col sm:flex-row">
+            <div className="flex items-center gap-2">
+              <span className="p-2 rounded-lg bg-white border border-neutral-light">
+                <ShieldCheck size={16} />
+              </span>
+              <h2 className="text-sm font-semibold text-primary">Distribuição de Cotas</h2>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-          <label className="md:col-span-4 text-sm">
-            <span className="block text-xs text-neutral mb-1">Ordem de classificação</span>
-            <select
-              className="w-full border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
-              value={quota.order}
-              onChange={(e) => updateQuota({ order: e.target.value as "DESC" | "ASC" })}
+            <button
+              type="button"
+              onClick={runDistribution}
+              disabled={!!quotaError}
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white
+                ${quotaError ? "bg-primary/40 cursor-not-allowed" : "bg-primary hover:opacity-90"}
+              `}
             >
-              <option value="DESC">Maior nota primeiro</option>
-              <option value="ASC">Menor nota primeiro</option>
-            </select>
-          </label>
-
-          <label className="md:col-span-4 text-sm">
-            <span className="block text-xs text-neutral mb-1">Limite por pesquisador</span>
-            <input
-              className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-              value={quota.limitPerResearcher}
-              onChange={(e) => updateQuota({ limitPerResearcher: e.target.value })}
-              placeholder="ex.: 1"
-              inputMode="numeric"
-            />
-          </label>
-
-          <label className="md:col-span-4 text-sm">
-            <span className="block text-xs text-neutral mb-1">Total de cotas (bolsas)</span>
-            <input
-              className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-              value={quota.totalQuotas}
-              onChange={(e) => updateQuota({ totalQuotas: e.target.value })}
-              placeholder="ex.: 20"
-              inputMode="numeric"
-            />
-          </label>
-        </div>
-
-        {quotaError && (
-          <p className="text-sm text-amber-800 mt-3 inline-flex items-center gap-2">
-            <AlertTriangle size={16} /> {quotaError}
-          </p>
-        )}
-
-        <div className="mt-4 rounded-xl border border-neutral-light bg-neutral-50 p-4 flex items-start gap-2">
-          <ArrowDownUp size={16} className="mt-0.5 text-neutral" />
-          <div className="text-xs text-neutral">
-            <p className="font-semibold text-primary">Prévia (placeholder)</p>
-            <p className="mt-1">
-              Selecionados: <span className="font-semibold text-primary">{distributionPreview.winners.length}</span> /{" "}
-              <span className="font-semibold text-primary">{distributionPreview.total}</span> • Limite/pesquisador:{" "}
-              <span className="font-semibold text-primary">{distributionPreview.limit}</span>
-            </p>
-            {distributionPreview.blocked.length > 0 && (
-              <p className="mt-1">
-                Bloqueados por limite:{" "}
-                <span className="font-semibold text-primary">{distributionPreview.blocked.length}</span>
-              </p>
-            )}
+              <Play size={16} />
+              Rodar distribuição
+            </button>
           </div>
         </div>
-      </Section>
+
+        <div className="p-5 space-y-6">
+          {/* 1) GERAR DISTRIBUIÇÃO DE COTAS */}
+          <div className="rounded-lg border border-neutral-light overflow-hidden">
+         {/*   <div className="px-4 py-2 bg-neutral-50 border-b border-neutral-light">
+              <p className="text-xs font-semibold text-primary">GERAR DISTRIBUIÇÃO DE COTAS</p>
+            </div>*/}
+
+            <div className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <label className="md:col-span-6 text-sm">
+                  <span className="block text-[11px] text-neutral mb-1">Edital</span>
+                  <div className="relative">
+                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none" />
+                    <select
+                      value={selectedCallId}
+                      onChange={(e) => {
+                        setSelectedCallId(e.target.value)
+                        setDirty(false)
+                      }}
+                      className="w-full appearance-none border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      {calls
+                        .slice()
+                        .sort((a, b) => b.baseYear - a.baseYear)
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.title} • {c.baseYear}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </label>
+
+                <label className="md:col-span-6 text-sm">
+                  <span className="block text-[11px] text-neutral mb-1">Ranking de produtividade</span>
+                  <select
+                    className="w-full border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
+                    value={quotaSearchRanking}
+                    onChange={(e) => setQuotaSearchRanking(e.target.value as any)}
+                  >
+                    <option value="IPI">IPI (produtividade)</option>
+                    <option value="NOTA_FINAL">Nota final (prévia)</option>
+                  </select>
+                </label>
+
+                <label className="md:col-span-4 text-sm">
+                  <span className="block text-[11px] text-neutral mb-1">Ordem</span>
+                  <select
+                    className="w-full border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
+                    value={quota.order}
+                    onChange={(e) => updateQuota({ order: e.target.value as "DESC" | "ASC" })}
+                  >
+                    <option value="DESC">Maior primeiro</option>
+                    <option value="ASC">Menor primeiro</option>
+                  </select>
+                </label>
+
+                <label className="md:col-span-4 text-sm">
+                  <span className="block text-[11px] text-neutral mb-1">Limite por pesquisador</span>
+                  <input
+                    className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
+                    value={quota.limitPerResearcher}
+                    onChange={(e) => updateQuota({ limitPerResearcher: e.target.value })}
+                    inputMode="numeric"
+                    placeholder="ex.: 1"
+                  />
+                </label>
+
+                <label className="md:col-span-4 text-sm">
+                  <span className="block text-[11px] text-neutral mb-1">Total de cotas (bolsas)</span>
+                  <input
+                    className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
+                    value={quota.totalQuotas}
+                    onChange={(e) => updateQuota({ totalQuotas: e.target.value })}
+                    inputMode="numeric"
+                    placeholder="ex.: 20"
+                  />
+                </label>
+              </div>
+
+              {quotaError && (
+                <p className="text-sm text-amber-800 mt-3 inline-flex items-center gap-2">
+                  <AlertTriangle size={16} /> {quotaError}
+                </p>
+              )}
+
+              {/* Prévia (igual você já tinha, só com cara de “rodapé” do bloco) */}
+              <div className="mt-4 rounded-lg border border-neutral-light bg-neutral-50 p-3 flex items-start gap-2">
+                <ArrowDownUp size={16} className="mt-0.5 text-neutral" />
+                <div className="text-xs text-neutral">
+                  <p className="font-semibold text-primary">Prévia (placeholder)</p>
+                  <p className="mt-1">
+                    Selecionados: <span className="font-semibold text-primary">{distributionPreview.winners.length}</span> /{" "}
+                    <span className="font-semibold text-primary">{distributionPreview.total}</span> • Limite/pesquisador:{" "}
+                    <span className="font-semibold text-primary">{distributionPreview.limit}</span>
+                  </p>
+                  {distributionPreview.blocked.length > 0 && (
+                    <p className="mt-1">
+                      Bloqueados por limite: <span className="font-semibold text-primary">{distributionPreview.blocked.length}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2) EFETUAR AJUSTES NA DISTRIBUIÇÃO */}
+          <div className="rounded-lg border border-neutral-light overflow-hidden">
+            <div className="px-4 py-2 bg-neutral-50 border-b border-neutral-light">
+              <p className="text-xs font-semibold text-primary">EFETUAR AJUSTES NA DISTRIBUIÇÃO DE COTAS</p>
+              <p className="text-[11px] text-neutral mt-0.5">Busca (Edital, Centro/Unidade) • Ordenar por (IFC, Nome do docente)</p>
+            </div>
+
+            <div className="p-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+              <label className="md:col-span-4 text-sm">
+                <span className="block text-[11px] text-neutral mb-1">Centro</span>
+                <input
+                  className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
+                  value={quotaCenter}
+                  onChange={(e) => setQuotaCenter(e.target.value)}
+                  placeholder="ex.: CCHLA"
+                />
+              </label>
+
+              <label className="md:col-span-5 text-sm">
+                <span className="block text-[11px] text-neutral mb-1">Unidade/Departamento</span>
+                <input
+                  className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
+                  value={quotaUnit}
+                  onChange={(e) => setQuotaUnit(e.target.value)}
+                  placeholder="ex.: Departamento de Computação"
+                />
+              </label>
+
+              <label className="md:col-span-3 text-sm">
+                <span className="block text-[11px] text-neutral mb-1">Ordenar por</span>
+                <select
+                  className="w-full border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
+                  value={quotaOrderBy}
+                  onChange={(e) => setQuotaOrderBy(e.target.value as any)}
+                >
+                  <option value="IPI">IFC/IPI</option>
+                  <option value="NOME_DOCENTE">Nome do docente</option>
+                </select>
+              </label>
+
+              <div className="md:col-span-12 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => alert("Buscar ajustes (placeholder)")}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-neutral-light hover:bg-neutral-50"
+                >
+                  <RefreshCcw size={16} />
+                  Buscar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => alert("Abrir tela de ajustes (placeholder)")}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:opacity-90"
+                >
+                  <Settings size={16} />
+                  Ajustar distribuição
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* LIMITE DE COTA EXCEPCIONAL */}
+          <div className="rounded-lg border border-neutral-light overflow-hidden">
+           {/* <div className="px-4 py-2 bg-neutral-50 border-b border-neutral-light flex items-center justify-between gap-3 flex-col sm:flex-row">
+              <div>
+                <p className="text-xs font-semibold text-primary">LIMITE DE COTA EXCEPCIONAL</p>
+                <p className="text-[11px] text-neutral mt-0.5">Pesquisa &gt; Limite de Cota Excepcional</p>
+              </div>
+
+               Barra de ações estilo referência 
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next: ExceptionalLimit = {
+                      id: uid("el"),
+                      editalId: selectedCallId,
+                      docente: "Novo docente (placeholder)",
+                      limite: 2,
+                      justificativa: "Justificativa (placeholder)",
+                    }
+                    setExceptionalLimits((prev) => [next, ...prev])
+                    setDirty(true)
+                  }}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-neutral-light hover:bg-neutral-50"
+                >
+                  <Check size={16} />
+                  Cadastrar
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!selectedExceptionalId}
+                  onClick={() => alert("Alterar (placeholder)")}
+                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border
+                    ${!selectedExceptionalId ? "border-neutral-light text-neutral/40 bg-neutral-50 cursor-not-allowed" : "border-neutral-light hover:bg-neutral-50"}
+                  `}
+                >
+                  <Pencil size={16} />
+                  Alterar
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!selectedExceptionalId}
+                  onClick={() => {
+                    if (!selectedExceptionalId) return
+                    setExceptionalLimits((prev) => prev.filter((x) => x.id !== selectedExceptionalId))
+                    setSelectedExceptionalId("")
+                    setDirty(true)
+                  }}
+                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border
+                    ${!selectedExceptionalId ? "border-neutral-light text-neutral/40 bg-neutral-50 cursor-not-allowed" : "border-neutral-light hover:bg-neutral-50"}
+                  `}
+                >
+                  <Trash2 size={16} />
+                  Remover
+                </button>
+              </div>
+            </div>*/}
+
+            <div className="p-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-xs text-neutral">
+                      <th className="py-2 pr-3 w-10"></th>
+                      <th className="py-2 pr-3">Docente</th>
+                      <th className="py-2 pr-3">Limite</th>
+                      <th className="py-2 pr-3">Justificativa</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {exceptionalLimits
+                      .filter((x) => x.editalId === selectedCallId)
+                      .map((x) => (
+                        <tr key={x.id} className="border-t border-neutral-light">
+                          <td className="py-3 pr-3">
+                            <input
+                              type="radio"
+                              name="exceptional"
+                              checked={selectedExceptionalId === x.id}
+                              onChange={() => setSelectedExceptionalId(x.id)}
+                            />
+                          </td>
+                          <td className="py-3 pr-3 text-neutral">{x.docente}</td>
+                          <td className="py-3 pr-3 text-neutral">{x.limite}</td>
+                          <td className="py-3 pr-3 text-neutral">{x.justificativa ?? "—"}</td>
+                        </tr>
+                      ))}
+
+                    {exceptionalLimits.filter((x) => x.editalId === selectedCallId).length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="py-6 text-center text-neutral">
+                          Nenhum limite excepcional cadastrado para este edital.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* 4) DEMANDA HABILITADA */}
+          <div className="rounded-lg border border-neutral-light overflow-hidden">
+            <div className="px-4 py-2 bg-neutral-50 border-b border-neutral-light">
+              <p className="text-xs font-semibold text-primary">DEMANDA HABILITADA</p>
+              <p className="text-[11px] text-neutral mt-0.5">Filtros para demanda habilitada</p>
+            </div>
+
+            <div className="p-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+              <label className="md:col-span-8 text-sm">
+                <span className="block text-[11px] text-neutral mb-1">Edital</span>
+                <div className="relative">
+                  <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none" />
+                  <select
+                    value={selectedCallId}
+                    onChange={(e) => setSelectedCallId(e.target.value)}
+                    className="w-full appearance-none border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    {calls
+                      .slice()
+                      .sort((a, b) => b.baseYear - a.baseYear)
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.title} • {c.baseYear}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </label>
+
+              <div className="md:col-span-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => alert("Gerar Demanda Habilitada (placeholder)")}
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:opacity-90"
+                >
+                  <FileText size={16} />
+                  Gerar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => alert("Cancelar (placeholder)")}
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-neutral-light hover:bg-neutral-50"
+                >
+                  <X size={16} />
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* ===== Ranking por projeto ===== */}
       <Section title="Ranking por Projeto" icon={<ClipboardList size={18} />}>
@@ -691,14 +972,6 @@ export default function Classification() {
               )}
             </tbody>
           </table>
-        </div>
-
-        <div className="mt-4 rounded-xl border border-neutral-light bg-neutral-50 p-4 flex gap-2">
-          <Info size={16} className="mt-0.5 text-neutral" />
-          <p className="text-xs text-neutral">
-            A nota final exibida é uma prévia local (placeholder). Em produção, o ranking deve ser calculado e versionado no backend,
-            com auditoria e congelamento por etapa do edital.
-          </p>
         </div>
       </Section>
 
@@ -802,13 +1075,6 @@ export default function Classification() {
               )}
             </tbody>
           </table>
-        </div>
-
-        <div className="mt-4 flex items-start gap-2 text-xs text-neutral">
-          <AlertCircle size={14} className="mt-0.5" />
-          <p>
-            Regra recomendada: versionar notas por parecer, manter trilha de auditoria e preservar histórico mesmo quando a nota contestada é desconsiderada.
-          </p>
         </div>
       </Section>
 

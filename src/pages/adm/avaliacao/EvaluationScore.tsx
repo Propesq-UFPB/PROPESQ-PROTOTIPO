@@ -67,17 +67,26 @@ export default function EvaluationScore() {
       </header>
 
       {/* Contexto do edital */}
-      <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-3">
+      <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-4">
         <div className="flex items-center gap-2">
           <BookOpen size={18} />
-          <h2 className="text-sm font-semibold text-primary">Edital em configuração</h2>
+          <h2 className="text-sm font-semibold text-primary">
+            Edital em configuração
+          </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-          <label className="text-sm md:col-span-2">
-            <span className="block text-xs text-neutral mb-1">Escolha o edital</span>
+        <div className="flex flex-col gap-3">
+          <label className="text-sm">
+            <span className="block text-xs text-neutral mb-1">
+              Escolha o edital
+            </span>
+
             <div className="relative">
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none" />
+              <ChevronDown
+                size={16}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none"
+              />
+
               <select
                 value={selectedCallId}
                 onChange={(e) => setSelectedCallId(e.target.value)}

@@ -444,7 +444,7 @@ export default function StudentReplacements() {
           >
             {!openReq ? (
               <div className="rounded-xl border border-neutral-light bg-neutral-50 p-6 text-sm text-neutral text-center">
-                Selecione uma solicitação para ver o histórico do projeto.
+                Pressione em uma solicitação para ver o histórico do projeto.
               </div>
             ) : (
               <div className="space-y-4">
@@ -539,12 +539,7 @@ export default function StudentReplacements() {
                       })}
                   </div>
 
-                  <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 flex items-start gap-2">
-                    <Info size={16} className="mt-0.5 text-neutral" />
-                    <p className="text-xs text-neutral">
-                      Em produção, o histórico deve ser imutável (append-only), com IDs de usuário e trilha de auditoria.
-                    </p>
-                  </div>
+                  {/* Em produção, o histórico deve ser imutável (append-only), com IDs de usuário e trilha de auditoria. */}
                 </div>
               </div>
             )}

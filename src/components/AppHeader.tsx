@@ -19,6 +19,7 @@ import {
   BookUser,
   BadgeCheck,
   FileSignature,
+  Pencil,
 } from "lucide-react"
 
 import LogoImg from "@/utils/img/logo_propesq.png"
@@ -88,8 +89,11 @@ export default function AppHeader() {
     "/adm/calls": [
       { to: "/adm/calls", label: "Overview", icon: <FolderKanban size={16} />, end: true },
       { to: "/adm/calls/CreateCall", label: "Criar Editais", icon: <Notebook size={16} /> },
+      { to: "/adm/calls/Manage", label: "Alterar/Remover Editais", icon: <Pencil size={16} /> },
       { to: "/adm/calls/CallSchedule", label: "Cronograma", icon: <ClipboardList size={16} /> },
       { to: "/adm/calls/CallWorkflow", label: "Gestão de Estados (Workflow)", icon: <LineChart size={16} /> },
+      { to: "/adm/calls/Quotas", label: "Cotas", icon: <ShieldCheck size={16} /> },
+
     ],
 
     "/adm/settings": [
@@ -98,6 +102,8 @@ export default function AppHeader() {
       { to: "/adm/settings/academic-units", label: "Unidades Acadêmicas", icon: <Building2 size={16} /> },
       { to: "/adm/settings/roles", label: "Dicionário de Funções", icon: <BookUser size={16} /> },
       { to: "/adm/settings/user-types", label: "Tipos de Usuários", icon: <Users size={16} /> },
+      { to: "/adm/settings/Parameters", label: "Parâmetros do Módulo", icon: <Settings size={16} /> },
+
     ],
   }
 
@@ -110,7 +116,7 @@ export default function AppHeader() {
 
   const adminSecondary = adminSecondaryByPrimary[adminActivePrimary] ?? []
 
-  /* ================= MENU (OUTROS PAPÉIS) ================= */
+  /* ================= MENU ================= */
 
   const nonAdminMenu: NavItem[] = [
     { to: "/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
@@ -138,7 +144,7 @@ export default function AppHeader() {
 
   /* ================= CLASSES ================= */
 
-  // Linha 1 (mantém seu design atual)
+  // Linha 1
   const desktopLinkClass = (active: boolean) => `
     relative inline-flex items-center gap-2 text-sm font-medium
     pb-2
@@ -153,7 +159,7 @@ export default function AppHeader() {
     ${active ? "after:scale-x-100" : "after:scale-x-0"}
   `
 
-  // Linha 2 (SUBPÁGINAS) - estilo "segmented control" igual a referência
+  // Linha 2 (SUBPÁGINAS)
   const subSegmentClass = (active: boolean) => `
     relative inline-flex items-center gap-2
     px-5 py-2.5
@@ -183,7 +189,7 @@ export default function AppHeader() {
           <img src={LogoImg} alt="PROPESQ" className="h-8 w-auto select-none" />
         </NavLink>
 
-        {/* MENU DESKTOP (LINHA 1) - CENTRALIZADO */}
+        {/* MENU DESKTOP */}
         <nav className="hidden md:flex items-center justify-center gap-6">
           {primaryMenu.map((item) => (
             <NavLink
@@ -226,10 +232,7 @@ export default function AppHeader() {
         </div>
       </div>
 
-      {/* ================= SUBMENU DESKTOP (LINHA 2 - SÓ ADM) =================
-          Agora as SUBPÁGINAS ficam no modelo da imagem (pill/segmented),
-          mantendo cores e fontes (só o design mudou).
-      */}
+      {/* ================= SUBMENU DESKTOP (LINHA 2 - SÓ ADM) ================= */}
       {role === "ADMINISTRADOR" && adminSecondary.length > 0 && (
         <div className="max-w-7xl mx-auto px-6 mt-2 pb-1">
           <div className="hidden md:flex justify-center">

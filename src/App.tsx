@@ -30,13 +30,18 @@ import CallsManagement from "./pages/adm/calls/CallsManagement"
 import CreateCall from "./pages/adm/calls/CreateCall"
 import CallSchedule from "./pages/adm/calls/CallSchedule"
 import CallWorkflow from "./pages/adm/calls/CallWorkflow"
+import AdmCallsManage from "./pages/adm/calls/Manage"
+import CallQuotas from "./pages/adm/calls/Quotas"
 
 import GlobalSettings from "./pages/adm/settings/GlobalSettings"
 import ScholarshipEntities from "./pages/adm/settings/ScholarshipEntities"
 import AcademicUnits from "./pages/adm/settings/AcademicUnits"
 import RolesDictionary from "./pages/adm/settings/RolesDictionary"
 import UserTypes from "./pages/adm/settings/UserTypes"
-
+import CreateInternalProject from "./pages/adm/projects/CreateInternalProject"
+import CreateExternalProject from "./pages/adm/projects/CreateExternalProject"
+import AdmProjectCommunication from "./pages/adm/projects/AdmProjectCommunication"
+import AdmResearchModuleParameters from "./pages/adm/settings/Parameters"
 
 
 import Projects from "./pages/Projects"
@@ -53,6 +58,7 @@ import CertificateView from "./pages/CertificateView"
 import AdminAnalytics from "./pages/AdminAnalytics"
 import Settings from "./pages/Settings"
 import NotFound from "./pages/NotFound"
+import AdmCallQuotas from "./pages/adm/calls/Quotas"
 
 const Protected: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth()
@@ -98,14 +104,23 @@ export default function App() {
 
         <Route path="/adm/calls" element={<Protected><Shell><CallsManagement /></Shell></Protected>} />
         <Route path="/adm/calls/CreateCall" element={<Protected><Shell><CreateCall /></Shell></Protected>} />
+        <Route path="/adm/calls/Manage" element={<Protected><Shell><AdmCallsManage /></Shell></Protected>} />
         <Route path="/adm/calls/CallSchedule" element={<Protected><Shell><CallSchedule /></Shell></Protected>} />
         <Route path="/adm/calls/CallWorkflow" element={<Protected><Shell><CallWorkflow /></Shell></Protected>} />
+        <Route path="/adm/calls/quotas" element={<Protected><Shell><AdmCallQuotas /></Shell></Protected>} />
+
 
         <Route path="/adm/settings" element={<Protected><Shell><GlobalSettings /></Shell></Protected>} />
         <Route path="/adm/settings/scholarships" element={<Protected><Shell><ScholarshipEntities /></Shell></Protected>} />
         <Route path="/adm/settings/academic-units" element={<Protected><Shell><AcademicUnits /></Shell></Protected>} />
         <Route path="/adm/settings/roles" element={<Protected><Shell><RolesDictionary /></Shell></Protected>} />
         <Route path="/adm/settings/user-types" element={<Protected><Shell><UserTypes /></Shell></Protected>} />
+        <Route path="/adm/settings/parameters" element={<Protected><Shell><AdmResearchModuleParameters /></Shell></Protected>} />
+
+        <Route path="/adm/projetos/novo-interno" element={<Protected><Shell><CreateInternalProject /></Shell></Protected>} />
+        <Route path="/adm/projetos/novo-externo" element={<Protected><Shell><CreateExternalProject /></Shell></Protected>} />
+        <Route path="/adm/projetos/comunicacao" element={<Protected><Shell><AdmProjectCommunication /></Shell></Protected>} />
+
 
 
         <Route path="/projetos" element={<Protected><Shell><Projects /></Shell></Protected>} />

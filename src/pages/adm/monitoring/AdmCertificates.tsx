@@ -667,13 +667,7 @@ export default function AdmCertificates() {
                 </button>
               </div>
 
-              <div className="mt-4 rounded-xl border border-neutral-light bg-neutral-50 p-4 flex items-start gap-2">
-                <Info size={16} className="mt-0.5 text-neutral" />
-                <p className="text-xs text-neutral">
-                  Implementação real: token deve ser assinado/validado (ex.: JWT / HMAC) e consultar registro de emissão
-                  no backend.
-                </p>
-              </div>
+              {/* Implementação real: token deve ser assinado/validado (ex.: JWT / HMAC) e consultar registro de emissão no backend. */}
             </Section>
           </div>
 
