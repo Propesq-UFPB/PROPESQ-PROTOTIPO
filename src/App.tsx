@@ -38,10 +38,14 @@ import ScholarshipEntities from "./pages/adm/settings/ScholarshipEntities"
 import AcademicUnits from "./pages/adm/settings/AcademicUnits"
 import RolesDictionary from "./pages/adm/settings/RolesDictionary"
 import UserTypes from "./pages/adm/settings/UserTypes"
-import CreateInternalProject from "./pages/adm/projects/CreateInternalProject"
-import CreateExternalProject from "./pages/adm/projects/CreateExternalProject"
+
 import AdmProjectCommunication from "./pages/adm/projects/AdmProjectCommunication"
 import AdmResearchModuleParameters from "./pages/adm/settings/Parameters"
+
+import ProjectDetail from "./pages/adm/projects/ProjectDetail"
+import ProjectCreateWizard from "./pages/adm/projects/ProjectCreateWizard"
+import ProjectChangeStatus from "./pages/adm/projects/ProjectChangeStatus"
+import ProjectCommunication from "./pages/adm/projects/ProjectCommunication"
 
 
 import Projects from "./pages/Projects"
@@ -109,7 +113,6 @@ export default function App() {
         <Route path="/adm/calls/CallWorkflow" element={<Protected><Shell><CallWorkflow /></Shell></Protected>} />
         <Route path="/adm/calls/quotas" element={<Protected><Shell><AdmCallQuotas /></Shell></Protected>} />
 
-
         <Route path="/adm/settings" element={<Protected><Shell><GlobalSettings /></Shell></Protected>} />
         <Route path="/adm/settings/scholarships" element={<Protected><Shell><ScholarshipEntities /></Shell></Protected>} />
         <Route path="/adm/settings/academic-units" element={<Protected><Shell><AcademicUnits /></Shell></Protected>} />
@@ -117,9 +120,13 @@ export default function App() {
         <Route path="/adm/settings/user-types" element={<Protected><Shell><UserTypes /></Shell></Protected>} />
         <Route path="/adm/settings/parameters" element={<Protected><Shell><AdmResearchModuleParameters /></Shell></Protected>} />
 
-        <Route path="/adm/projetos/novo-interno" element={<Protected><Shell><CreateInternalProject /></Shell></Protected>} />
-        <Route path="/adm/projetos/novo-externo" element={<Protected><Shell><CreateExternalProject /></Shell></Protected>} />
         <Route path="/adm/projetos/comunicacao" element={<Protected><Shell><AdmProjectCommunication /></Shell></Protected>} />
+        <Route path="/adm/projetos/detalhes-projetos" element={<Protected><Shell><ProjectDetail /></Shell></Protected>} />
+        <Route path="/adm/projetos/novo" element={<Protected><Shell><ProjectCreateWizard /></Shell></Protected>} />
+        <Route path="/adm/projetos/status" element={<Protected><Shell><ProjectChangeStatus /></Shell></Protected>} />
+        <Route path="/adm/projetos/:id/status" element={<Protected><Shell><ProjectChangeStatus /></Shell></Protected>} />
+        <Route path="/adm/projetos/comunicacao/:id" element={<Protected><Shell><ProjectCommunication /></Shell></Protected>} />
+
 
 
 

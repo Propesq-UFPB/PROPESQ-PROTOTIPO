@@ -4,6 +4,19 @@ import Table from "@/components/Table"
 import { projetos } from "@/mock/data"
 import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
+import {
+  Search,
+  SlidersHorizontal,
+  X,
+  Calendar,
+  MoreVertical,
+  Eye,
+  Pencil,
+  Printer,
+  Send,
+  BadgeCheck,
+  Trash2,
+} from "lucide-react"
 
 /* ================= TIPOS ================= */
 
@@ -18,7 +31,7 @@ type Projeto = {
   prazo: string
   tipo?: "interno" | "externo"
   ano?: number | string
-  pesquisador?: string
+  pesquisador?: string // coordenador (mock)
   unidade?: string
   objetivos?: string
   linhaPesquisa?: string
@@ -29,6 +42,11 @@ type Projeto = {
   situacao?: string
   categoria?: string
   relatorioFinal?: "submetido" | "nao_submetido"
+
+  // se existir no futuro
+  dataCadastro?: string
+  dataInicio?: string
+  dataFim?: string
 }
 
 /* ================= UTIL ================= */
@@ -49,143 +67,133 @@ const statusClass = (status: string) => {
   if (s.includes("aprov")) return "bg-green-100 text-green-800"
   if (s.includes("pend") || s.includes("anál") || s.includes("analise"))
     return "bg-amber-100 text-amber-800"
-  if (s.includes("reprov") || s.includes("indefer"))
-    return "bg-red-100 text-red-800"
+  if (s.includes("reprov") || s.includes("indefer")) return "bg-red-100 text-red-800"
   return "bg-neutral-light text-neutral"
 }
 
 const truncate = (txt: string, n = 70) => (txt?.length > n ? `${txt.slice(0, n)}…` : txt || "—")
 
-/* ================= UI AUX ================= */
+function normalize(s: string) {
+  return (s || "").trim().toLowerCase()
+}
 
-type AdminTab =
-  | "GERENCIAR"
-  | "CONSULTAR"
-  | "CAD_INTERNO"
-  | "CAD_EXTERNO"
-  | "COMUNICAR"
-  | "PARECER"
+function isSameDayOrAfter(a: string, b: string) {
+  // a >= b (YYYY-MM-DD)
+  return a >= b
+}
+function isSameDayOrBefore(a: string, b: string) {
+  // a <= b (YYYY-MM-DD)
+  return a <= b
+}
+
+/* ================= UI AUX ================= */
 
 function KebabActions({ id }: { id: string | number }) {
   const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
+
+  const toggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    const r = e.currentTarget.getBoundingClientRect()
+    // posiciona o menu alinhado à direita do botão
+    setPos({
+      top: r.bottom + 8,
+      left: Math.max(12, r.right - 224), // 224 = w-56 (aprox)
+    })
+    setOpen((v) => !v)
+  }
+
+  const close = () => setOpen(false)
+
+  const Item = ({
+    to,
+    label,
+    icon,
+    danger,
+  }: {
+    to: string
+    label: string
+    icon: React.ReactNode
+    danger?: boolean
+  }) => (
+    <Link
+      to={to}
+      onClick={close}
+      className={[
+        "flex items-center gap-2 px-3 py-2 rounded-lg",
+        "text-[12px] leading-4",
+        danger ? "text-red-700 hover:bg-red-50" : "text-primary hover:bg-neutral-light/60",
+      ].join(" ")}
+    >
+      <span className={danger ? "text-red-700" : "text-neutral/70"}>{icon}</span>
+      <span className="font-medium">{label}</span>
+    </Link>
+  )
 
   return (
-    <div className="relative">
+    <div className="flex items-center justify-end gap-2">
+      {/* Ações rápidas */}
+      <div className="hidden lg:flex items-center gap-1">
+        <Link
+          to={`/adm/projetos/${id}`}
+          className="h-8 px-2 rounded-lg border border-neutral-light text-[12px] font-semibold text-primary hover:bg-neutral-light/60 inline-flex items-center gap-1"
+          title="Visualizar"
+        >
+          <Eye size={14} />
+          Ver
+        </Link>
+
+        <Link
+          to={`/adm/projetos/${id}/editar`}
+          className="h-8 px-2 rounded-lg border border-neutral-light text-[12px] font-semibold text-primary hover:bg-neutral-light/60 inline-flex items-center gap-1"
+          title="Editar"
+        >
+          <Pencil size={14} />
+          Editar
+        </Link>
+      </div>
+
+      {/* Botão ⋮ */}
       <button
         type="button"
-        onClick={() => setOpen(v => !v)}
-        className="h-9 w-9 rounded-lg border border-neutral-light hover:bg-neutral-light/60 grid place-items-center"
-        aria-label="Ações"
+        onClick={toggle}
+        className="h-8 w-8 rounded-lg border border-neutral-light hover:bg-neutral-light/60 grid place-items-center"
+        aria-label="Mais ações"
+        aria-expanded={open}
       >
-        ⋯
+        <MoreVertical size={16} className="text-neutral/70" />
       </button>
 
+      {/* Menu FIXED (não corta por overflow) */}
       {open && (
         <>
-          <button
-            className="fixed inset-0 cursor-default"
-            onClick={() => setOpen(false)}
-            aria-hidden="true"
-          />
-          <div className="absolute right-0 mt-2 w-72 rounded-xl border border-neutral-light bg-white shadow-card z-20 overflow-hidden">
-            <div className="px-3 py-2 text-xs text-neutral/70 border-b border-neutral-light">
+          <button className="fixed inset-0 z-[60] cursor-default" onClick={close} aria-hidden="true" />
+          <div
+            className="fixed z-[70] w-56 rounded-xl border border-neutral-light bg-white shadow-card overflow-hidden"
+            style={{ top: pos.top, left: pos.left }}
+          >
+            <div className="px-3 py-2 text-[11px] text-neutral/70 border-b border-neutral-light">
               Ações do projeto
             </div>
 
-            <div className="p-1 text-sm">
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-neutral-light/60"
-                to={`/adm/projetos/${id}`}
-                onClick={() => setOpen(false)}
-              >
-                Visualizar projeto
-              </Link>
-
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-neutral-light/60"
-                to={`/adm/projetos/${id}/editar`}
-                onClick={() => setOpen(false)}
-              >
-                Alterar projeto
-              </Link>
-
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-neutral-light/60"
-                to={`/adm/projetos/${id}/status`}
-                onClick={() => setOpen(false)}
-              >
-                Alterar tipo / situação / edital
-              </Link>
+            <div className="p-1">
+              <Item to={`/adm/projetos/${id}`} label="Visualizar" icon={<Eye size={14} />} />
+              <Item to={`/adm/projetos/${id}/editar`} label="Editar" icon={<Pencil size={14} />} />
 
               <div className="h-px bg-neutral-light my-1" />
 
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-neutral-light/60"
-                to={`/adm/projetos/${id}/imprimir`}
-                onClick={() => setOpen(false)}
-              >
-                Imprimir projeto de pesquisa
-              </Link>
-
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-neutral-light/60"
-                to={`/adm/projetos/${id}/relatorio-anual`}
-                onClick={() => setOpen(false)}
-              >
-                Enviar relatório anual
-              </Link>
-
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-neutral-light/60"
-                to={`/adm/projetos/${id}/declaracao`}
-                onClick={() => setOpen(false)}
-              >
-                Emitir declaração
-              </Link>
+              <Item to={`/adm/projetos/${id}/imprimir`} label="Imprimir" icon={<Printer size={14} />} />
+              <Item to={`/adm/projetos/${id}/relatorio-anual`} label="Enviar relatório" icon={<Send size={14} />} />
+              <Item to={`/adm/projetos/${id}/declaracao`} label="Emitir declaração" icon={<BadgeCheck size={14} />} />
 
               <div className="h-px bg-neutral-light my-1" />
 
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-neutral-light/60"
-                to={`/adm/projetos/${id}/membros`}
-                onClick={() => setOpen(false)}
-              >
-                Gerenciar membros
-              </Link>
-
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-neutral-light/60"
-                to={`/adm/projetos/${id}/avaliacoes`}
-                onClick={() => setOpen(false)}
-              >
-                Listar avaliações
-              </Link>
-
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-neutral-light/60"
-                to={`/adm/projetos/${id}/renovar`}
-                onClick={() => setOpen(false)}
-              >
-                Renovar projeto
-              </Link>
-
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-neutral-light/60"
-                to={`/adm/projetos/${id}/situacao`}
-                onClick={() => setOpen(false)}
-              >
-                Alterar situação
-              </Link>
-
-              <div className="h-px bg-neutral-light my-1" />
-
-              <Link
-                className="block px-3 py-2 rounded-lg hover:bg-red-50 text-red-700"
+              <Item
                 to={`/adm/projetos/${id}/remover`}
-                onClick={() => setOpen(false)}
-              >
-                Remover projeto
-              </Link>
+                label="Remover"
+                icon={<Trash2 size={14} />}
+                danger
+              />
             </div>
           </div>
         </>
@@ -194,576 +202,339 @@ function KebabActions({ id }: { id: string | number }) {
   )
 }
 
+
 /* ================= COMPONENT ================= */
 
 export default function Projects() {
   const role = getCurrentRole()
   const isAdmin = role === "ADMINISTRADOR"
 
-  // ajuste: no ADM, o botão de criar e as rotas apontam para as subpáginas /adm/projetos/novo-*
-  const canCreate = role === "COORDENADOR" || role === "ADMINISTRADOR"
-  const createInternalTo = "/adm/projetos/novo-interno"
-  const createExternalTo = "/adm/projetos/novo-externo"
-  const comunication =  "/adm/projetos/comunicacao"
+  const [advancedOpen, setAdvancedOpen] = useState(true)
 
-  // ajuste: hub do ADM com abas (garante navegação correta para as páginas novas)
-  const [tab, setTab] = useState<AdminTab>(isAdmin ? "GERENCIAR" : "GERENCIAR")
+  // -------- Busca rápida (sempre visível)
+  const [q, setQ] = useState("")
 
-  /* ================= ESTADOS (TODOS) ================= */
-
-  const [useTipo, setUseTipo] = useState(false)
+  // -------- Busca avançada (somente os campos exigidos na Página 2)
+  const [coordenador, setCoordenador] = useState("")
   const [tipo, setTipo] = useState<"" | "interno" | "externo">("")
-
-  const [useCodigo, setUseCodigo] = useState(false)
-  const [codigo, setCodigo] = useState("")
-
-  const [useAno, setUseAno] = useState(false)
-  const [ano, setAno] = useState("")
-
-  const [escopo, setEscopo] = useState<"todos" | "minha_unidade" | "somente_externos">("todos")
-
-  const [usePesq, setUsePesq] = useState(false)
-  const [pesquisador, setPesquisador] = useState("")
-
-  const [useCentro, setUseCentro] = useState(false)
-  const [centro, setCentro] = useState("")
-
-  const [useUnidade, setUseUnidade] = useState(false)
-  const [unidade, setUnidade] = useState("")
-
-  const [useTitulo, setUseTitulo] = useState(false)
-  const [titulo, setTitulo] = useState("")
-
-  const [useObjetivos, setUseObjetivos] = useState(false)
-  const [objetivos, setObjetivos] = useState("")
-
-  const [useLinha, setUseLinha] = useState(false)
-  const [linhaPesquisa, setLinhaPesquisa] = useState("")
-
-  const [useAreaConhec, setUseAreaConhec] = useState(false)
-  const [areaConhecimento, setAreaConhecimento] = useState("")
-
-  const [useGrupo, setUseGrupo] = useState(false)
-  const [grupoPesquisa, setGrupoPesquisa] = useState("")
-
-  const [useAgencia, setUseAgencia] = useState(false)
-  const [agencia, setAgencia] = useState("")
-
-  const [useEdital, setUseEdital] = useState(false)
-  const [edital, setEdital] = useState("")
-
-  const [useSituacao, setUseSituacao] = useState(false)
   const [situacao, setSituacao] = useState("")
-
-  const [useCategoria, setUseCategoria] = useState(false)
-  const [categoria, setCategoria] = useState("")
-
-  const [useRelatorioFinal, setUseRelatorioFinal] = useState(false)
-  const [relatorioFinal, setRelatorioFinal] = useState<"" | "submetido" | "nao_submetido">("")
-
-  const [gerarRelatorio, setGerarRelatorio] = useState(false)
-
-  /* ================= OPÇÕES ================= */
+  const [periodoIni, setPeriodoIni] = useState("")
+  const [periodoFim, setPeriodoFim] = useState("")
 
   const centrosOpts = useMemo(() => {
     const set = new Set<string>()
-    ;(projetos as Projeto[]).forEach(p => p.centro && set.add(p.centro))
-    return Array.from(set)
+    ;(projetos as Projeto[]).forEach((p) => p.centro && set.add(p.centro))
+    return Array.from(set).sort((a, b) => a.localeCompare(b))
   }, [])
 
-  const areasConhecOpts = useMemo(() => {
+  const tiposOpts: Array<{ value: "" | "interno" | "externo"; label: string }> = [
+    { value: "", label: "Todos" },
+    { value: "interno", label: "Interno" },
+    { value: "externo", label: "Externo" },
+  ]
+
+  const situacoesOpts = useMemo(() => {
     const set = new Set<string>()
-    ;(projetos as Projeto[]).forEach(p => {
-      if (p.areaConhecimento) set.add(p.areaConhecimento)
-      if (p.area) set.add(p.area)
-    })
-    return Array.from(set)
+    ;(projetos as Projeto[]).forEach((p) => p.status && set.add(p.status))
+    return ["", ...Array.from(set).sort((a, b) => a.localeCompare(b))]
   }, [])
-
-  const gruposOpts = ["—", "GP I", "GP II", "GP III"]
-  const agenciasOpts = ["—", "CNPq", "CAPES", "FINEP", "UFPB", "Outra"]
-  const editaisOpts = ["—", "PIBIC 2023", "PIBIC 2024", "PIBITI 2024"]
-  const situacoesOpts = ["—", "Em análise", "Aprovado", "Reprovado", "Indeferido", "Concluído"]
-  const categoriasOpts = ["—", "Pesquisa", "Extensão", "Inovação", "Ensino"]
-
-  /* ================= FILTRO (INALTERADO) ================= */
 
   const filtered = useMemo(() => {
-    return (projetos as Projeto[]).filter(p => {
-      const sv = (v?: string) => (v || "").toLowerCase()
-      const has = <T extends keyof Projeto>(k: T) => p[k] !== undefined && p[k] !== null
+    const nq = normalize(q)
+    const ncoord = normalize(coordenador)
+    const nsit = normalize(situacao)
 
-      if (useTipo && tipo && p.tipo !== tipo) return false
-      if (useCodigo && codigo && !String(p.id).toLowerCase().includes(codigo.toLowerCase())) return false
-      if (useAno && ano && !String(p.ano ?? "").includes(ano)) return false
+    return (projetos as Projeto[]).filter((p) => {
+      const title = normalize(p.titulo)
+      const coord = normalize(p.pesquisador || "")
+      const st = normalize(p.status || "")
+      const t = (p.tipo || "").toLowerCase()
 
-      if (escopo === "somente_externos" && p.tipo !== "externo") return false
-      if (escopo === "minha_unidade" && has("unidade") && !p.unidade) return false
+      // Busca rápida: título OU coordenador OU id
+      if (nq) {
+        const hit = title.includes(nq) || coord.includes(nq) || String(p.id).toLowerCase().includes(nq)
+        if (!hit) return false
+      }
 
-      if (usePesq && pesquisador && !sv(p.pesquisador).includes(sv(pesquisador))) return false
-      if (useCentro && centro && sv(p.centro) !== sv(centro)) return false
-      if (useUnidade && unidade && !sv(p.unidade).includes(sv(unidade))) return false
-      if (useTitulo && titulo && !sv(p.titulo).includes(sv(titulo))) return false
-      if (useObjetivos && objetivos && !sv(p.objetivos).includes(sv(objetivos))) return false
-      if (useLinha && linhaPesquisa && !sv(p.linhaPesquisa).includes(sv(linhaPesquisa))) return false
-      if (useAreaConhec && areaConhecimento && sv(p.areaConhecimento || p.area) !== sv(areaConhecimento))
-        return false
-      if (useGrupo && grupoPesquisa !== "—" && sv(p.grupoPesquisa) !== sv(grupoPesquisa)) return false
-      if (useAgencia && agencia !== "—" && sv(p.agencia) !== sv(agencia)) return false
-      if (useEdital && edital !== "—" && sv(p.edital) !== sv(edital)) return false
-      if (useSituacao && situacao !== "—" && !sv(p.status).includes(sv(situacao))) return false
-      if (useCategoria && categoria !== "—" && sv(p.categoria) !== sv(categoria)) return false
-      if (useRelatorioFinal && relatorioFinal && p.relatorioFinal !== relatorioFinal) return false
+      // coordenador
+      if (ncoord && !coord.includes(ncoord)) return false
+
+      // tipo
+      if (tipo && t !== tipo) return false
+
+      // situação (status)
+      if (nsit && !st.includes(nsit)) return false
+
+      // período (usa prazo do mock; ideal é ter dataInicio/dataFim no futuro)
+      const start = (p.dataInicio || "").slice(0, 10)
+      const end = (p.dataFim || p.prazo || "").slice(0, 10)
+
+      if (periodoIni) {
+        const base = start || end
+        if (base && !isSameDayOrAfter(base, periodoIni)) return false
+        if (!base) return false
+      }
+
+      if (periodoFim) {
+        const base = end || start
+        if (base && !isSameDayOrBefore(base, periodoFim)) return false
+        if (!base) return false
+      }
 
       return true
     })
-  }, [
-    useTipo,
-    tipo,
-    useCodigo,
-    codigo,
-    useAno,
-    ano,
-    escopo,
-    usePesq,
-    pesquisador,
-    useCentro,
-    centro,
-    useUnidade,
-    unidade,
-    useTitulo,
-    titulo,
-    useObjetivos,
-    objetivos,
-    useLinha,
-    linhaPesquisa,
-    useAreaConhec,
-    areaConhecimento,
-    useGrupo,
-    grupoPesquisa,
-    useAgencia,
-    agencia,
-    useEdital,
-    edital,
-    useSituacao,
-    situacao,
-    useCategoria,
-    categoria,
-    useRelatorioFinal,
-    relatorioFinal,
-  ])
+  }, [q, coordenador, tipo, situacao, periodoIni, periodoFim])
 
-  const titleByTab: Record<AdminTab, string> = {
-    GERENCIAR: "Gerenciar Projetos",
-    CONSULTAR: "Consultar Projetos",
-    CAD_INTERNO: "Cadastrar Projeto Interno",
-    CAD_EXTERNO: "Cadastrar Projeto Externo",
-    COMUNICAR: "Comunicar Coordenadores",
-    PARECER: "Consultar Parecer do Projeto",
+  const clearAll = () => {
+    setQ("")
+    setCoordenador("")
+    setTipo("")
+    setSituacao("")
+    setPeriodoIni("")
+    setPeriodoFim("")
   }
-
-  const showFilters =
-    tab === "GERENCIAR" || tab === "CONSULTAR" || tab === "COMUNICAR" || tab === "PARECER"
-
-  /* ================= RENDER ================= */
 
   return (
     <div className="min-h-screen bg-white">
       <Helmet>
-        <title>Projetos • PROPESQ</title>
+        <title>Projetos (ADM) • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        {/* Header + Tabs (ADM) */}
-        <div className="flex flex-col gap-3 mb-8">
-          <div className="flex items-end justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-6 py-10 space-y-10">
+        {/* Header */}
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-primary">
-              {isAdmin ? titleByTab[tab] : "Projetos"}
-            </h1>
-            <p className="text-sm mt-1">
-              {isAdmin
-                ? (
-                  <>
-                    <span className="text-red-600">EM DESENVOLVIMENTO</span> - Acesse as funções do administrador para projetos.
-                  </>
-                )
-                : "Pesquise e visualize projetos."
-              }
+            <h1 className="text-xl font-bold text-primary">Projetos</h1>
+            <p className="text-sm mt-1 text-neutral">
+              Hub de projetos: faça buscas e navegue para ações e páginas específicas. Nenhum formulário é aberto aqui.
             </p>
           </div>
 
-          </div>
-
-          {/* Tabs do ADM: navegam em subpáginas*/}
+          {/* CTA opcional (leva para subpágina de cadastro) */}
           {isAdmin && (
-            <div className="flex flex-wrap gap-2">
-              {([
-                ["GERENCIAR", "Gerenciar"],
-              /*["CONSULTAR", "Consultar"],*/
-                ["CAD_INTERNO", "Cadastrar Interno"],
-                ["CAD_EXTERNO", "Cadastrar Externo"],
-                ["COMUNICAR", "Comunicar"],
-                ["PARECER", "Parecer"],
-              ] as Array<[AdminTab, string]>).map(([k, label]) => (
-                <Link
-                  key={k}
-                  to={
-                    k === "CAD_INTERNO"
-                      ? createInternalTo
-                      : k === "CAD_EXTERNO"
-                        ? createExternalTo
-                        : k === "COMUNICAR"
-                          ? comunication
-                          : k === "PARECER"
-                            ? "/adm/projetos/parecer"
-                            : "/adm/projetos"
-                  }
-                  onClick={() => setTab(k)}
-                  className={[
-                    "px-4 py-2 rounded-xl border text-sm font-semibold",
-                    tab === k
-                      ? "bg-primary text-white border-primary"
-                      : "bg-white text-primary border-neutral-light hover:bg-neutral-light/60",
-                  ].join(" ")}
-                >
-                  {label}
-                </Link>
-              ))}
+            <div className="flex gap-2">
+              <Link
+                to="/adm/projetos/novo"
+                className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:opacity-95"
+              >
+                Cadastrar projeto
+              </Link>
             </div>
           )}
         </div>
 
-        {/* FILTROS */}
-        {showFilters && (
-          <div className="bg-white rounded-2xl border border-neutral-light p-8 shadow-card mb-12">
-            <h2 className="text-lg font-bold text-primary mb-8">Critérios de Busca dos Projetos</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* TIPO */}
-              <div className="flex flex-col gap-4 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
-                <label className="flex items-center gap-3 font-semibold text-primary">
-                  <input
-                    type="checkbox"
-                    checked={useTipo}
-                    onChange={e => setUseTipo(e.target.checked)}
-                    className="accent-primary"
-                  />
-                  Tipo do Projeto
-                </label>
-
-                <div className="flex gap-6">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="radio"
-                      disabled={!useTipo}
-                      checked={tipo === "interno"}
-                      onChange={() => setTipo("interno")}
-                    />
-                    Interno
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="radio"
-                      disabled={!useTipo}
-                      checked={tipo === "externo"}
-                      onChange={() => setTipo("externo")}
-                    />
-                    Externo
-                  </label>
-                </div>
-
-                {useTipo && (
-                  <button
-                    type="button"
-                    onClick={() => setTipo("")}
-                    className="text-xs text-primary underline self-start"
-                  >
-                    Limpar seleção
-                  </button>
-                )}
-              </div>
-
-              {/* CÓDIGO */}
-              <div className="flex flex-col gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
-                <label className="flex items-center gap-3 font-semibold text-primary">
-                  <input
-                    type="checkbox"
-                    checked={useCodigo}
-                    onChange={e => setUseCodigo(e.target.checked)}
-                    className="accent-primary"
-                  />
-                  Código do Projeto
-                </label>
-
-                <input
-                  type="text"
-                  disabled={!useCodigo}
-                  value={codigo}
-                  onChange={e => setCodigo(e.target.value)}
-                  placeholder="PPP0000-AAAA"
-                  className="rounded-lg border border-neutral/30 px-4 py-2 text-sm disabled:bg-neutral/20"
-                />
-
-                <span className="text-xs text-neutral/70">Formato: PPPNNNN-AAAA</span>
-              </div>
-
-              {/* ANO */}
-              <div className="flex flex-col gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
-                <label className="flex items-center gap-3 font-semibold text-primary">
-                  <input
-                    type="checkbox"
-                    checked={useAno}
-                    onChange={e => setUseAno(e.target.checked)}
-                    className="accent-primary"
-                  />
-                  Ano
-                </label>
-
-                <input
-                  type="number"
-                  disabled={!useAno}
-                  value={ano}
-                  onChange={e => setAno(e.target.value)}
-                  placeholder="AAAA"
-                  className="rounded-lg border border-neutral/30 px-4 py-2 text-sm disabled:bg-neutral/20"
-                />
-              </div>
-
-              {/* ESCOPO */}
-              <div className="flex flex-col gap-4 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
-                <span className="font-semibold text-primary">Escopo da Busca</span>
-
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="radio" checked={escopo === "todos"} onChange={() => setEscopo("todos")} />
-                  Todos da UFPB
-                </label>
-
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    checked={escopo === "minha_unidade"}
-                    onChange={() => setEscopo("minha_unidade")}
-                  />
-                  Somente da minha unidade
-                </label>
-
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    checked={escopo === "somente_externos"}
-                    onChange={() => setEscopo("somente_externos")}
-                  />
-                  Somente externos
-                </label>
-              </div>
-
-              {/* PESQUISADOR */}
-              <div className="flex flex-col gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
-                <label className="flex items-center gap-3 font-semibold text-primary">
-                  <input
-                    type="checkbox"
-                    checked={usePesq}
-                    onChange={e => setUsePesq(e.target.checked)}
-                    className="accent-primary"
-                  />
-                  Pesquisador
-                </label>
-
-                <input
-                  type="text"
-                  disabled={!usePesq}
-                  value={pesquisador}
-                  onChange={e => setPesquisador(e.target.value)}
-                  placeholder="Nome do pesquisador"
-                  className="rounded-lg border border-neutral/30 px-4 py-2 text-sm disabled:bg-neutral/20"
-                />
-              </div>
-
-              {/* CENTRO */}
-              <div className="flex flex-col gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
-                <label className="flex items-center gap-3 font-semibold text-primary">
-                  <input
-                    type="checkbox"
-                    checked={useCentro}
-                    onChange={e => setUseCentro(e.target.checked)}
-                    className="accent-primary"
-                  />
-                  Centro / Unidade
-                </label>
-
-                <select
-                  disabled={!useCentro}
-                  value={centro}
-                  onChange={e => setCentro(e.target.value)}
-                  className="rounded-lg border border-neutral/30 px-4 py-2 text-sm disabled:bg-neutral/20"
-                >
-                  <option value="">Selecione</option>
-                  {centrosOpts.map(c => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* TÍTULO */}
-              <div className="flex flex-col gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
-                <label className="flex items-center gap-3 font-semibold text-primary">
-                  <input
-                    type="checkbox"
-                    checked={useTitulo}
-                    onChange={e => setUseTitulo(e.target.checked)}
-                    className="accent-primary"
-                  />
-                  Título do Projeto
-                </label>
-
-                <input
-                  type="text"
-                  disabled={!useTitulo}
-                  value={titulo}
-                  onChange={e => setTitulo(e.target.value)}
-                  placeholder="Título do projeto"
-                  className="rounded-lg border border-neutral/30 px-4 py-2 text-sm disabled:bg-neutral/20"
-                />
-              </div>
-
-              {/* RELATÓRIO FINAL */}
-              <div className="flex flex-col gap-4 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
-                <label className="flex items-center gap-3 font-semibold text-primary">
-                  <input
-                    type="checkbox"
-                    checked={useRelatorioFinal}
-                    onChange={e => setUseRelatorioFinal(e.target.checked)}
-                    className="accent-primary"
-                  />
-                  Relatório Final
-                </label>
-
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    disabled={!useRelatorioFinal}
-                    checked={relatorioFinal === "submetido"}
-                    onChange={() => setRelatorioFinal("submetido")}
-                  />
-                  Submetido
-                </label>
-
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    disabled={!useRelatorioFinal}
-                    checked={relatorioFinal === "nao_submetido"}
-                    onChange={() => setRelatorioFinal("nao_submetido")}
-                  />
-                  Não submetido
-                </label>
-              </div>
-
-              {/* GERAR RELATÓRIO */}
-              <div className="flex items-center gap-3 rounded-xl border border-neutral/20 p-5 bg-neutral-light/40">
-                <input
-                  type="checkbox"
-                  checked={gerarRelatorio}
-                  onChange={e => setGerarRelatorio(e.target.checked)}
-                  className="accent-primary"
-                />
-                <span className="font-semibold text-primary">Gerar relatório</span>
-              </div>
+        {/* Busca (rápida + avançada) */}
+        <div className="rounded-2xl border border-neutral-light bg-white shadow-card">
+          {/* Barra topo */}
+          <div className="p-5 md:p-6 border-b border-neutral-light flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+            <div className="flex-1 relative">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral/60" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Buscar por título, coordenador ou código…"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-neutral-light text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+              />
             </div>
 
-            <div className="mt-8 flex justify-end gap-4">
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => window.location.reload()}
-                className="px-6 py-3 text-base rounded-xl border border-neutral-light"
+                type="button"
+                onClick={() => setAdvancedOpen((v) => !v)}
+                className="inline-flex items-center gap-2 px-3 py-2.5 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
               >
-                Limpar
+                <SlidersHorizontal size={16} />
+                Busca avançada
               </button>
-              <button className="px-6 py-3 text-base rounded-xl bg-primary text-white font-semibold">
-                Buscar
+
+              <button
+                type="button"
+                onClick={clearAll}
+                className="inline-flex items-center gap-2 px-3 py-2.5 rounded-xl border border-neutral-light text-sm font-semibold text-neutral hover:bg-neutral-light/50"
+              >
+                <X size={16} />
+                Limpar
               </button>
             </div>
           </div>
-        )}
 
-        {/* LISTAGEM */}
+          {/* Campos avançados */}
+          {advancedOpen && (
+            <div className="p-5 md:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                {/* Coordenador */}
+                <div className="lg:col-span-2">
+                  <label className="text-xs font-bold uppercase tracking-wide text-neutral/70">Coordenador</label>
+                  <input
+                    value={coordenador}
+                    onChange={(e) => setCoordenador(e.target.value)}
+                    placeholder="Nome do coordenador…"
+                    className="mt-2 w-full px-3 py-2.5 rounded-xl border border-neutral-light text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  />
+                </div>
+
+                {/* Tipo */}
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wide text-neutral/70">Tipo</label>
+                  <select
+                    value={tipo}
+                    onChange={(e) => setTipo(e.target.value as any)}
+                    className="mt-2 w-full px-3 py-2.5 rounded-xl border border-neutral-light text-sm bg-white focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  >
+                    {tiposOpts.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Situação */}
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wide text-neutral/70">Situação</label>
+                  <select
+                    value={situacao}
+                    onChange={(e) => setSituacao(e.target.value)}
+                    className="mt-2 w-full px-3 py-2.5 rounded-xl border border-neutral-light text-sm bg-white focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  >
+                    {situacoesOpts.map((s) => (
+                      <option key={s || "__all"} value={s}>
+                        {s ? s : "Todas"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Período */}
+                <div className="lg:col-span-5 grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wide text-neutral/70">
+                      Período (início)
+                    </label>
+                    <div className="mt-2 relative">
+                      <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral/60" />
+                      <input
+                        type="date"
+                        value={periodoIni}
+                        onChange={(e) => setPeriodoIni(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-neutral-light text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wide text-neutral/70">Período (fim)</label>
+                    <div className="mt-2 relative">
+                      <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral/60" />
+                      <input
+                        type="date"
+                        value={periodoFim}
+                        onChange={(e) => setPeriodoFim(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-neutral-light text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 text-xs text-neutral/70">
+                Dica: clique em <span className="font-semibold text-neutral">⋯</span> na tabela para abrir ações do
+                projeto. Nenhuma ação pesada é executada aqui.
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Resultado / Tabela */}
         {filtered.length === 0 ? (
-          <div className="text-center py-20 text-base text-neutral">Nenhum projeto encontrado.</div>
+          <div className="text-center py-16 text-base text-neutral">Nenhum projeto encontrado.</div>
         ) : (
-          <div className="bg-white rounded-2xl border border-neutral-light p-8 shadow-card">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold text-primary">Resultado da Busca</h2>
+          <div className="space-y-3">
+            {/* Header FORA do card */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1">
+              <h2 className="text-sm font-semibold text-primary">
+                Resultado / Tabela <span className="text-neutral/70">({filtered.length})</span>
+              </h2>
+              <p className="text-[11px] leading-4 text-neutral/60">Mostrando resultados conforme os filtros.</p>
             </div>
 
-            <Table
-              data={filtered}
-              cols={
-                isAdmin
-                  ? ([
-                      { key: "id", header: "Código" },
-                      { key: "centro", header: "Centro" },
-                      {
-                        key: "titulo",
-                        header: "Título / Coordenador",
-                        render: (r: Projeto) => (
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-primary">{truncate(r.titulo, 60)}</span>
-                            <span className="text-xs text-neutral/70">
-                              {r.pesquisador ? `Coord.: ${r.pesquisador}` : "Coord.: —"}
+            {/* Card só com a tabela (overflow visível) */}
+            <div className="bg-white rounded-2xl border border-neutral-light p-5 md:p-6 shadow-card overflow-visible">
+              <Table
+                data={filtered}
+                cols={
+                  isAdmin
+                    ? ([
+                        {
+                          key: "titulo",
+                          header: "Título / Coordenador",
+                          render: (r: Projeto) => (
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-primary">{truncate(r.titulo, 60)}</span>
+                              <span className="text-xs text-neutral/70">
+                                {r.pesquisador ? `Coord.: ${r.pesquisador}` : "Coord.: —"}
+                              </span>
+                            </div>
+                          ),
+                        },
+                        {
+                          key: "tipo",
+                          header: "Tipo",
+                          render: (r: Projeto) => <span className="text-sm capitalize">{r.tipo || "—"}</span>,
+                        },
+                        {
+                          key: "status",
+                          header: "Situação",
+                          render: (r: Projeto) => (
+                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusClass(r.status)}`}>
+                              {r.status || "—"}
                             </span>
-                          </div>
-                        ),
-                      },
-                      {
-                        key: "tipo",
-                        header: "Tipo",
-                        render: (r: Projeto) => <span className="text-sm">{r.tipo || "—"}</span>,
-                      },
-                      {
-                        key: "status",
-                        header: "Situação",
-                        render: (r: Projeto) => (
-                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusClass(r.status)}`}>
-                            {r.status || "—"}
-                          </span>
-                        ),
-                      },
-                      // data de cadastro não existe no mock atual: mostramos "—" até você adicionar no mock
-                      {
-                        key: "__dataCadastro" as keyof Projeto,
-                        header: "Data de cadastro",
-                        render: () => <span className="text-sm">—</span>,
-                      },
-                      {
-                        key: "__acoes" as keyof Projeto,
-                        header: "Ações",
-                        render: (r: Projeto) => <KebabActions id={r.id} />,
-                      },
-                    ] as any)
-                  : [
-                      { key: "id", header: "Código" },
-                      {
-                        key: "titulo",
-                        header: "Título",
-                        render: (r: any) => truncate(r.titulo),
-                      },
-                      { key: "centro", header: "Centro" },
-                      { key: "area", header: "Área" },
-                      {
-                        key: "status",
-                        header: "Situação",
-                        render: (r: any) => (
-                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusClass(r.status)}`}>
-                            {r.status}
-                          </span>
-                        ),
-                      },
-                      { key: "prazo", header: "Prazo" },
-                    ]
-              }
-            />
+                          ),
+                        },
+                        {
+                          key: "pesquisador",
+                          header: "Coordenador",
+                          render: (r: Projeto) => <span className="text-sm">{r.pesquisador || "—"}</span>,
+                        },
+                        {
+                          key: "__periodo" as keyof Projeto,
+                          header: "Período",
+                          render: (r: Projeto) => {
+                            const ini = (r.dataInicio || "").slice(0, 10)
+                            const fim = (r.dataFim || r.prazo || "").slice(0, 10)
+                            if (!ini && !fim) return <span className="text-sm">—</span>
+                            return (
+                              <span className="text-sm">
+                                {ini ? ini : "—"} → {fim ? fim : "—"}
+                              </span>
+                            )
+                          },
+                        },
+                        {
+                          key: "__acoes" as keyof Projeto,
+                          header: "Ações",
+                          render: (r: Projeto) => <KebabActions id={r.id} />,
+                        },
+                      ] as any)
+                    : ([
+                        { key: "id", header: "Código" },
+                        { key: "titulo", header: "Título", render: (r: any) => truncate(r.titulo) },
+                        { key: "centro", header: "Centro" },
+                        { key: "area", header: "Área" },
+                        {
+                          key: "status",
+                          header: "Situação",
+                          render: (r: any) => (
+                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusClass(r.status)}`}>
+                              {r.status}
+                            </span>
+                          ),
+                        },
+                        { key: "prazo", header: "Prazo" },
+                      ] as any)
+                }
+              />
+            </div>
           </div>
         )}
       </div>

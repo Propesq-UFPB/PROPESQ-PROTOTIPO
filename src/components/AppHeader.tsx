@@ -20,6 +20,11 @@ import {
   BadgeCheck,
   FileSignature,
   Pencil,
+  Megaphone,
+  Workflow,
+  Eye,
+  Plus,
+  Award,
 } from "lucide-react"
 
 import LogoImg from "@/utils/img/logo_propesq.png"
@@ -34,6 +39,13 @@ function isActive(pathname: string, to: string, end?: boolean) {
   if (to === "/") return pathname === "/"
   if (end) return pathname === to
   return pathname === to || pathname.startsWith(to + "/")
+}
+
+/** evita matches errados quando há prefixos parecidos */
+function pickActivePrimary(pathname: string, primary: NavItem[], fallback: string) {
+  const sorted = [...primary].sort((a, b) => b.to.length - a.to.length)
+  const found = sorted.find((p) => isActive(pathname, p.to, p.end))
+  return found?.to ?? fallback
 }
 
 export default function AppHeader() {
@@ -55,21 +67,35 @@ export default function AppHeader() {
     setMobileOpen(false)
   }, [location.pathname])
 
-  /* ================= MENU ================= */
+  /* ================= MENU (ADMIN) ================= */
 
+  // Linha 1 (primário) — módulos principais
   const adminPrimary: NavItem[] = [
     { to: "/dashboard", label: "Dashboard", icon: <Home size={16} /> },
-    { to: "/adm/avaliacao", label: "Avaliação de Projetos e Pontuação", icon: <FileSignature size={16} /> },
-    { to: "/adm/monitoring", label: "Acompanhamento & Certificação", icon: <BadgeCheck size={16} /> },
-    { to: "/adm/calls", label: "Gestão de Editais", icon: <LineChart size={16} /> },
-    { to: "/adm/settings", label: "Configurações Globais", icon: <Settings size={16} /> },
+    { to: "/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
+    { to: "/adm/avaliacao", label: "Avaliação", icon: <FileSignature size={16} /> },
+    { to: "/adm/monitoring", label: "Acompanhamento", icon: <BadgeCheck size={16} /> },
+    { to: "/adm/calls", label: "Editais", icon: <LineChart size={16} /> },
+    { to: "/adm/settings", label: "Configurações", icon: <Settings size={16} /> },
   ]
 
+  // Linha 2 (subpáginas) — contextual ao primary ativo
   const adminSecondaryByPrimary: Record<string, NavItem[]> = {
     "/dashboard": [
       { to: "/dashboard", label: "Overview", icon: <Home size={16} />, end: true },
       { to: "/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
-      // { to: "/adm/relatorios", label: "Relatórios", icon: <FileText size={16} /> },
+    ],
+
+    // Projetos (subpáginas administrativas)
+    // /projetos é a lista/hub (Projects.tsx)
+    "/projetos": [
+      { to: "/projetos", label: "Visão Geral", icon: <Eye size={16} />, end: true },
+
+      // rotas ADM reais:
+      { to: "/adm/projetos/novo", label: "Cadastrar", icon: <Plus size={16} /> },
+      { to: "/adm/projetos/status", label: "Alterar Situação", icon: <Workflow size={16} /> },
+      { to: "/adm/projetos/comunicacao", label: "Comunicação", icon: <Megaphone size={16} /> },
+      // { to: "/adm/projetos/detalhes-projetos", label: "Detalhe (placeholder)", icon: <Eye size={16} /> },
     ],
 
     "/adm/avaliacao": [
@@ -81,51 +107,42 @@ export default function AppHeader() {
 
     "/adm/monitoring": [
       { to: "/adm/monitoring", label: "Overview", icon: <BadgeCheck size={16} />, end: true },
-      { to: "/adm/monitoring/replacements", label: "Substituições de Discentes", icon: <Users size={16} /> },
-      { to: "/adm/monitoring/report-validation", label: "Validação de Relatórios", icon: <FileText size={16} /> },
-      { to: "/adm/monitoring/AdmCertificates", label: "Certificados", icon: <BadgeCheck size={16} /> },
+      { to: "/adm/monitoring/replacements", label: "Substituições", icon: <Users size={16} /> },
+      { to: "/adm/monitoring/report-validation", label: "Validação Relatórios", icon: <FileText size={16} /> },
+      { to: "/adm/monitoring/AdmCertificates", label: "Certificados", icon: <Award size={16} /> },
     ],
 
     "/adm/calls": [
       { to: "/adm/calls", label: "Overview", icon: <FolderKanban size={16} />, end: true },
-      { to: "/adm/calls/CreateCall", label: "Criar Editais", icon: <Notebook size={16} /> },
-      { to: "/adm/calls/Manage", label: "Alterar/Remover Editais", icon: <Pencil size={16} /> },
+      { to: "/adm/calls/CreateCall", label: "Criar Edital", icon: <Notebook size={16} /> },
+      { to: "/adm/calls/Manage", label: "Alterar/Remover", icon: <Pencil size={16} /> },
       { to: "/adm/calls/CallSchedule", label: "Cronograma", icon: <ClipboardList size={16} /> },
-      { to: "/adm/calls/CallWorkflow", label: "Gestão de Estados (Workflow)", icon: <LineChart size={16} /> },
-      { to: "/adm/calls/Quotas", label: "Cotas", icon: <ShieldCheck size={16} /> },
-
+      { to: "/adm/calls/CallWorkflow", label: "Workflow", icon: <LineChart size={16} /> },
+      { to: "/adm/calls/quotas", label: "Cotas", icon: <ShieldCheck size={16} /> },
     ],
 
     "/adm/settings": [
       { to: "/adm/settings", label: "Overview", icon: <Settings size={16} />, end: true },
-      { to: "/adm/settings/scholarships", label: "Entidades & Tipos de Bolsa", icon: <ShieldCheck size={16} /> },
-      { to: "/adm/settings/academic-units", label: "Unidades Acadêmicas", icon: <Building2 size={16} /> },
-      { to: "/adm/settings/roles", label: "Dicionário de Funções", icon: <BookUser size={16} /> },
-      { to: "/adm/settings/user-types", label: "Tipos de Usuários", icon: <Users size={16} /> },
-      { to: "/adm/settings/Parameters", label: "Parâmetros do Módulo", icon: <Settings size={16} /> },
-
+      { to: "/adm/settings/scholarships", label: "Bolsas", icon: <ShieldCheck size={16} /> },
+      { to: "/adm/settings/academic-units", label: "Unidades", icon: <Building2 size={16} /> },
+      { to: "/adm/settings/roles", label: "Funções", icon: <BookUser size={16} /> },
+      { to: "/adm/settings/user-types", label: "Usuários", icon: <Users size={16} /> },
+      { to: "/adm/settings/parameters", label: "Parâmetros", icon: <Settings size={16} /> },
     ],
   }
 
   const adminActivePrimary = useMemo(() => {
-    const pathname = location.pathname
-    const found = adminPrimary.find((p) => isActive(pathname, p.to, p.end))
-    if (!found) return "/dashboard"
-    return found.to
+    return pickActivePrimary(location.pathname, adminPrimary, "/dashboard")
   }, [location.pathname])
 
   const adminSecondary = adminSecondaryByPrimary[adminActivePrimary] ?? []
 
-  /* ================= MENU ================= */
+  /* ================= MENU (NÃO-ADMIN) ================= */
 
   const nonAdminMenu: NavItem[] = [
     { to: "/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
-    ...(role !== "ADMINISTRADOR"
-      ? [{ to: "/meus-projetos", label: "Meus Projetos", icon: <FolderKanban size={16} /> }]
-      : []),
-    ...(role !== "ADMINISTRADOR"
-      ? [{ to: "/planos", label: "Planos de Trabalho", icon: <Notebook size={16} /> }]
-      : []),
+    ...(role !== "ADMINISTRADOR" ? [{ to: "/meus-projetos", label: "Meus Projetos", icon: <FolderKanban size={16} /> }] : []),
+    ...(role !== "ADMINISTRADOR" ? [{ to: "/planos", label: "Planos de Trabalho", icon: <Notebook size={16} /> }] : []),
     ...(role === "COORDENADOR"
       ? [
           { to: "/avaliacoes", label: "Avaliações", icon: <FileText size={16} /> },
@@ -144,7 +161,6 @@ export default function AppHeader() {
 
   /* ================= CLASSES ================= */
 
-  // Linha 1
   const desktopLinkClass = (active: boolean) => `
     relative inline-flex items-center gap-2 text-sm font-medium
     pb-2
@@ -159,7 +175,6 @@ export default function AppHeader() {
     ${active ? "after:scale-x-100" : "after:scale-x-0"}
   `
 
-  // Linha 2 (SUBPÁGINAS)
   const subSegmentClass = (active: boolean) => `
     relative inline-flex items-center gap-2
     px-5 py-2.5
@@ -182,14 +197,11 @@ export default function AppHeader() {
         ${scrolled ? "shadow-sm" : ""}
       `}
     >
-      {/* ===== BAR ===== */}
       <div className="max-w-7xl mx-auto px-6 h-16 grid grid-cols-[auto,1fr,auto] items-center gap-6">
-        {/* LOGO */}
         <NavLink to="/" className="flex items-center gap-3">
           <img src={LogoImg} alt="PROPESQ" className="h-8 w-auto select-none" />
         </NavLink>
 
-        {/* MENU DESKTOP */}
         <nav className="hidden md:flex items-center justify-center gap-6">
           {primaryMenu.map((item) => (
             <NavLink
@@ -207,7 +219,6 @@ export default function AppHeader() {
           ))}
         </nav>
 
-        {/* AÇÕES */}
         <div className="flex items-center gap-3 justify-end">
           <button className="hidden md:flex p-2 rounded-full hover:bg-neutral-light" aria-label="Notificações">
             <Bell size={18} />
@@ -221,7 +232,6 @@ export default function AppHeader() {
             Sair
           </button>
 
-          {/* BURGER */}
           <button
             className="md:hidden p-2 rounded-lg hover:bg-neutral-light"
             onClick={() => setMobileOpen(true)}
@@ -232,20 +242,11 @@ export default function AppHeader() {
         </div>
       </div>
 
-      {/* ================= SUBMENU DESKTOP (LINHA 2 - SÓ ADM) ================= */}
+      {/* SUBMENU DESKTOP (LINHA 2 - SÓ ADM) */}
       {role === "ADMINISTRADOR" && adminSecondary.length > 0 && (
         <div className="max-w-7xl mx-auto px-6 mt-2 pb-1">
           <div className="hidden md:flex justify-center">
-            <div
-              className="
-                inline-flex items-center gap-1
-                rounded-full
-                bg-white
-                border border-neutral-light
-                shadow-lg
-                p-1
-              "
-            >
+            <div className="inline-flex items-center gap-1 rounded-full bg-white border border-neutral-light shadow-lg p-1">
               {adminSecondary.map((item) => (
                 <NavLink
                   key={item.to}
@@ -265,11 +266,10 @@ export default function AppHeader() {
         </div>
       )}
 
-      {/* ===== MOBILE DRAWER ===== */}
+      {/* MOBILE DRAWER */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 md:hidden">
           <aside className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl flex flex-col">
-            {/* HEADER */}
             <div className="h-16 px-6 flex items-center justify-between border-b">
               <img src={LogoImg} alt="PROPESQ" className="h-7" />
               <button onClick={() => setMobileOpen(false)} aria-label="Fechar menu">
@@ -277,9 +277,7 @@ export default function AppHeader() {
               </button>
             </div>
 
-            {/* LINKS */}
             <nav className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-              {/* LINHA 1 (primário) */}
               <div className="space-y-4">
                 {primaryMenu.map((item) => (
                   <NavLink
@@ -299,7 +297,6 @@ export default function AppHeader() {
                 ))}
               </div>
 
-              {/* LINHA 2 (submenu) - só ADM (mobile mantém igual) */}
               {role === "ADMINISTRADOR" && adminSecondary.length > 0 && (
                 <div className="pt-4 border-t space-y-3">
                   <p className="text-[11px] font-bold uppercase tracking-wide text-neutral">Seções</p>
@@ -324,7 +321,6 @@ export default function AppHeader() {
               )}
             </nav>
 
-            {/* FOOTER */}
             <div className="border-t px-6 py-4">
               <button
                 onClick={logout}
