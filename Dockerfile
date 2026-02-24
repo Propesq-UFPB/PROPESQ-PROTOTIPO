@@ -1,21 +1,16 @@
-# Use the official Node.js image as the base image
-FROM node:24-alpine 
+FROM oven/bun:1-alpine
 
-# Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
+# Cache dependencies
+COPY bun.lock package.json ./
+RUN bun install --frozen-lockfile
 
-# Install the application dependencies
-RUN npm install
-
-# Copy the rest of the application files
+# Copy source code
 COPY . .
 
-# Expose the application port 
+# Expose Vite / dev server port
 EXPOSE 3100
 
-# Command to run the application
-CMD ["npm", "run", "dev"]
-
+# Development server (hot reload)
+CMD ["bun", "run", "dev"]
