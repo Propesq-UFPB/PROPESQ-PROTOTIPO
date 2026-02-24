@@ -135,7 +135,7 @@ function PhaseBlock({
   const items = STATUS_OPTIONS.filter((s) => s.phase === phase)
 
   return (
-    <div className="rounded-2xl border border-neutral-light bg-white shadow-card overflow-hidden">
+    <div className="rounded-2xl border border-neutral-light bg-neutral-light shadow-card overflow-hidden">
       <div className="px-6 py-4 border-b border-neutral-light">
         <h3 className="text-sm font-bold text-primary">{PHASE_LABEL[phase].title}</h3>
         <p className="text-xs text-neutral/70 mt-1">{PHASE_LABEL[phase].help}</p>
@@ -327,7 +327,7 @@ export default function ProjectChangeStatus() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Alterar Situação • Projetos • PROPESQ</title>
       </Helmet>

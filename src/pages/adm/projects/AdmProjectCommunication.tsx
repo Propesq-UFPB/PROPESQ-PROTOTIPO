@@ -1,5 +1,13 @@
 import React, { useMemo, useState } from "react"
-import { Search, ChevronRight, ChevronLeft, Send, X } from "lucide-react"
+import {
+  Search,
+  ChevronRight,
+  ChevronLeft,
+  Send,
+  X,
+  ChevronDown,
+  SlidersHorizontal,
+} from "lucide-react"
 
 type Project = {
   id: string
@@ -109,6 +117,14 @@ export default function AdmProjectCommunicateWizard() {
   const [useCategoria, setUseCategoria] = useState(false)
   const [useRelatorioFinal, setUseRelatorioFinal] = useState(true)
 
+  // período (igual à foto)
+  const [usePeriodo, setUsePeriodo] = useState(false)
+  const [periodoInicio, setPeriodoInicio] = useState("")
+  const [periodoFim, setPeriodoFim] = useState("")
+
+  // barra de busca / toggle
+  const [showAdvanced, setShowAdvanced] = useState(true)
+
   // ====== resultados da busca ======
   const [hasSearched, setHasSearched] = useState(false)
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([])
@@ -131,6 +147,14 @@ export default function AdmProjectCommunicateWizard() {
       if (useSituacao && normalize(p.situation ?? "") !== normalize(situacaoProjeto)) return false
       if (useCategoria && normalize(p.category ?? "") !== normalize(categoriaProjeto)) return false
       if (useRelatorioFinal && (p.finalReport ?? "NAO_SUBMETIDO") !== relatorioFinal) return false
+
+      // protótipo de período: como o mock não tem datas, mantemos só o layout (sem filtrar de fato)
+      if (usePeriodo) {
+        if (!String(periodoInicio).trim() && !String(periodoFim).trim()) {
+          // deixa passar (não filtra)
+        }
+      }
+
       return true
     })
   }, [
@@ -165,6 +189,9 @@ export default function AdmProjectCommunicateWizard() {
     useSituacao,
     useCategoria,
     useRelatorioFinal,
+    usePeriodo,
+    periodoInicio,
+    periodoFim,
   ])
 
   function toggleProject(id: string) {
@@ -180,6 +207,19 @@ export default function AdmProjectCommunicateWizard() {
     setHasSearched(false)
     setSelectedProjectIds([])
     setStep(1)
+
+    // limpar filtros (como “Limpar” da foto)
+    setCodigo("")
+    setAno("")
+    setPesquisador("")
+    setTitulo("")
+    setObjetivos("")
+    setLinhaPesquisa("")
+    setAgenciaFinanciadora("-- SELECIONE --")
+    setSituacaoProjeto("-- SELECIONE --")
+    setCategoriaProjeto("-- SELECIONE --")
+    setPeriodoInicio("")
+    setPeriodoFim("")
   }
 
   // ====== passo 2 (comunicação) ======
@@ -237,297 +277,372 @@ export default function AdmProjectCommunicateWizard() {
 
       {step === 1 && (
         <>
-          {/* ======= FORM (layout semelhante ao da imagem) ======= */}
-          <div className="border border-border rounded-md overflow-hidden">
-            <div className="bg-primary/90 text-white px-4 py-2 font-semibold tracking-wide text-sm text-center">
-              BUSCA POR PROJETOS DE PESQUISA
-            </div>
-
-            <div className="p-4 space-y-3">
-              {/* helper para linha */}
-              {/** cada linha: [checkbox ativar] + label + campo */}
-              <Row
-                checked={useTipo}
-                onCheck={setUseTipo}
-                label="Tipo:"
-                field={
-                  <div className="flex items-center gap-6">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="radio"
-                        name="tipo"
-                        checked={tipo === "INTERNO"}
-                        onChange={() => setTipo("INTERNO")}
-                      />
-                      Interno
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="radio"
-                        name="tipo"
-                        checked={tipo === "EXTERNO"}
-                        onChange={() => setTipo("EXTERNO")}
-                      />
-                      Externo
-                    </label>
-                  </div>
-                }
-              />
-
-              <Row
-                checked={useCodigo}
-                onCheck={setUseCodigo}
-                label="Código:"
-                field={
-                  <div className="flex items-center gap-2">
-                    <input
-                      className="w-48 rounded-sm border border-border px-2 py-1 text-sm"
-                      value={codigo}
-                      onChange={(e) => setCodigo(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      className="w-7 h-7 grid place-items-center border border-border rounded-sm hover:bg-muted"
-                      title="Ajuda"
-                      aria-label="Ajuda"
-                    >
-                      ?
-                    </button>
-                  </div>
-                }
-              />
-
-              <Row
-                checked={useAno}
-                onCheck={setUseAno}
-                label="Ano:"
-                field={
+          {/* ======= FILTROS (estilo da foto) ======= */}
+          <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+            {/* Topbar */}
+            <div className="p-4 border-b border-border">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-2.5 text-neutral" size={16} />
                   <input
-                    className="w-24 rounded-sm border border-border px-2 py-1 text-sm"
-                    value={ano}
-                    onChange={(e) => setAno(e.target.value)}
-                    placeholder="Ex.: 2025"
-                  />
-                }
-              />
-
-              <Row
-                checked={usePesquisador}
-                onCheck={setUsePesquisador}
-                label="Pesquisador:"
-                field={
-                  <input
-                    className="w-full max-w-2xl rounded-sm border border-border px-2 py-1 text-sm"
-                    value={pesquisador}
-                    onChange={(e) => setPesquisador(e.target.value)}
-                  />
-                }
-              />
-
-              <Row
-                checked={useCentroUnidade}
-                onCheck={setUseCentroUnidade}
-                label="Centro/Unidade:"
-                field={
-                  <select
-                    className="w-full max-w-2xl rounded-sm border border-border px-2 py-1 text-sm"
-                    value={centroUnidade}
-                    onChange={(e) => setCentroUnidade(e.target.value)}
-                  >
-                    <option>CCHLA - COORDENAÇÃO DE PSICOLOGIA (11.01.15.32)</option>
-                    <option>CI - CENTRO DE INFORMÁTICA</option>
-                    <option>CCS - CENTRO DE CIÊNCIAS DA SAÚDE</option>
-                  </select>
-                }
-              />
-
-              <Row
-                checked={useTitulo}
-                onCheck={setUseTitulo}
-                label="Título:"
-                field={
-                  <input
-                    className="w-full max-w-3xl rounded-sm border border-border px-2 py-1 text-sm"
+                    className="w-full h-10 pl-9 pr-3 rounded-full border border-border text-sm outline-none focus:ring-2 focus:ring-primary/25"
+                    placeholder="Buscar por título, coordenador ou código..."
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                   />
-                }
-              />
+                </div>
 
-              <Row
-                checked={useObjetivos}
-                onCheck={setUseObjetivos}
-                label="Objetivos:"
-                field={
-                  <input
-                    className="w-full max-w-3xl rounded-sm border border-border px-2 py-1 text-sm"
-                    value={objetivos}
-                    onChange={(e) => setObjetivos(e.target.value)}
+                <div className="flex items-center gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced((v) => !v)}
+                    className="h-10 px-3 rounded-full border border-border bg-white hover:bg-muted text-sm inline-flex items-center gap-2"
+                  >
+                    <SlidersHorizontal size={16} />
+                    Busca avançada
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCancelar}
+                    className="h-10 px-3 rounded-full border border-border bg-white hover:bg-muted text-sm inline-flex items-center gap-2"
+                  >
+                    <X size={16} />
+                    Limpar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4">
+
+              {showAdvanced && (
+                <div className="space-y-2">
+                  <Row
+                    checked={useTipo}
+                    onCheck={setUseTipo}
+                    label="Tipo:"
+                    field={
+                      <div className="flex items-center gap-6">
+                        <label className="inline-flex items-center gap-2 text-sm">
+                          <input
+                            type="radio"
+                            name="tipo"
+                            checked={tipo === "INTERNO"}
+                            onChange={() => setTipo("INTERNO")}
+                          />
+                          Interno
+                        </label>
+                        <label className="inline-flex items-center gap-2 text-sm">
+                          <input
+                            type="radio"
+                            name="tipo"
+                            checked={tipo === "EXTERNO"}
+                            onChange={() => setTipo("EXTERNO")}
+                          />
+                          Externo
+                        </label>
+                      </div>
+                    }
                   />
-                }
-              />
 
-              <Row
-                checked={useLinhaPesquisa}
-                onCheck={setUseLinhaPesquisa}
-                label="Linha de Pesquisa:"
-                field={
-                  <input
-                    className="w-full max-w-3xl rounded-sm border border-border px-2 py-1 text-sm"
-                    value={linhaPesquisa}
-                    onChange={(e) => setLinhaPesquisa(e.target.value)}
+                  <Row
+                    checked={useCodigo}
+                    onCheck={setUseCodigo}
+                    label="Código:"
+                    field={
+                      <input
+                        className="h-8 w-56 rounded-sm border border-border px-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+                        value={codigo}
+                        onChange={(e) => setCodigo(e.target.value)}
+                        placeholder="ID ou código..."
+                      />
+                    }
                   />
-                }
-              />
 
-              <Row
-                checked={useAreaConhecimento}
-                onCheck={setUseAreaConhecimento}
-                label="Área do Conhecimento:"
-                field={
-                  <select
-                    className="w-full max-w-md rounded-sm border border-border px-2 py-1 text-sm"
-                    value={areaConhecimento}
-                    onChange={(e) => setAreaConhecimento(e.target.value)}
-                  >
-                    <option>Cirurgia</option>
-                    <option>Ciência da Computação</option>
-                    <option>Psicologia</option>
-                  </select>
-                }
-              />
-
-              <Row
-                checked={useGrupoPesquisa}
-                onCheck={setUseGrupoPesquisa}
-                label="Grupo de Pesquisa:"
-                field={
-                  <select
-                    className="w-full max-w-2xl rounded-sm border border-border px-2 py-1 text-sm"
-                    value={grupoPesquisa}
-                    onChange={(e) => setGrupoPesquisa(e.target.value)}
-                  >
-                    <option>ARIA - Laboratório de Aplicações em Inteligência Artificial</option>
-                    <option>VISLAB - Laboratório de Visão</option>
-                    <option>HCI - Interação Humano-Computador</option>
-                  </select>
-                }
-              />
-
-              <Row
-                checked={useAgencia}
-                onCheck={setUseAgencia}
-                label="Agência Financiadora:"
-                field={
-                  <select
-                    className="w-full max-w-2xl rounded-sm border border-border px-2 py-1 text-sm"
-                    value={agenciaFinanciadora}
-                    onChange={(e) => setAgenciaFinanciadora(e.target.value)}
-                  >
-                    <option>-- SELECIONE --</option>
-                    <option>CNPq</option>
-                    <option>CAPES</option>
-                    <option>FAPESQ</option>
-                  </select>
-                }
-              />
-
-              <Row
-                checked={useEdital}
-                onCheck={setUseEdital}
-                label="Edital:"
-                field={
-                  <select
-                    className="w-full max-w-3xl rounded-sm border border-border px-2 py-1 text-sm"
-                    value={edital}
-                    onChange={(e) => setEdital(e.target.value)}
-                  >
-                    <option>2025/2026 - EDITAL 04/2025/PROPESQ - PIBIC/PIBIT/UFPB/CNPq</option>
-                    <option>2024/2025 - EDITAL 02/2024/PROPESQ - PIBIC/UFPB/CNPq</option>
-                  </select>
-                }
-              />
-
-              <Row
-                checked={useSituacao}
-                onCheck={setUseSituacao}
-                label="Situação do Projeto:"
-                field={
-                  <select
-                    className="w-full max-w-md rounded-sm border border-border px-2 py-1 text-sm"
-                    value={situacaoProjeto}
-                    onChange={(e) => setSituacaoProjeto(e.target.value)}
-                  >
-                    <option>-- SELECIONE --</option>
-                    <option>EM EXECUÇÃO</option>
-                    <option>CONCLUÍDO</option>
-                    <option>CANCELADO</option>
-                  </select>
-                }
-              />
-
-              <Row
-                checked={useCategoria}
-                onCheck={setUseCategoria}
-                label="Categoria do Projeto:"
-                field={
-                  <select
-                    className="w-full max-w-md rounded-sm border border-border px-2 py-1 text-sm"
-                    value={categoriaProjeto}
-                    onChange={(e) => setCategoriaProjeto(e.target.value)}
-                  >
-                    <option>-- SELECIONE --</option>
-                    <option>Pesquisa</option>
-                    <option>Inovação</option>
-                    <option>Extensão</option>
-                  </select>
-                }
-              />
-
-              <Row
-                checked={useRelatorioFinal}
-                onCheck={setUseRelatorioFinal}
-                label="Relatório Final:"
-                field={
-                  <div className="flex items-center gap-6">
-                    <label className="flex items-center gap-2 text-sm">
+                  <Row
+                    checked={useAno}
+                    onCheck={setUseAno}
+                    label="Ano:"
+                    field={
                       <input
-                        type="radio"
-                        name="rf"
-                        checked={relatorioFinal === "SUBMETIDO"}
-                        onChange={() => setRelatorioFinal("SUBMETIDO")}
+                        className="h-8 w-24 rounded-sm border border-border px-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+                        value={ano}
+                        onChange={(e) => setAno(e.target.value)}
+                        placeholder="Ex.: 2025"
                       />
-                      Submetido
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
+                    }
+                  />
+
+                  <Row
+                    checked={usePesquisador}
+                    onCheck={setUsePesquisador}
+                    label="Pesquisador:"
+                    field={
                       <input
-                        type="radio"
-                        name="rf"
-                        checked={relatorioFinal === "NAO_SUBMETIDO"}
-                        onChange={() => setRelatorioFinal("NAO_SUBMETIDO")}
+                        className="h-8 w-full max-w-3xl rounded-sm border border-border px-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+                        value={pesquisador}
+                        onChange={(e) => setPesquisador(e.target.value)}
+                        placeholder="Nome do coordenador/pesquisador..."
                       />
-                      Não Submetido
-                    </label>
+                    }
+                  />
+
+                  <Row
+                    checked={useCentroUnidade}
+                    onCheck={setUseCentroUnidade}
+                    label="Centro/Unidade:"
+                    field={
+                      <SelectLike>
+                        <select
+                          className="h-8 w-full max-w-3xl rounded-sm border border-border pl-2 pr-9 text-sm bg-white outline-none focus:ring-2 focus:ring-primary/25 appearance-none"
+                          value={centroUnidade}
+                          onChange={(e) => setCentroUnidade(e.target.value)}
+                        >
+                          <option>CCHLA - COORDENAÇÃO DE PSICOLOGIA (11.01.15.32)</option>
+                          <option>CI - CENTRO DE INFORMÁTICA</option>
+                          <option>CCS - CENTRO DE CIÊNCIAS DA SAÚDE</option>
+                        </select>
+                      </SelectLike>
+                    }
+                  />
+
+                  <Row
+                    checked={useTitulo}
+                    onCheck={setUseTitulo}
+                    label="Título:"
+                    field={
+                      <input
+                        className="h-8 w-full max-w-4xl rounded-sm border border-border px-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+                        value={titulo}
+                        onChange={(e) => setTitulo(e.target.value)}
+                      />
+                    }
+                  />
+
+                  <Row
+                    checked={useObjetivos}
+                    onCheck={setUseObjetivos}
+                    label="Objetivos:"
+                    field={
+                      <input
+                        className="h-8 w-full max-w-4xl rounded-sm border border-border px-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+                        value={objetivos}
+                        onChange={(e) => setObjetivos(e.target.value)}
+                      />
+                    }
+                  />
+
+                  <Row
+                    checked={useLinhaPesquisa}
+                    onCheck={setUseLinhaPesquisa}
+                    label="Linha de Pesquisa:"
+                    field={
+                      <input
+                        className="h-8 w-full max-w-4xl rounded-sm border border-border px-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+                        value={linhaPesquisa}
+                        onChange={(e) => setLinhaPesquisa(e.target.value)}
+                      />
+                    }
+                  />
+
+                  <Row
+                    checked={useAreaConhecimento}
+                    onCheck={setUseAreaConhecimento}
+                    label="Área do Conhecimento:"
+                    field={
+                      <SelectLike>
+                        <select
+                          className="h-8 w-full max-w-md rounded-sm border border-border pl-2 pr-9 text-sm bg-white outline-none focus:ring-2 focus:ring-primary/25 appearance-none"
+                          value={areaConhecimento}
+                          onChange={(e) => setAreaConhecimento(e.target.value)}
+                        >
+                          <option>Cirurgia</option>
+                          <option>Ciência da Computação</option>
+                          <option>Psicologia</option>
+                        </select>
+                      </SelectLike>
+                    }
+                  />
+
+                  <Row
+                    checked={useGrupoPesquisa}
+                    onCheck={setUseGrupoPesquisa}
+                    label="Grupo de Pesquisa:"
+                    field={
+                      <SelectLike>
+                        <select
+                          className="h-8 w-full max-w-3xl rounded-sm border border-border pl-2 pr-9 text-sm bg-white outline-none focus:ring-2 focus:ring-primary/25 appearance-none"
+                          value={grupoPesquisa}
+                          onChange={(e) => setGrupoPesquisa(e.target.value)}
+                        >
+                          <option>ARIA - Laboratório de Aplicações em Inteligência Artificial</option>
+                          <option>VISLAB - Laboratório de Visão</option>
+                          <option>HCI - Interação Humano-Computador</option>
+                        </select>
+                      </SelectLike>
+                    }
+                  />
+
+                  <Row
+                    checked={useAgencia}
+                    onCheck={setUseAgencia}
+                    label="Agência Financiadora:"
+                    field={
+                      <SelectLike>
+                        <select
+                          className="h-8 w-full max-w-md rounded-sm border border-border pl-2 pr-9 text-sm bg-white outline-none focus:ring-2 focus:ring-primary/25 appearance-none"
+                          value={agenciaFinanciadora}
+                          onChange={(e) => setAgenciaFinanciadora(e.target.value)}
+                        >
+                          <option>-- SELECIONE --</option>
+                          <option>CNPq</option>
+                          <option>CAPES</option>
+                          <option>FAPESQ</option>
+                        </select>
+                      </SelectLike>
+                    }
+                  />
+
+                  <Row
+                    checked={useEdital}
+                    onCheck={setUseEdital}
+                    label="Edital:"
+                    field={
+                      <SelectLike>
+                        <select
+                          className="h-8 w-full max-w-4xl rounded-sm border border-border pl-2 pr-9 text-sm bg-white outline-none focus:ring-2 focus:ring-primary/25 appearance-none"
+                          value={edital}
+                          onChange={(e) => setEdital(e.target.value)}
+                        >
+                          <option>2025/2026 - EDITAL 04/2025/PROPESQ - PIBIC/PIBIT/UFPB/CNPq</option>
+                          <option>2024/2025 - EDITAL 02/2024/PROPESQ - PIBIC/UFPB/CNPq</option>
+                        </select>
+                      </SelectLike>
+                    }
+                  />
+
+                  <Row
+                    checked={useSituacao}
+                    onCheck={setUseSituacao}
+                    label="Situação do Projeto:"
+                    field={
+                      <SelectLike>
+                        <select
+                          className="h-8 w-full max-w-md rounded-sm border border-border pl-2 pr-9 text-sm bg-white outline-none focus:ring-2 focus:ring-primary/25 appearance-none"
+                          value={situacaoProjeto}
+                          onChange={(e) => setSituacaoProjeto(e.target.value)}
+                        >
+                          <option>-- SELECIONE --</option>
+                          <option>EM EXECUÇÃO</option>
+                          <option>CONCLUÍDO</option>
+                          <option>CANCELADO</option>
+                        </select>
+                      </SelectLike>
+                    }
+                  />
+
+                  <Row
+                    checked={useCategoria}
+                    onCheck={setUseCategoria}
+                    label="Categoria do Projeto:"
+                    field={
+                      <SelectLike>
+                        <select
+                          className="h-8 w-full max-w-md rounded-sm border border-border pl-2 pr-9 text-sm bg-white outline-none focus:ring-2 focus:ring-primary/25 appearance-none"
+                          value={categoriaProjeto}
+                          onChange={(e) => setCategoriaProjeto(e.target.value)}
+                        >
+                          <option>-- SELECIONE --</option>
+                          <option>Pesquisa</option>
+                          <option>Inovação</option>
+                          <option>Extensão</option>
+                        </select>
+                      </SelectLike>
+                    }
+                  />
+
+                  <Row
+                    checked={useRelatorioFinal}
+                    onCheck={setUseRelatorioFinal}
+                    label="Relatório Final:"
+                    field={
+                      <div className="flex items-center gap-6">
+                        <label className="inline-flex items-center gap-2 text-sm">
+                          <input
+                            type="radio"
+                            name="rf"
+                            checked={relatorioFinal === "SUBMETIDO"}
+                            onChange={() => setRelatorioFinal("SUBMETIDO")}
+                          />
+                          Submetido
+                        </label>
+                        <label className="inline-flex items-center gap-2 text-sm">
+                          <input
+                            type="radio"
+                            name="rf"
+                            checked={relatorioFinal === "NAO_SUBMETIDO"}
+                            onChange={() => setRelatorioFinal("NAO_SUBMETIDO")}
+                          />
+                          Não Submetido
+                        </label>
+                      </div>
+                    }
+                  />
+
+                  {/* Período (como na foto) */}
+                  <div className="pt-4 border-t border-border">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-[11px] font-semibold text-neutral mb-2 tracking-wide">
+                          PERÍODO (INÍCIO)
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={usePeriodo}
+                            onChange={(e) => setUsePeriodo(e.target.checked)}
+                            title="Ativar filtro de período"
+                          />
+                          <input
+                            className="h-9 w-full rounded-md border border-border px-3 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+                            placeholder="dd/mm/aaaa"
+                            value={periodoInicio}
+                            onChange={(e) => setPeriodoInicio(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-[11px] font-semibold text-neutral mb-2 tracking-wide">
+                          PERÍODO (FIM)
+                        </div>
+                        <input
+                          className="h-9 w-full rounded-md border border-border px-3 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+                          placeholder="dd/mm/aaaa"
+                          value={periodoFim}
+                          onChange={(e) => setPeriodoFim(e.target.value)}
+                          disabled={!usePeriodo}
+                        />
+                      </div>
+                    </div>
                   </div>
-                }
-              />
+                </div>
+              )}
 
-              <div className="pt-2 flex justify-center gap-2">
+              <div className="pt-4 flex justify-end">
                 <button
                   onClick={handleBuscar}
-                  className="px-4 py-1.5 text-sm rounded-sm border border-border bg-white hover:bg-muted inline-flex items-center gap-2"
+                  className="h-10 px-4 rounded-md bg-primary text-white text-sm inline-flex items-center gap-2"
                 >
                   <Search size={16} />
                   Buscar
                 </button>
-                <button
-                  onClick={handleCancelar}
-                  className="px-4 py-1.5 text-sm rounded-sm border border-border bg-white hover:bg-muted inline-flex items-center gap-2"
-                >
-                  <X size={16} />
-                  Cancelar
-                </button>
               </div>
+
+              <p className="mt-3 text-[11px] text-neutral">
+                Clique em “...” na tabela para abrir ações do projeto.
+              </p>
             </div>
           </div>
 
@@ -741,8 +856,17 @@ function Row(props: {
   return (
     <div className="grid grid-cols-[18px_160px_1fr] items-center gap-3">
       <input type="checkbox" checked={props.checked} onChange={(e) => props.onCheck(e.target.checked)} />
-      <div className="text-sm">{props.label}</div>
-      <div>{props.field}</div>
+      <div className="text-sm text-neutral">{props.label}</div>
+      <div className={props.checked ? "" : "opacity-60 pointer-events-none"}>{props.field}</div>
+    </div>
+  )
+}
+
+function SelectLike({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative inline-block w-full">
+      {children}
+      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-neutral" size={16} />
     </div>
   )
 }

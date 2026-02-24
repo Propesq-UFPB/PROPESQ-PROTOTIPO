@@ -89,7 +89,7 @@ export default function Reports() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Relatórios • PROPESQ</title>
       </Helmet>

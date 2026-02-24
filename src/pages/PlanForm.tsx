@@ -5,7 +5,7 @@ import { Helmet } from "react-helmet"
 
 export default function PlanForm() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Cadastro de Plano de Trabalho • PROPESQ</title>
       </Helmet>

@@ -58,7 +58,7 @@ export default function Monitoring() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Painel de Editais • PROPESQ</title>
       </Helmet>

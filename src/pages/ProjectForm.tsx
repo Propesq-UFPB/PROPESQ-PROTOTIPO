@@ -6,7 +6,7 @@ export default function ProjectForm() {
   const [status, setStatus] = useState<"Rascunho" | "Enviado">("Rascunho")
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Cadastro de Projeto de Pesquisa • PROPESQ</title>
       </Helmet>

@@ -56,7 +56,7 @@ export default function MyProjects() {
       : "Projetos em que Participo"
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>{titulo} • PROPESQ</title>
       </Helmet>

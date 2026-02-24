@@ -10,12 +10,12 @@ import Systems from "./Systems"
 export default function LandingHome() {
   return (
     <>
-      <About />
-      <Proposals />
       <News />
+      {/*<Proposals />*/}
       <Publications />
-      <Systems />
-      <FAQ />
+      {/*<Systems />*/}
+      {/*<FAQ />*/}
+      <About />
       <Contact />
     </>
   )

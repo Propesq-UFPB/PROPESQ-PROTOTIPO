@@ -359,7 +359,7 @@ export default function ProjectCreateWizard() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Cadastrar Projeto • PROPESQ</title>
       </Helmet>

@@ -1,4 +1,4 @@
-// src/pages/AdminAnalytics.tsx
+// src/pages/AdminAnalytics.tsx - sem usar
 
 import React, { useState } from "react"
 import StatCard from "@/components/StatCard"

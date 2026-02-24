@@ -5,9 +5,9 @@ import {
   History,
   ChevronDown,
   Eye,
-  CheckCircle2,
-  XCircle,
-  Clock3,
+  // CheckCircle2,
+  // XCircle,
+  // Clock3,
   FileText,
   Download,
   ArrowRightLeft,
@@ -17,7 +17,8 @@ import {
 } from "lucide-react"
 
 type Call = { id: string; title: string; baseYear: number }
-type ReplacementStatus = "PENDING" | "APPROVED" | "REJECTED"
+
+// type ReplacementStatus = "PENDING" | "APPROVED" | "REJECTED"
 
 type Student = {
   id: string
@@ -31,7 +32,8 @@ type ReplacementChange = {
   id: string
   at: string // ISO
   by: string
-  action: "REQUESTED" | "APPROVED" | "REJECTED" | "EDITED"
+  // sem aprovar/rejeitar
+  action: "REQUESTED" | "EDITED"
   note?: string
   fromStudent?: Student
   toStudent?: Student
@@ -46,7 +48,10 @@ type ReplacementRequest = {
   currentStudent: Student
   newStudent: Student
   reason: string
-  status: ReplacementStatus
+
+  // sem status de decisão
+  // status: ReplacementStatus
+
   createdAt: string
   updatedAt?: string
   history: ReplacementChange[]
@@ -56,27 +61,17 @@ function uid(prefix = "id") {
   return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`
 }
 
-function chip(text: string, tone: "neutral" | "amber" | "green" | "red" = "neutral") {
-  const cls =
-    tone === "green"
-      ? "bg-green-50 text-green-700 border-green-200"
-      : tone === "red"
-      ? "bg-red-50 text-red-700 border-red-200"
-      : tone === "amber"
-      ? "bg-amber-50 text-amber-800 border-amber-200"
-      : "bg-neutral-50 text-neutral border-neutral-light"
-
+function chip(text: string) {
   return (
-    <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border ${cls}`}>
+    <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border bg-neutral-50 text-neutral border-neutral-light">
       {text}
     </span>
   )
 }
 
-function statusChip(s: ReplacementStatus) {
-  if (s === "APPROVED") return chip("Aprovado", "green")
-  if (s === "REJECTED") return chip("Rejeitado", "red")
-  return chip("Pendente", "amber")
+//  Chip neutro (somente visualização)
+function statusChip() {
+  return chip("Registrado")
 }
 
 function formatStudent(s: Student) {
@@ -140,7 +135,7 @@ export default function StudentReplacements() {
   ])
   const [selectedCallId, setSelectedCallId] = useState(calls[0]?.id ?? "")
 
-  const [requests, setRequests] = useState<ReplacementRequest[]>([
+  const [requests] = useState<ReplacementRequest[]>([
     {
       id: "r1",
       callId: "call_2026_01",
@@ -150,7 +145,6 @@ export default function StudentReplacements() {
       currentStudent: { id: "s1", name: "Discente Luiza", institution: "UFPB", level: "SUPERIOR", doc: "20201234" },
       newStudent: { id: "s9", name: "Discente Marcos", institution: "UFPB", level: "SUPERIOR", doc: "20209999" },
       reason: "Desligamento do discente por incompatibilidade de horários.",
-      status: "PENDING",
       createdAt: "2026-01-18T15:30:00Z",
       updatedAt: "2026-01-18T15:30:00Z",
       history: [
@@ -159,7 +153,7 @@ export default function StudentReplacements() {
           at: "2026-01-18T15:30:00Z",
           by: "Coordenador do projeto",
           action: "REQUESTED",
-          note: "Solicitação aberta no sistema.",
+          note: "Solicitação registrada no sistema.",
           fromStudent: { id: "s1", name: "Discente Luiza", institution: "UFPB", level: "SUPERIOR" },
           toStudent: { id: "s9", name: "Discente Marcos", institution: "UFPB", level: "SUPERIOR" },
         },
@@ -174,34 +168,35 @@ export default function StudentReplacements() {
       currentStudent: { id: "s2", name: "Discente João", institution: "UFPB", level: "SUPERIOR" },
       newStudent: { id: "s3", name: "Discente Maria", institution: "UFPB", level: "SUPERIOR" },
       reason: "Substituição por desempenho acadêmico.",
-      status: "APPROVED",
       createdAt: "2026-01-10T11:10:00Z",
-      updatedAt: "2026-01-12T09:00:00Z",
+      updatedAt: "2026-01-12T09:02:00Z",
       history: [
         {
           id: "h2",
           at: "2026-01-10T11:10:00Z",
           by: "Coordenador do projeto",
           action: "REQUESTED",
-          note: "Solicitação aberta no sistema.",
+          note: "Solicitação registrada no sistema.",
           fromStudent: { id: "s2", name: "Discente João", institution: "UFPB", level: "SUPERIOR" },
           toStudent: { id: "s3", name: "Discente Maria", institution: "UFPB", level: "SUPERIOR" },
         },
-        { id: "h3", at: "2026-01-12T09:00:00Z", by: "Administrador", action: "APPROVED", note: "Aprovado após conferência." },
-        { id: "h4", at: "2026-01-12T09:02:00Z", by: "Sistema", action: "EDITED", note: "Vínculo atualizado no projeto." },
+        { id: "h4", at: "2026-01-12T09:02:00Z", by: "Sistema", action: "EDITED", note: "Registro atualizado." },
       ],
     },
   ])
 
   const [q, setQ] = useState("")
-  const [status, setStatus] = useState<"ALL" | ReplacementStatus>("ALL")
+  // sem filtro por status
+  // const [status, setStatus] = useState<"ALL" | ReplacementStatus>("ALL")
+
   const [openId, setOpenId] = useState<string | null>(null)
 
   const list = useMemo(() => {
     const nq = q.trim().toLowerCase()
     return requests
       .filter((r) => r.callId === selectedCallId)
-      .filter((r) => (status === "ALL" ? true : r.status === status))
+      // sem filtro por status
+      // .filter((r) => (status === "ALL" ? true : r.status === status))
       .filter((r) => {
         if (!nq) return true
         return (
@@ -212,7 +207,7 @@ export default function StudentReplacements() {
         )
       })
       .sort((a, b) => ((a.updatedAt ?? a.createdAt) < (b.updatedAt ?? b.createdAt) ? 1 : -1))
-  }, [requests, selectedCallId, status, q])
+  }, [requests, selectedCallId, q])
 
   const openReq = useMemo(() => list.find((r) => r.id === openId) ?? null, [list, openId])
 
@@ -220,43 +215,9 @@ export default function StudentReplacements() {
     const all = requests.filter((r) => r.callId === selectedCallId)
     return {
       total: all.length,
-      pending: all.filter((r) => r.status === "PENDING").length,
-      approved: all.filter((r) => r.status === "APPROVED").length,
-      rejected: all.filter((r) => r.status === "REJECTED").length,
+      // removido: pending/approved/rejected
     }
   }, [requests, selectedCallId])
-
-  function approve(id: string) {
-    setRequests((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r
-        return {
-          ...r,
-          status: "APPROVED",
-          updatedAt: new Date().toISOString(),
-          history: [
-            ...r.history,
-            { id: uid("h"), at: new Date().toISOString(), by: "Administrador", action: "APPROVED", note: "Aprovado pelo administrador." },
-            { id: uid("h"), at: new Date().toISOString(), by: "Sistema", action: "EDITED", note: "Vínculo do discente atualizado no projeto." },
-          ],
-        }
-      })
-    )
-  }
-
-  function reject(id: string) {
-    setRequests((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r
-        return {
-          ...r,
-          status: "REJECTED",
-          updatedAt: new Date().toISOString(),
-          history: [...r.history, { id: uid("h"), at: new Date().toISOString(), by: "Administrador", action: "REJECTED", note: "Rejeitado pelo administrador." }],
-        }
-      })
-    )
-  }
 
   function exportData() {
     alert("Exportar (placeholder).")
@@ -267,7 +228,7 @@ export default function StudentReplacements() {
       <header className="space-y-1">
         <h1 className="text-xl font-bold text-primary">Substituições de Discentes</h1>
         <p className="text-sm text-neutral">
-          Controle de substituições com histórico: visualize discentes antigos e novos por projeto e acompanhe as decisões do administrador.
+          Página de visualização: acompanhe as trocas (discente antigo → discente novo) e o histórico registrado.
         </p>
       </header>
 
@@ -279,7 +240,7 @@ export default function StudentReplacements() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-          <label className="md:col-span-7 text-sm">
+          <label className="md:col-span-8 text-sm">
             <span className="block text-xs text-neutral mb-1">Edital</span>
             <div className="relative">
               <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none" />
@@ -303,22 +264,10 @@ export default function StudentReplacements() {
             </div>
           </label>
 
-          <div className="md:col-span-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="md:col-span-4">
             <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4">
               <p className="text-xs text-neutral">Total</p>
               <p className="text-xl font-bold text-primary mt-1">{stats.total}</p>
-            </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-xs text-amber-800">Pendentes</p>
-              <p className="text-xl font-bold text-amber-900 mt-1">{stats.pending}</p>
-            </div>
-            <div className="rounded-xl border border-green-200 bg-green-50 p-4">
-              <p className="text-xs text-green-700">Aprovadas</p>
-              <p className="text-xl font-bold text-green-800 mt-1">{stats.approved}</p>
-            </div>
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-              <p className="text-xs text-red-700">Rejeitadas</p>
-              <p className="text-xl font-bold text-red-800 mt-1">{stats.rejected}</p>
             </div>
           </div>
         </div>
@@ -326,14 +275,14 @@ export default function StudentReplacements() {
         <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 flex items-start gap-2">
           <Info size={16} className="mt-0.5 text-neutral" />
           <p className="text-xs text-neutral">
-            A substituição mantém histórico (append-only): quem solicitou, quem aprovou/rejeitou e a troca (discente antigo → discente novo).
+            Esta tela é somente leitura: ela lista solicitações e exibe o histórico registrado (append-only).
           </p>
         </div>
       </section>
 
-      {/* LISTA + DETALHES (FIX: col-span correto) */}
+      {/* LISTA + DETALHES */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* LISTA (agora ocupa espaço certo) */}
+        {/* LISTA */}
         <div className="lg:col-span-7">
           <Section
             title="Solicitações"
@@ -359,18 +308,10 @@ export default function StudentReplacements() {
                 />
               </div>
 
-              <div className="flex gap-2">
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
-                  className="border border-neutral-light rounded-lg px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  <option value="ALL">Todos os status</option>
-                  <option value="PENDING">Pendentes</option>
-                  <option value="APPROVED">Aprovados</option>
-                  <option value="REJECTED">Rejeitados</option>
-                </select>
-              </div>
+              {/* removido filtro por status */}
+              {/* <div className="flex gap-2">
+                <select ... />
+              </div> */}
             </div>
 
             <div className="space-y-2">
@@ -406,7 +347,7 @@ export default function StudentReplacements() {
                       </div>
 
                       <div className="shrink-0 flex flex-col items-end gap-2">
-                        {statusChip(r.status)}
+                        {statusChip()}
                         <span className="text-[11px] text-neutral">
                           {new Date(r.updatedAt ?? r.createdAt).toLocaleString()}
                         </span>
@@ -418,7 +359,7 @@ export default function StudentReplacements() {
 
               {list.length === 0 && (
                 <div className="rounded-xl border border-neutral-light bg-neutral-50 p-6 text-sm text-neutral text-center">
-                  Nenhuma solicitação encontrada para este edital/filtro.
+                  Nenhuma solicitação encontrada para este edital.
                 </div>
               )}
             </div>
@@ -456,7 +397,7 @@ export default function StudentReplacements() {
                         Orientador: <span className="font-semibold text-primary">{openReq.advisor}</span>
                       </p>
                     </div>
-                    <div className="shrink-0">{statusChip(openReq.status)}</div>
+                    <div className="shrink-0">{statusChip()}</div>
                   </div>
 
                   <div className="mt-3 grid grid-cols-1 gap-2">
@@ -476,24 +417,7 @@ export default function StudentReplacements() {
                   </p>
                 </div>
 
-                {openReq.status === "PENDING" && (
-                  <div className="flex flex-col md:flex-row gap-2">
-                    <button
-                      onClick={() => approve(openReq.id)}
-                      className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:opacity-90 w-full"
-                    >
-                      <CheckCircle2 size={16} />
-                      Aprovar substituição
-                    </button>
-                    <button
-                      onClick={() => reject(openReq.id)}
-                      className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-red-200 text-red-700 bg-red-50 hover:opacity-95 w-full"
-                    >
-                      <XCircle size={16} />
-                      Rejeitar
-                    </button>
-                  </div>
-                )}
+                {/* removido bloco de aprovar/rejeitar */}
 
                 <div className="rounded-xl border border-neutral-light bg-white p-4 space-y-4">
                   <p className="text-sm font-semibold text-primary">Linha do tempo</p>
@@ -504,28 +428,13 @@ export default function StudentReplacements() {
                       .sort((a, b) => (a.at < b.at ? 1 : -1))
                       .map((h) => {
                         const when = new Date(h.at).toLocaleString()
-                        const icon =
-                          h.action === "APPROVED" ? (
-                            <CheckCircle2 size={18} className="text-green-700" />
-                          ) : h.action === "REJECTED" ? (
-                            <XCircle size={18} className="text-red-700" />
-                          ) : h.action === "REQUESTED" ? (
-                            <Clock3 size={18} className="text-amber-700" />
-                          ) : (
-                            <Eye size={18} className="text-neutral" />
-                          )
 
-                        const title =
-                          h.action === "APPROVED"
-                            ? "Substituição aprovada"
-                            : h.action === "REJECTED"
-                            ? "Substituição rejeitada"
-                            : h.action === "REQUESTED"
-                            ? "Substituição solicitada"
-                            : "Registro atualizado"
+                        // ✅ ícone/título neutros
+                        const icon = <Eye size={18} className="text-neutral" />
 
-                        const subtitle =
-                          h.fromStudent && h.toStudent ? `${h.fromStudent.name} → ${h.toStudent.name}` : h.note
+                        const title = h.action === "REQUESTED" ? "Substituição registrada" : "Registro atualizado"
+
+                        const subtitle = h.fromStudent && h.toStudent ? `${h.fromStudent.name} → ${h.toStudent.name}` : h.note
 
                         return (
                           <TimelineItem

@@ -1,162 +1,84 @@
+// src/landing/About.tsx
 import React from "react"
-import bgImage from "@/utils/img/bg1.png"
-import {
-  Layers,
-  Users,
-  ShieldCheck,
-  Lightbulb,
-} from "lucide-react"
+import { Link } from "react-router-dom"
 import AnimateIn from "@/components/AnimateIn"
-
-/* Dados */
-const pillars = [
-  {
-    title: "Gestão Inteligente",
-    description:
-      "Acompanhamento de projetos, bolsas e acordos institucionais em tempo real, com dados organizados e acessíveis.",
-    icon: Layers,
-  },
-  {
-    title: "Integração Acadêmica",
-    description:
-      "Conecta discentes, docentes, pesquisadores e gestores em um único ecossistema digital.",
-    icon: Users,
-  },
-  {
-    title: "Transparência e Controle",
-    description:
-      "Fluxos claros, histórico completo e rastreabilidade de decisões e documentos.",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Inovação Institucional",
-    description:
-      "Base estratégica para indicadores científicos e políticas institucionais.",
-    icon: Lightbulb,
-  },
-]
-
-const indicators = [
-  { value: "120+", label: "Projetos ativos" },
-  { value: "300+", label: "Bolsas concedidas" },
-  { value: "420+", label: "Docentes pesquisadores" },
-  { value: "15+", label: "Editais ativos" },
-  { value: "1.2k+", label: "Discentes em pesquisa" },
-]
+import aboutImg from "@/utils/img/bg_ufpb.jpg"
 
 const About: React.FC = () => {
   return (
-    <section id="about" className="w-full overflow-hidden pb-12">
-      {/* HERO */}
-      <div
-        className="relative w-full h-[60vh] md:h-[75vh] bg-cover bg-center"
-        style={{ backgroundImage: `url(${bgImage})` }}
-      >
-        <div className="absolute inset-0 bg-primary/80" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
-          <span className="text-xs md:text-sm tracking-widest text-accent uppercase">
-            Universidade Federal da Paraíba - UFPB
-          </span>
+    <section
+      id="about"
+      aria-label="Apresentação"
+      className="w-full bg-white border-t border-slate-200"
+    >
+      <div className="max-w-7xl mx-auto px-6 py-10 md:py-14">
+        <AnimateIn>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-stretch">
+            {/* TEXTO */}
+            <div className="flex flex-col">
+              {/* Linha superior */}
+              <div className="h-[3px] w-20 bg-blue-900 mb-6" />
 
-          <h1 className="mt-4 text-3xl md:text-6xl font-bold text-white">
-            Pró-Reitoria de Pesquisa
-          </h1>
-
-          <span className="mt-3 text-lg md:text-2xl font-semibold text-accent">
-            PROPESQ
-          </span>
-
-          <div className="mt-4 w-28 h-[3px] bg-accent rounded-full" />
-        </div>
-      </div>
-
-      {/* BLOCO INSTITUCIONAL */}
-      <div className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-          {/* TEXTO */}
-          <AnimateIn>
-            <div className="max-w-xl space-y-5 text-neutral">
-              <h2 className="text-2xl md:text-3xl font-bold text-primary">
-                Sobre a PROPESQ
+              <h2 className="text-2xl md:text-3xl font-semibold text-blue-900">
+                Apresentação
               </h2>
 
-              <div className="mt-2 w-20 h-[4px] bg-accent rounded-full" />
+              <div className="mt-6 space-y-5 text-slate-600 leading-relaxed text-[15px] md:text-base">
+                <p>
+                  A Pró-Reitoria de Pesquisa (Propesq) é o órgão auxiliar de direção
+                  superior incumbido de propor, planejar, coordenar, controlar, executar
+                  e avaliar as políticas de pesquisa científica e tecnológica mantidas
+                  pela Universidade (Resolução CONSUNI 01/2017).
+                </p>
 
-              <p className="text-base md:text-lg text-justify">
-                A Pró-Reitoria de Pesquisa (Propesq) é o órgão auxiliar de direção
-                superior incumbido de propor, planejar, coordenar, controlar,
-                executar e avaliar as políticas de pesquisa científica e
-                tecnológica mantidas pela Universidade.
-              </p>
+                <p className="text-slate-700">
+                  São órgãos da Pró-Reitoria de Pesquisa:
+                </p>
 
-              <p className="text-base md:text-lg text-justify">
-                A plataforma PROPESQ foi desenvolvida para organizar,
-                acompanhar e fortalecer projetos de pesquisa, bolsas, acordos
-                institucionais e trajetórias acadêmicas.
-              </p>
+                <ol className="list-decimal pl-6 space-y-2">
+                  <li>Coordenação-Geral de Pesquisa (CGPq);</li>
+                  <li>
+                    Coordenação-Geral de Programas Acadêmicos e de Iniciação Científica
+                    (CGPAIC);
+                  </li>
+                  <li>Divisão de Atividades Orçamentário-Financeiras (DAOF);</li>
+                  <li>Gabinete do Pró(a)-Reitor(a).</li>
+                </ol>
+              </div>
 
-              <p className="text-base md:text-lg text-justify pb-5">
-                Atua como ambiente estratégico para integração acadêmica,
-                transparência administrativa e inovação científica.
-              </p>
+              {/* Divisor animado */}
+              <div className="mt-10 relative h-[1px] bg-slate-200 overflow-hidden">
+                <span className="absolute left-0 top-0 h-full w-0 bg-blue-900 animate-[growLine_0.8s_ease_forwards]" />
+              </div>
+
+              <Link
+                to="/quem-somos"
+                className="mt-6 group inline-flex items-center gap-3 text-blue-900 font-semibold transition-all duration-300"
+              >
+                <span className="relative">
+                  Quem Somos
+                  <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-blue-900 transition-all duration-300 group-hover:w-full" />
+                </span>
+
+                <span className="text-2xl leading-none transition-transform duration-300 group-hover:translate-x-2">
+                  →
+                </span>
+              </Link>
+
             </div>
-          </AnimateIn>
 
-          {/* CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-stretch">
-            {pillars.map((pillar, index) => {
-              const Icon = pillar.icon
-              return (
-                <AnimateIn key={index} delay={index * 120}>
-                  <div className="
-                    h-full
-                    rounded-2xl p-6
-                    bg-primary
-                    border border-primary/20
-                    shadow-card
-                    flex flex-col
-                  ">
-                    {/* Cabeçalho */}
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="p-3 rounded-xl bg-white text-primary shrink-0">
-                        <Icon className="w-6 h-6" />
-                      </div>
-                      <h3 className="font-semibold text-base md:text-lg text-white/90">
-                        {pillar.title}
-                      </h3>
-                    </div>
-
-                    {/* Conteúdo */}
-                    <p className="text-sm text-white/80 flex-grow">
-                      {pillar.description}
-                    </p>
-                  </div>
-                </AnimateIn>
-              )
-            })}
+            {/* IMAGEM */}
+            <div className="w-full">
+              <div className="w-full h-[320px] sm:h-[420px] lg:h-full overflow-hidden">
+                <img
+                  src={aboutImg}
+                  alt="UFPB"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
           </div>
-
-        </div>
-      </div>
-
-      {/* INDICADORES */}
-      <div className="py-0">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            {indicators.map((item, index) => (
-              <AnimateIn key={index} delay={index * 100}>
-                <div className="group flex flex-col items-center justify-center rounded-2xl bg-white p-8 border-2 border-primary transition-colors duration-300 hover:bg-primary">
-                  <span className="text-2xl md:text-3xl font-bold text-primary group-hover:text-white transition-colors">
-                    {item.value}
-                  </span>
-                  <span className="mt-2 text-xs md:text-sm font-medium text-center text-primary group-hover:text-white transition-colors">
-                    {item.label}
-                  </span>
-                </div>
-              </AnimateIn>
-            ))}
-          </div>
-        </div>
+        </AnimateIn>
       </div>
     </section>
   )

@@ -97,7 +97,7 @@ export default function Plans() {
   }, [baseData, q, status])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Planos de Trabalho • PROPESQ</title>
       </Helmet>

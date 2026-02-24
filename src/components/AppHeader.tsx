@@ -35,8 +35,21 @@ import { useAuth } from "@/context/AuthContext"
 type Role = "DISCENTE" | "COORDENADOR" | "ADMINISTRADOR"
 type NavItem = { to: string; label: string; icon?: React.ReactNode; end?: boolean }
 
+/**
+ * Active matcher com aliases (pra manter submenu estável)
+ * - Projetos: primário é /projetos, mas subrotas ADM vivem em /adm/projetos/*
+ */
 function isActive(pathname: string, to: string, end?: boolean) {
   if (to === "/") return pathname === "/"
+
+  if (to === "/projetos") {
+    if (end) return pathname === "/projetos"
+    if (pathname === "/projetos") return true
+    if (pathname.startsWith("/projetos/")) return true
+    if (pathname.startsWith("/adm/projetos")) return true
+    return false
+  }
+
   if (end) return pathname === to
   return pathname === to || pathname.startsWith(to + "/")
 }
@@ -46,6 +59,47 @@ function pickActivePrimary(pathname: string, primary: NavItem[], fallback: strin
   const sorted = [...primary].sort((a, b) => b.to.length - a.to.length)
   const found = sorted.find((p) => isActive(pathname, p.to, p.end))
   return found?.to ?? fallback
+}
+
+/* TEMA POR PÁGINA */
+
+type ThemeTokens = {
+  page: string
+  pageSoft: string
+  sidebarBg: string
+  sidebarFg: string
+  appBg: string
+}
+
+function themeFromPath(pathname: string): ThemeTokens {
+  const base: ThemeTokens = {
+    page: "#2563EB",
+    pageSoft: "#DBEAFE",
+    sidebarBg: "#0B1220",
+    sidebarFg: "#E5E7EB",
+    appBg: "#F3F4F6",
+  }
+
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard")) {
+    return { ...base, page: "#2563EB", pageSoft: "#DBEAFE" }
+  }
+  if (pathname === "/projetos" || pathname.startsWith("/projetos") || pathname.startsWith("/adm/projetos")) {
+    return { ...base, page: "#059669", pageSoft: "#D1FAE5" }
+  }
+  if (pathname.startsWith("/adm/avaliacao") || pathname.startsWith("/avaliacoes")) {
+    return { ...base, page: "#7C3AED", pageSoft: "#EDE9FE" }
+  }
+  if (pathname.startsWith("/adm/monitoring")) {
+    return { ...base, page: "#D97706", pageSoft: "#FFEDD5" }
+  }
+  if (pathname.startsWith("/adm/calls")) {
+    return { ...base, page: "#DB2777", pageSoft: "#FCE7F3" }
+  }
+  if (pathname.startsWith("/adm/settings")) {
+    return { ...base, page: "#334155", pageSoft: "#E2E8F0" }
+  }
+
+  return base
 }
 
 export default function AppHeader() {
@@ -67,9 +121,21 @@ export default function AppHeader() {
     setMobileOpen(false)
   }, [location.pathname])
 
+  useEffect(() => {
+    const t = themeFromPath(location.pathname)
+
+    const root = document.documentElement
+    root.style.setProperty("--page", t.page)
+    root.style.setProperty("--page-soft", t.pageSoft)
+    root.style.setProperty("--sidebar-bg", t.sidebarBg)
+    root.style.setProperty("--sidebar-fg", t.sidebarFg)
+    root.style.setProperty("--app-bg", t.appBg)
+
+    document.body.style.backgroundColor = "var(--app-bg)"
+  }, [location.pathname])
+
   /* ================= MENU (ADMIN) ================= */
 
-  // Linha 1 (primário) — módulos principais
   const adminPrimary: NavItem[] = [
     { to: "/dashboard", label: "Dashboard", icon: <Home size={16} /> },
     { to: "/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
@@ -79,23 +145,17 @@ export default function AppHeader() {
     { to: "/adm/settings", label: "Configurações", icon: <Settings size={16} /> },
   ]
 
-  // Linha 2 (subpáginas) — contextual ao primary ativo
   const adminSecondaryByPrimary: Record<string, NavItem[]> = {
     "/dashboard": [
       { to: "/dashboard", label: "Overview", icon: <Home size={16} />, end: true },
       { to: "/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
     ],
 
-    // Projetos (subpáginas administrativas)
-    // /projetos é a lista/hub (Projects.tsx)
     "/projetos": [
       { to: "/projetos", label: "Visão Geral", icon: <Eye size={16} />, end: true },
-
-      // rotas ADM reais:
       { to: "/adm/projetos/novo", label: "Cadastrar", icon: <Plus size={16} /> },
       { to: "/adm/projetos/status", label: "Alterar Situação", icon: <Workflow size={16} /> },
       { to: "/adm/projetos/comunicacao", label: "Comunicação", icon: <Megaphone size={16} /> },
-      // { to: "/adm/projetos/detalhes-projetos", label: "Detalhe (placeholder)", icon: <Eye size={16} /> },
     ],
 
     "/adm/avaliacao": [
@@ -137,11 +197,13 @@ export default function AppHeader() {
 
   const adminSecondary = adminSecondaryByPrimary[adminActivePrimary] ?? []
 
-  /* ================= MENU (NÃO-ADMIN) ================= */
+  /*MENU (NÃO-ADMIN)*/
 
   const nonAdminMenu: NavItem[] = [
     { to: "/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
-    ...(role !== "ADMINISTRADOR" ? [{ to: "/meus-projetos", label: "Meus Projetos", icon: <FolderKanban size={16} /> }] : []),
+    ...(role !== "ADMINISTRADOR"
+      ? [{ to: "/meus-projetos", label: "Meus Projetos", icon: <FolderKanban size={16} /> }]
+      : []),
     ...(role !== "ADMINISTRADOR" ? [{ to: "/planos", label: "Planos de Trabalho", icon: <Notebook size={16} /> }] : []),
     ...(role === "COORDENADOR"
       ? [
@@ -165,11 +227,11 @@ export default function AppHeader() {
     relative inline-flex items-center gap-2 text-sm font-medium
     pb-2
     transition-colors
-    ${active ? "text-primary" : "text-neutral hover:text-primary"}
+    ${active ? "text-[color:var(--page)]" : "text-neutral hover:text-[color:var(--page)]"}
     after:content-['']
     after:absolute after:left-0 after:bottom-0
     after:h-[3px] after:w-full after:rounded-full
-    after:bg-accent
+    after:bg-[color:var(--page)]
     after:transform after:origin-center
     after:transition-transform after:duration-300
     ${active ? "after:scale-x-100" : "after:scale-x-0"}
@@ -181,8 +243,12 @@ export default function AppHeader() {
     text-xs font-semibold
     rounded-full
     transition-all
-    ${active ? "bg-primary text-white shadow-sm" : "text-neutral hover:text-primary hover:bg-neutral-light"}
-    focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60
+    ${
+      active
+        ? "bg-[color:var(--page)] text-white shadow-sm"
+        : "text-neutral hover:text-[color:var(--page)] hover:bg-[color:var(--page-soft)]"
+    }
+    focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--page)]/40
   `
 
   /* ================= RENDER ================= */
@@ -190,13 +256,19 @@ export default function AppHeader() {
   return (
     <header
       className={`
-        sticky top-0 z-50 p-3
-        bg-white
+        sticky top-0 z-50
+        px-3
         border-b border-neutral-light
         transition-shadow
         ${scrolled ? "shadow-sm" : ""}
+        bg-white/75 backdrop-blur
       `}
+      style={{
+        boxShadow: scrolled ? "0 1px 0 rgba(0,0,0,.06), 0 8px 24px rgba(15,23,42,.06)" : undefined,
+      }}
     >
+      <div className="h-[3px] w-full" style={{ background: "var(--page)" }} />
+
       <div className="max-w-7xl mx-auto px-6 h-16 grid grid-cols-[auto,1fr,auto] items-center gap-6">
         <NavLink to="/" className="flex items-center gap-3">
           <img src={LogoImg} alt="PROPESQ" className="h-8 w-auto select-none" />
@@ -220,20 +292,29 @@ export default function AppHeader() {
         </nav>
 
         <div className="flex items-center gap-3 justify-end">
-          <button className="hidden md:flex p-2 rounded-full hover:bg-neutral-light" aria-label="Notificações">
+          <button
+            className="hidden md:flex p-2 rounded-full hover:bg-[color:var(--page-soft)]"
+            aria-label="Notificações"
+          >
             <Bell size={18} />
           </button>
 
           <button
             onClick={logout}
-            className="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors"
+            className="
+              hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium
+              rounded-lg transition-colors
+              border
+              text-[color:var(--page)] border-[color:var(--page)]
+              hover:bg-[color:var(--page)] hover:text-white
+            "
           >
             <LogOut size={16} />
             Sair
           </button>
 
           <button
-            className="md:hidden p-2 rounded-lg hover:bg-neutral-light"
+            className="md:hidden p-2 rounded-lg hover:bg-[color:var(--page-soft)]"
             onClick={() => setMobileOpen(true)}
             aria-label="Abrir menu"
           >
@@ -242,9 +323,8 @@ export default function AppHeader() {
         </div>
       </div>
 
-      {/* SUBMENU DESKTOP (LINHA 2 - SÓ ADM) */}
       {role === "ADMINISTRADOR" && adminSecondary.length > 0 && (
-        <div className="max-w-7xl mx-auto px-6 mt-2 pb-1">
+        <div className="max-w-7xl mx-auto px-6 mt-2 pb-2">
           <div className="hidden md:flex justify-center">
             <div className="inline-flex items-center gap-1 rounded-full bg-white border border-neutral-light shadow-lg p-1">
               {adminSecondary.map((item) => (
@@ -266,65 +346,94 @@ export default function AppHeader() {
         </div>
       )}
 
-      {/* MOBILE DRAWER */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 md:hidden">
-          <aside className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl flex flex-col">
-            <div className="h-16 px-6 flex items-center justify-between border-b">
-              <img src={LogoImg} alt="PROPESQ" className="h-7" />
-              <button onClick={() => setMobileOpen(false)} aria-label="Fechar menu">
+        <div className="fixed inset-0 z-50 bg-black/50 md:hidden">
+          <aside
+            className="absolute left-0 top-0 h-full w-80 shadow-xl flex flex-col"
+            style={{
+              background: "var(--sidebar-bg)",
+              color: "var(--sidebar-fg)",
+            }}
+          >
+            <div className="h-16 px-6 flex items-center justify-between border-b border-white/10">
+              <img src={LogoImg} alt="PROPESQ" className="h-7 opacity-95" />
+              <button
+                onClick={() => setMobileOpen(false)}
+                aria-label="Fechar menu"
+                className="opacity-90 hover:opacity-100"
+              >
                 <X size={20} />
               </button>
             </div>
 
             <nav className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-              <div className="space-y-4">
-                {primaryMenu.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive: rrActive }) =>
-                      `
-                        flex items-center gap-3 text-sm font-medium
-                        ${isActive(location.pathname, item.to, item.end) || rrActive ? "text-primary" : "text-neutral"}
-                      `
-                    }
-                  >
-                    {item.icon}
-                    {item.label}
-                  </NavLink>
-                ))}
-              </div>
-
-              {role === "ADMINISTRADOR" && adminSecondary.length > 0 && (
-                <div className="pt-4 border-t space-y-3">
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-neutral">Seções</p>
-
-                  {adminSecondary.map((item) => (
+              <div className="space-y-3">
+                {primaryMenu.map((item) => {
+                  const active = isActive(location.pathname, item.to, item.end)
+                  return (
                     <NavLink
                       key={item.to}
                       to={item.to}
                       end={item.end}
-                      className={({ isActive: rrActive }) =>
-                        `
-                          flex items-center gap-3 text-sm font-medium
-                          ${isActive(location.pathname, item.to, item.end) || rrActive ? "text-primary" : "text-neutral"}
-                        `
+                      className={`
+                        flex items-center gap-3 text-sm font-semibold rounded-lg px-3 py-2
+                        transition-colors
+                        ${active ? "text-white" : "text-[color:var(--sidebar-fg)]/90 hover:text-white"}
+                      `}
+                      style={
+                        active
+                          ? ({ background: "color-mix(in srgb, var(--page) 35%, transparent)" } as any)
+                          : { background: "transparent" }
                       }
                     >
-                      {item.icon}
+                      <span className={active ? "text-white" : "text-white/80"}>{item.icon}</span>
                       {item.label}
                     </NavLink>
-                  ))}
+                  )
+                })}
+              </div>
+
+              {role === "ADMINISTRADOR" && adminSecondary.length > 0 && (
+                <div className="pt-4 border-t border-white/10 space-y-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-white/70">Seções</p>
+
+                  {adminSecondary.map((item) => {
+                    const active = isActive(location.pathname, item.to, item.end)
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        end={item.end}
+                        className={`
+                          flex items-center gap-3 text-sm font-semibold rounded-lg px-3 py-2
+                          transition-colors
+                          ${active ? "text-white" : "text-white/85 hover:text-white"}
+                        `}
+                        style={
+                          active
+                            ? ({ background: "color-mix(in srgb, var(--page) 35%, transparent)" } as any)
+                            : { background: "transparent" }
+                        }
+                      >
+                        <span className={active ? "text-white" : "text-white/80"}>{item.icon}</span>
+                        {item.label}
+                      </NavLink>
+                    )
+                  })}
                 </div>
               )}
             </nav>
 
-            <div className="border-t px-6 py-4">
+            <div className="border-t border-white/10 px-6 py-4">
               <button
                 onClick={logout}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors"
+                className="
+                  w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold
+                  rounded-lg transition-colors
+                  border border-white/20 text-white
+                  hover:border-white/40
+                "
+                style={{ background: "color-mix(in srgb, var(--page) 22%, transparent)" as any }}
               >
                 <LogOut size={16} />
                 Sair

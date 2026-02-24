@@ -1,20 +1,32 @@
+import React from "react"
 import { Route, Routes, Navigate } from "react-router-dom"
 import { AuthProvider, useAuth } from "./context/AuthContext"
 
 // Landing
 import LandingHome from "./landing"
 import LandingLayout from "./landing/LandingLayout"
+import NewsAll from "./landing/NewsAll"
+import Who from "./landing/Who"
 
 // Landing / Publications
 import Publications from "./landing/Publications"
 import Papers from "./landing/Papers"
 import AwardedWorks from "./landing/AwardedWorks"
 
+// Publisher Sistema
+import LoginPublisher from "./publisher/LoginPublisher"
+import NewsList from "./publisher/NewsList"
+import NewsCreate from "./publisher/NewsCreate"
+import NewsEdit from "./publisher/NewsEdit"
+import NewsPreview from "./publisher/NewsPreview"
+import CategoriesTags from "./publisher/CategoriesTags"
+import UsersAndRoles from "./publisher/UsersAndRoles"
+
 // Sistema
 import AppHeader from "./components/AppHeader"
 import Login from "./pages/Login"
 
-//admin pages
+// admin pages
 import Dashboard from "./pages/adm/Dashboard"
 import EvaluationScore from "./pages/adm/avaliacao/EvaluationScore"
 import Classification from "./pages/adm/avaliacao/Classification"
@@ -31,7 +43,7 @@ import CreateCall from "./pages/adm/calls/CreateCall"
 import CallSchedule from "./pages/adm/calls/CallSchedule"
 import CallWorkflow from "./pages/adm/calls/CallWorkflow"
 import AdmCallsManage from "./pages/adm/calls/Manage"
-import CallQuotas from "./pages/adm/calls/Quotas"
+import AdmCallQuotas from "./pages/adm/calls/Quotas"
 
 import GlobalSettings from "./pages/adm/settings/GlobalSettings"
 import ScholarshipEntities from "./pages/adm/settings/ScholarshipEntities"
@@ -47,7 +59,6 @@ import ProjectCreateWizard from "./pages/adm/projects/ProjectCreateWizard"
 import ProjectChangeStatus from "./pages/adm/projects/ProjectChangeStatus"
 import ProjectCommunication from "./pages/adm/projects/ProjectCommunication"
 
-
 import Projects from "./pages/Projects"
 import MyProjects from "./pages/MyProjects"
 import ProjectForm from "./pages/ProjectForm"
@@ -62,7 +73,8 @@ import CertificateView from "./pages/CertificateView"
 import AdminAnalytics from "./pages/AdminAnalytics"
 import Settings from "./pages/Settings"
 import NotFound from "./pages/NotFound"
-import AdmCallQuotas from "./pages/adm/calls/Quotas"
+
+/* ================= SISTEMA PRINCIPAL ================= */
 
 const Protected: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth()
@@ -77,24 +89,64 @@ const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </div>
 )
 
+/* ================= PUBLISHER (SEPARADO) ================= */
+
+const PUBLISHER_STORAGE_KEY = "publisher_session"
+
+const PublisherProtected: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const raw = localStorage.getItem(PUBLISHER_STORAGE_KEY)
+  const session = raw ? JSON.parse(raw) : null
+  const ok = session?.role === "PUBLICADOR"
+  if (!ok) return <Navigate to="/publisher/login" replace />
+  return <>{children}</>
+}
+
+
+import PublisherHeader from "./publisher/PublisherHeader"
+const PublisherShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="min-h-screen bg-slate-100">
+    <PublisherHeader />
+    <main className="mx-auto max-w-6xl px-4 md:px-6 py-4 md:py-6">
+      {children}
+    </main>
+  </div>
+)
+
+
+/* ================= APP ================= */
+
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
-
         {/* LANDING PÚBLICA */}
         <Route element={<LandingLayout />}>
           <Route path="/" element={<LandingHome />} />
-          <Route path="/publications" element={<Publications />} />
+          <Route path="/noticias" element={<NewsAll />} />
+          <Route path="/publicações" element={<Publications />} />
           <Route path="/publications/anais" element={<Papers />} />
           <Route path="/publications/iniciados" element={<AwardedWorks />} />
+          <Route path="/quem-somos" element={<Who />} />
         </Route>
 
-        {/* 🔐 LOGIN */}
+        {/* 🔐 LOGIN (Sistema principal) */}
         <Route path="/login" element={<Login />} />
 
-        {/*SISTEMA */}
-        {/*SISTEMA - ADMIN */}
+        {/* 🔐 LOGIN (Publisher) */}
+        <Route path="/publisher/login" element={<LoginPublisher />} />
+
+        {/* PAINEL DE PUBLICADORES */}
+        <Route path="/publisher" element={<PublisherProtected><PublisherShell><NewsList /></PublisherShell></PublisherProtected>} />
+        <Route path="/publisher/news" element={<PublisherProtected><PublisherShell><NewsList /></PublisherShell></PublisherProtected>} />
+        <Route path="/publisher/news/new" element={<PublisherProtected><PublisherShell><NewsCreate /></PublisherShell></PublisherProtected>} />
+        <Route path="/publisher/news/:id/edit" element={<PublisherProtected><PublisherShell><NewsEdit /></PublisherShell></PublisherProtected>} />
+        <Route path="/publisher/news/:id/preview" element={<PublisherProtected><PublisherShell><NewsPreview /></PublisherShell></PublisherProtected>} />
+        <Route path="/publisher/tags" element={<PublisherProtected><PublisherShell><CategoriesTags /></PublisherShell></PublisherProtected>} />
+        <Route path="/publisher/users" element={<PublisherProtected><PublisherShell><UsersAndRoles /></PublisherShell></PublisherProtected>} />
+
+        {/* SISTEMA */}
         <Route path="/dashboard" element={<Protected><Shell><Dashboard /></Shell></Protected>} />
         <Route path="/adm/avaliacao" element={<Protected><Shell><EvaluationScore /></Shell></Protected>} />
         <Route path="/adm/avaliacao/classificacao" element={<Protected><Shell><Classification /></Shell></Protected>} />
@@ -127,9 +179,6 @@ export default function App() {
         <Route path="/adm/projetos/:id/status" element={<Protected><Shell><ProjectChangeStatus /></Shell></Protected>} />
         <Route path="/adm/projetos/comunicacao/:id" element={<Protected><Shell><ProjectCommunication /></Shell></Protected>} />
 
-
-
-
         <Route path="/projetos" element={<Protected><Shell><Projects /></Shell></Protected>} />
         <Route path="/meus-projetos" element={<Protected><Shell><MyProjects /></Shell></Protected>} />
         <Route path="/novo-projeto" element={<Protected><Shell><ProjectForm /></Shell></Protected>} />
@@ -146,9 +195,7 @@ export default function App() {
 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
-
       </Routes>
     </AuthProvider>
   )
 }
-

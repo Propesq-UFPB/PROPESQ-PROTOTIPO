@@ -88,7 +88,7 @@ export default function Certificates() {
       : "Nenhum certificado cadastrado."
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Certificados • PROPESQ</title>
       </Helmet>

@@ -1,4 +1,4 @@
-// editais
+// editais - Não estamos usando
 
 import React from "react"
 import AnimateIn from "@/components/AnimateIn"

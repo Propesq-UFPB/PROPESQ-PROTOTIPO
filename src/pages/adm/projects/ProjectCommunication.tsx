@@ -272,7 +272,7 @@ export default function ProjectCommunication() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Comunicação • Projetos • PROPESQ</title>
       </Helmet>

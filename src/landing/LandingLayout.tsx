@@ -10,10 +10,6 @@ export default function LandingLayout() {
       <main>
         <Outlet />
       </main>
-
-      <footer className="px-2 py-4 text-center text-sm text-white bg-primary">
-        © {new Date().getFullYear()} UFPB • PROPESQ
-      </footer>
     </div>
   )
 }

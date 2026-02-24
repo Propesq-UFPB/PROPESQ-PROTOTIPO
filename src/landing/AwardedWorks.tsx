@@ -1,8 +1,7 @@
-// Série Iniciados - Awarded Works component
-
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
+import bgHero from "@/utils/img/bg1.png"
 
 type ArchiveItem = {
   period: string
@@ -13,7 +12,6 @@ type ArchiveItem = {
     link?: string
   }[]
 }
-
 
 const ARCHIVES: ArchiveItem[] = [
   {
@@ -51,7 +49,10 @@ const ARCHIVES: ArchiveItem[] = [
     title: "Vol. 23 · XXV ENIC",
     link: "https://www.propesq.ufpb.br/propesq/contents/downloads/serie-iniciados/iniciados_vol23_2018_enic2017.pdf",
     subitems: [
-      { label: "Revista Eletrônica", link: "https://viewer.joomag.com/s%C3%A9rie-iniciados-vol-23/0985563001533823944?short&" },
+      {
+        label: "Revista Eletrônica",
+        link: "https://viewer.joomag.com/s%C3%A9rie-iniciados-vol-23/0985563001533823944?short&",
+      },
     ],
   },
   {
@@ -96,108 +97,131 @@ const ARCHIVES: ArchiveItem[] = [
 
 const AwardedWorks: React.FC = () => {
   const navigate = useNavigate()
+
   return (
-    <section className="w-full bg-white py-16 md:py-24">
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Botão voltar */}
-        <button
-          onClick={() => navigate(-1)}
-          className="
-            inline-flex items-center gap-2
-            text-sm font-medium text-primary
-            hover:underline
-            mb-6
-          "
-        >
-          <ArrowLeft size={16} />
-          Voltar
-        </button>
+    <main className="w-full">
+      {/* HERO FUNDO + CAIXA BRANCA SOBREPOSTA */}
+      <div
+        className="w-full h-[320px] md:h-[380px] bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgHero})` }}
+        aria-hidden="true"
+      />
 
-        {/* Título */}
-        <h1 className="text-3xl md:text-4xl font-bold text-primary mb-3">
-          Série Iniciados — Trabalhos premiados
-        </h1>
+      <div className="max-w-7xl mx-auto px-6 -mt-24 md:-mt-28 relative z-10">
+        <div className="bg-white border border-slate-200 shadow-sm">
+          <div className="px-6 md:px-10 py-8 md:py-10">
 
-        <div className="mt-3 mb-3 w-20 h-[4px] bg-accent rounded-full" />
+            {/* Topo */}
+            <div className="mb-8">
+              <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center gap-2 text-sm font-medium text-blue-900 hover:underline underline-offset-4"
+              >
+                <ArrowLeft size={16} />
+                Voltar
+              </button>
 
-        {/* Texto */}
-        <div className="max-w-4xl text-neutral text-base leading-relaxed mb-6">
-          <p>
-            Coletânea dos trabalhos premiados apresentados nos Encontros de
-            Iniciação Científica (ENIC), publicados no âmbito da Série Iniciados.
-          </p>
-        </div>
+              <h1 className="mt-4 text-3xl md:text-4xl font-semibold text-blue-900">
+                Série Iniciados — Trabalhos premiados
+              </h1>
 
-        {/* Link externo */}
-        <p className="text-sm text-neutral mb-12">
-          Para mais informações, acesse o site oficial do evento:{" "}
-          <a href="#" className="text-primary font-medium hover:underline">
-            www.propesq.ufpb.br/enic
-          </a>
-        </p>
+              <div className="mt-4 h-[3px] w-16 bg-blue-900" />
 
-        {/* Arquivos */}
-        <h2 className="text-lg font-semibold text-primary mb-4 tracking-wide">
-          ARQUIVOS
-        </h2>
+              <p className="mt-6 max-w-3xl text-slate-700 leading-relaxed">
+                Coletânea dos trabalhos premiados apresentados nos Encontros de
+                Iniciação Científica (ENIC), publicados no âmbito da Série Iniciados.
+              </p>
 
-        <div className="overflow-hidden rounded-xl border border-neutral-light">
-          <table className="w-full border-collapse bg-white">
-            <thead>
-              <tr className="bg-neutral-light text-xs md:text-sm text-neutral">
-                <th className="text-left px-6 py-3 font-medium border-r border-neutral-light">
-                  Vigência
-                </th>
-                <th className="text-left px-6 py-3 font-medium">
-                  Série Iniciados
-                </th>
-              </tr>
-            </thead>
+              <p className="mt-4 text-sm text-slate-600">
+                Para mais informações, acesse o site oficial:{" "}
+                <a
+                  href="https://www.propesq.ufpb.br/enic"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-900 font-semibold hover:underline underline-offset-4"
+                >
+                  www.propesq.ufpb.br/enic
+                </a>
+              </p>
+            </div>
 
-            <tbody>
-              {ARCHIVES.map((item, index) => (
-                <tr key={index} className="border-t border-neutral-light">
-                  <td className="px-6 py-5 font-medium text-primary border-r border-neutral-light align-top">
-                    {item.period}
-                  </td>
+            {/* Arquivos */}
+            <section aria-label="Arquivos">
+              <h2 className="text-sm font-semibold tracking-widest text-slate-700 mb-4">
+                ARQUIVOS
+              </h2>
 
-                  <td className="px-6 py-5">
-                    <div className="space-y-2">
-                      {item.link ? (
-                        <a
-                          href={item.link}
-                          className="block text-primary font-medium hover:underline"
-                        >
-                          {item.title}
-                        </a>
-                      ) : (
-                        <span className="block font-medium text-primary">
-                          {item.title}
-                        </span>
-                      )}
+              <div className="overflow-hidden border border-slate-200">
+                <table className="w-full border-collapse bg-white">
+                  <thead>
+                    <tr className="bg-slate-50 text-xs md:text-sm text-slate-600">
+                      <th className="text-left px-6 py-3 font-medium border-r border-slate-200">
+                        Vigência
+                      </th>
+                      <th className="text-left px-6 py-3 font-medium">
+                        Série Iniciados
+                      </th>
+                    </tr>
+                  </thead>
 
-                      {item.subitems && (
-                        <div className="text-xs text-primary/80 space-y-1">
-                          {item.subitems.map((sub, i) => (
-                            <a
-                              key={i}
-                              href={sub.link}
-                              className="block hover:underline"
-                            >
-                              {sub.label}
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  <tbody>
+                    {ARCHIVES.map((item, index) => (
+                      <tr
+                        key={index}
+                        className="border-t border-slate-200 hover:bg-slate-50/60 transition"
+                      >
+                        <td className="px-6 py-5 font-medium text-blue-900 border-r border-slate-200 align-top whitespace-nowrap">
+                          {item.period}
+                        </td>
+
+                        <td className="px-6 py-5">
+                          <div className="space-y-2">
+                            {item.link ? (
+                              <a
+                                href={item.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block text-blue-900 font-semibold hover:underline underline-offset-4"
+                              >
+                                {item.title}
+                              </a>
+                            ) : (
+                              <span className="block font-semibold text-blue-900">
+                                {item.title}
+                              </span>
+                            )}
+
+                            {item.subitems && (
+                              <div className="text-xs text-blue-900/80 space-y-1">
+                                {item.subitems.map((sub, i) => (
+                                  <a
+                                    key={i}
+                                    href={sub.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block hover:underline underline-offset-4"
+                                  >
+                                    {sub.label}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+          </div>
         </div>
       </div>
-    </section>
+
+      {/* Espaço inferior */}
+      <div className="h-14" />
+    </main>
   )
 }
 

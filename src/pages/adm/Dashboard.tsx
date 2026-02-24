@@ -22,7 +22,7 @@ const prazos = [
 
 export default function Dashboard() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Dashboard • PROPESQ</title>
       </Helmet>

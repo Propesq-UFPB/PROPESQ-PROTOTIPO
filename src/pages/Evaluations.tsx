@@ -11,7 +11,7 @@ export default function Evaluations() {
   )
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Avaliação de Projetos • PROPESQ</title>
       </Helmet>

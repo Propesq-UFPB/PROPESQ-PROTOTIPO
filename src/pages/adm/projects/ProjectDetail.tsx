@@ -248,7 +248,7 @@ export default function ProjectDetail() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>{safe(project.titulo)} • Projeto • PROPESQ</title>
       </Helmet>

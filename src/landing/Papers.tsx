@@ -1,7 +1,7 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
-
+import bgHero from "@/utils/img/bg1.png"
 
 type ArchiveItem = {
   period: string
@@ -12,7 +12,6 @@ type ArchiveItem = {
     link: string
   }[]
 }
-
 
 const ARCHIVES: ArchiveItem[] = [
   {
@@ -95,9 +94,18 @@ const ARCHIVES: ArchiveItem[] = [
     title: "XVII ENIC",
     link: "#",
     volumes: [
-      { label: "Vol. 01", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvii-2009-livro_exatas-v1.pdf" },
-      { label: "Vol. 02", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvii-2009-livro_vida-v2.pdf" },
-      { label: "Vol. 03", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvii-2009-livro_humanas-v3.pdf" },
+      {
+        label: "Vol. 01",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvii-2009-livro_exatas-v1.pdf",
+      },
+      {
+        label: "Vol. 02",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvii-2009-livro_vida-v2.pdf",
+      },
+      {
+        label: "Vol. 03",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvii-2009-livro_humanas-v3.pdf",
+      },
     ],
   },
   {
@@ -105,9 +113,18 @@ const ARCHIVES: ArchiveItem[] = [
     title: "XVI ENIC",
     link: "#",
     volumes: [
-      { label: "Vol. 01", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvi-2008-livro_resumos_exatas-v1.pdf" },
-      { label: "Vol. 02", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvi-2008-livro_resumos_vida-v2.pdf" },
-      { label: "Vol. 03", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvi-2008-livro_resumos_humanas-v3.pdf" },
+      {
+        label: "Vol. 01",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvi-2008-livro_resumos_exatas-v1.pdf",
+      },
+      {
+        label: "Vol. 02",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvi-2008-livro_resumos_vida-v2.pdf",
+      },
+      {
+        label: "Vol. 03",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xvi-2008-livro_resumos_humanas-v3.pdf",
+      },
     ],
   },
   {
@@ -115,8 +132,14 @@ const ARCHIVES: ArchiveItem[] = [
     title: "XV ENIC",
     link: "#",
     volumes: [
-      { label: "Vol. 01", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/livro_enic_2007_exatas-v1.pdf" },
-      { label: "Vol. 02", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/livro_enic_2007_vida-v2.pdf" },
+      {
+        label: "Vol. 01",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/livro_enic_2007_exatas-v1.pdf",
+      },
+      {
+        label: "Vol. 02",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/livro_enic_2007_vida-v2.pdf",
+      },
       { label: "Vol. 03", link: "#" },
     ],
   },
@@ -130,9 +153,18 @@ const ARCHIVES: ArchiveItem[] = [
     title: "XIII ENIC",
     link: "#",
     volumes: [
-      { label: "Vol. 01", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/2005-livro_exatas-v1.pdf" },
-      { label: "Vol. 02", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/2005-livro_vida-v2.pdf" },
-      { label: "Vol. 03", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/2005-livro_humanas-v3.pdf" },
+      {
+        label: "Vol. 01",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/2005-livro_exatas-v1.pdf",
+      },
+      {
+        label: "Vol. 02",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/2005-livro_vida-v2.pdf",
+      },
+      {
+        label: "Vol. 03",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/2005-livro_humanas-v3.pdf",
+      },
     ],
   },
   {
@@ -140,9 +172,18 @@ const ARCHIVES: ArchiveItem[] = [
     title: "XII ENIC",
     link: "#",
     volumes: [
-      { label: "Vol. 01", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xii-2004-livro_exatas.pdf" },
-      { label: "Vol. 02", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xii-2004-livro_vida.pdf" },
-      { label: "Vol. 03", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xii-2004-livro_humanas.pdf" },
+      {
+        label: "Vol. 01",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xii-2004-livro_exatas.pdf",
+      },
+      {
+        label: "Vol. 02",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xii-2004-livro_vida.pdf",
+      },
+      {
+        label: "Vol. 03",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xii-2004-livro_humanas.pdf",
+      },
     ],
   },
   {
@@ -150,9 +191,18 @@ const ARCHIVES: ArchiveItem[] = [
     title: "XI ENIC",
     link: "#",
     volumes: [
-      { label: "Vol. 01", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xi-2003-livro_exatas.pdf" },
-      { label: "Vol. 02", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xi-2003-livro_vida.pdf" },
-      { label: "Vol. 03", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xi-2003-livro_humanas.pdf" },
+      {
+        label: "Vol. 01",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xi-2003-livro_exatas.pdf",
+      },
+      {
+        label: "Vol. 02",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xi-2003-livro_vida.pdf",
+      },
+      {
+        label: "Vol. 03",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/xi-2003-livro_humanas.pdf",
+      },
     ],
   },
   {
@@ -160,9 +210,18 @@ const ARCHIVES: ArchiveItem[] = [
     title: "X ENIC",
     link: "#",
     volumes: [
-      { label: "Vol. 01", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/x-2002-livro_exatas.pdf" },
-      { label: "Vol. 02", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/x-2002-livro_vida.pdf" },
-      { label: "Vol. 03", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/x-2002-livro_humanas.pdf" },
+      {
+        label: "Vol. 01",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/x-2002-livro_exatas.pdf",
+      },
+      {
+        label: "Vol. 02",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/x-2002-livro_vida.pdf",
+      },
+      {
+        label: "Vol. 03",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/x-2002-livro_humanas.pdf",
+      },
     ],
   },
   {
@@ -170,125 +229,144 @@ const ARCHIVES: ArchiveItem[] = [
     title: "IX ENIC",
     link: "#",
     volumes: [
-      { label: "Vol. 01", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/ix-2001-livro_exatas.pdf" },
-      { label: "Vol. 02", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/ix-2001-livro_vida.pdf" },
-      { label: "Vol. 03", link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/ix-2001-livro_humanas.pdf" },
+      {
+        label: "Vol. 01",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/ix-2001-livro_exatas.pdf",
+      },
+      {
+        label: "Vol. 02",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/ix-2001-livro_vida.pdf",
+      },
+      {
+        label: "Vol. 03",
+        link: "https://www.propesq.ufpb.br/propesq/contents/downloads/enic/ix-2001-livro_humanas.pdf",
+      },
     ],
   },
 ]
 
-
 const Papers: React.FC = () => {
   const navigate = useNavigate()
+
   return (
-    <section className="w-full bg-white py-16 md:py-24">
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Botão voltar */}
-        <button
-          onClick={() => navigate(-1)}
-          className="
-            inline-flex items-center gap-2
-            text-sm font-medium text-primary
-            hover:underline
-            mb-6
-          "
-        >
-          <ArrowLeft size={16} />
-          Voltar
-        </button>
-        
-        {/* Título */}
-        <h1 className="text-3xl md:text-4xl font-bold text-primary mb-3">
-          Anais de Iniciação Científica
-        </h1>
+    <main className="w-full">
+      {/* HERO FUNDO + CAIXA BRANCA SOBREPOSTA */}
+      <div
+        className="w-full h-[320px] md:h-[380px] bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgHero})` }}
+        aria-hidden="true"
+      />
 
-      <div className="mt-3 mb-3 w-20 h-[4px] bg-accent rounded-full" />
+      <div className="max-w-7xl mx-auto px-6 -mt-24 md:-mt-28 relative z-10">
+        <div className="bg-white border border-slate-200 shadow-sm">
+          <div className="px-6 md:px-10 py-8 md:py-10">
+            {/* Topo: voltar + título */}
+            <div className="mb-8">
+              <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center gap-2 text-sm font-medium text-blue-900 hover:underline underline-offset-4"
+              >
+                <ArrowLeft size={16} />
+                Voltar
+              </button>
 
-        {/* Texto */}
-        <div className="max-w-4xl text-neutral text-base leading-relaxed mb-6">
-          <p>
-            Coletânea de resumos dos trabalhos apresentados nos Encontros de
-            Iniciação Científica (ENIC), promovidos pela Universidade Federal da
-            Paraíba.
-          </p>
-        </div>
+              <h1 className="mt-4 text-3xl md:text-4xl font-semibold text-blue-900">
+                Anais de Iniciação Científica
+              </h1>
 
-        {/* Link externo */}
-        <p className="text-sm text-neutral mb-12">
-          Mais informações no site oficial:{" "}
-          <a
-            href="#"
-            className="text-primary font-medium hover:underline"
-          >
-            www.propesq.ufpb.br/enic
-          </a>
-        </p>
+              <div className="mt-4 h-[3px] w-16 bg-blue-900" />
 
-        {/* Arquivos */}
-        <div>
-          <h2 className="text-lg font-semibold text-primary mb-4 tracking-wide">
-            ARQUIVOS
-          </h2>
+              <p className="mt-6 max-w-3xl text-slate-700 leading-relaxed">
+                Coletânea de resumos dos trabalhos apresentados nos Encontros de
+                Iniciação Científica (ENIC), promovidos pela Universidade Federal da
+                Paraíba.
+              </p>
 
-          <div className="overflow-hidden rounded-xl border border-neutral-light">
-            <table className="w-full border-collapse bg-white">
-              <thead>
-                <tr className="bg-neutral-light text-xs md:text-sm text-neutral">
-                  <th className="text-left px-6 py-3 font-medium border-r border-neutral-light">
-                    Vigência
-                  </th>
-                  <th className="text-left px-6 py-3 font-medium">
-                    Livro de Resumos
-                  </th>
-                </tr>
-              </thead>
+              <p className="mt-4 text-sm text-slate-600">
+                Mais informações no site oficial:{" "}
+                <a
+                  href="https://www.propesq.ufpb.br/enic"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-900 font-semibold hover:underline underline-offset-4"
+                >
+                  www.propesq.ufpb.br/enic
+                </a>
+              </p>
+            </div>
 
-              <tbody>
-                {ARCHIVES.map((item, index) => (
-                  <tr key={index} className="border-t border-neutral-light">
-                    <td className="px-6 py-5 font-medium text-primary border-r border-neutral-light align-top">
-                      {item.period}
-                    </td>
+            {/* Arquivos */}
+            <section aria-label="Arquivos">
+              <h2 className="text-sm font-semibold tracking-widest text-slate-700 mb-4">
+                ARQUIVOS
+              </h2>
 
-                    <td className="px-6 py-5">
-                      <div className="space-y-2">
-                        {/* Livro principal */}
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block text-primary font-medium hover:underline"
-                        >
-                          {item.title}
-                        </a>
+              <div className="overflow-hidden border border-slate-200">
+                <table className="w-full border-collapse bg-white">
+                  <thead>
+                    <tr className="bg-slate-50 text-xs md:text-sm text-slate-600">
+                      <th className="text-left px-6 py-3 font-medium border-r border-slate-200">
+                        Vigência
+                      </th>
+                      <th className="text-left px-6 py-3 font-medium">
+                        Livro de Resumos
+                      </th>
+                    </tr>
+                  </thead>
 
-                        {/* Volumes (se existirem) */}
-                        {item.volumes && (
-                          <div className="text-xs text-primary/80 flex flex-wrap gap-2">
-                            {item.volumes.map((vol, i) => (
-                              <a
-                                key={i}
-                                href={vol.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="hover:underline"
-                              >
-                                {vol.label}
-                              </a>
-                            ))}
+                  <tbody>
+                    {ARCHIVES.map((item, index) => (
+                      <tr
+                        key={index}
+                        className="border-t border-slate-200 hover:bg-slate-50/60 transition"
+                      >
+                        <td className="px-6 py-5 font-medium text-blue-900 border-r border-slate-200 align-top whitespace-nowrap">
+                          {item.period}
+                        </td>
+
+                        <td className="px-6 py-5">
+                          <div className="space-y-2">
+                            {/* Livro principal */}
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block text-blue-900 font-semibold hover:underline underline-offset-4"
+                            >
+                              {item.title}
+                            </a>
+
+                            {/* Volumes */}
+                            {item.volumes && (
+                              <div className="text-xs text-blue-900/80 flex flex-wrap gap-3">
+                                {item.volumes.map((vol, i) => (
+                                  <a
+                                    key={i}
+                                    href={vol.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:underline underline-offset-4"
+                                  >
+                                    {vol.label}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-
-            </table>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
         </div>
       </div>
-    </section>
+
+      {/* Espaço inferior (pra não “cortar” a sombra) */}
+      <div className="h-14" />
+    </main>
   )
 }
 
