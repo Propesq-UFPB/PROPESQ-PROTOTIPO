@@ -277,7 +277,7 @@ export default function AdmProjectCommunicateWizard() {
 
       {step === 1 && (
         <>
-          {/* ======= FILTROS (estilo da foto) ======= */}
+          {/* ======= FILTROS  ======= */}
           <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
             {/* Topbar */}
             <div className="p-4 border-b border-border">

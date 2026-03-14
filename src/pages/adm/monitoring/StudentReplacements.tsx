@@ -271,13 +271,6 @@ export default function StudentReplacements() {
             </div>
           </div>
         </div>
-
-        <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 flex items-start gap-2">
-          <Info size={16} className="mt-0.5 text-neutral" />
-          <p className="text-xs text-neutral">
-            Esta tela é somente leitura: ela lista solicitações e exibe o histórico registrado (append-only).
-          </p>
-        </div>
       </section>
 
       {/* LISTA + DETALHES */}
@@ -287,15 +280,6 @@ export default function StudentReplacements() {
           <Section
             title="Solicitações"
             icon={<Users size={18} />}
-            right={
-              <button
-                onClick={exportData}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:opacity-90"
-              >
-                <Download size={16} />
-                Exportar
-              </button>
-            }
           >
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
               <div className="relative w-full md:max-w-md">
@@ -307,11 +291,6 @@ export default function StudentReplacements() {
                   placeholder="Buscar por projeto, discente, orientador..."
                 />
               </div>
-
-              {/* removido filtro por status */}
-              {/* <div className="flex gap-2">
-                <select ... />
-              </div> */}
             </div>
 
             <div className="space-y-2">
@@ -371,17 +350,6 @@ export default function StudentReplacements() {
           <Section
             title="Detalhes & Histórico"
             icon={<History size={18} />}
-            right={
-              openReq ? (
-                <button
-                  onClick={() => alert("Gerar relatório do histórico (placeholder).")}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-neutral-light hover:bg-neutral-50"
-                >
-                  <FileText size={16} />
-                  Relatório
-                </button>
-              ) : null
-            }
           >
             {!openReq ? (
               <div className="rounded-xl border border-neutral-light bg-neutral-50 p-6 text-sm text-neutral text-center">

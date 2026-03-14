@@ -179,7 +179,9 @@ export default function AdmCallsManage() {
                             <option value="ARQUIVADO">ARQUIVADO</option>
                           </select>
                         ) : (
-                          <Badge status={c.status} />
+                          <span className="ml-2">
+                            <Badge status={c.status} />
+                          </span>
                         )}
                       </div>
 

@@ -1,6 +1,5 @@
-// src/pages/admin/projects/ProjectDetail.tsx
 import React, { useMemo, useState } from "react"
-import { Link, NavLink, useNavigate, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import { Helmet } from "react-helmet"
 import {
   ArrowLeft,
@@ -11,7 +10,6 @@ import {
   GraduationCap,
   History,
   Info,
-  LayoutGrid,
   Pencil,
   ShieldCheck,
   Upload,
@@ -33,12 +31,11 @@ type Projeto = {
   dataInicio?: string
   dataFim?: string
 
-  pesquisador?: string // coordenador (mock)
+  pesquisador?: string
   linhaPesquisa?: string
   areaConhecimento?: string
   grandeArea?: string
 
-  // Conteúdo “Cadastro”
   objetivos?: string
   palavrasChave?: string[] | string
   agencia?: string
@@ -46,33 +43,77 @@ type Projeto = {
   categoria?: string
   subcategoria?: string
 
-  // “Documentos”
   protocoloEtica?: string
   comiteEtica?: "Sim" | "Não"
-  anexos?: Array<{ id: string; nome: string; tipo: "PDF" | "DOC" | "OUTRO"; data: string }>
+  anexos?: Array<{
+    id: string
+    nome: string
+    tipo: "PDF" | "DOC" | "OUTRO"
+    data: string
+  }>
 
-  // “ODS”
   ods?: Array<{ id: number; label: string }>
 }
 
-type TabKey = "OVERVIEW" | "CADASTRO" | "MEMBROS" | "DOCUMENTOS" | "AVALIACAO" | "HISTORICO"
+type TabKey =
+  | "OVERVIEW"
+  | "CADASTRO"
+  | "MEMBROS"
+  | "DOCUMENTOS"
+  | "AVALIACAO"
+  | "HISTORICO"
 
-type Member = { id: string; nome: string; papel: "Coordenador" | "Discente" | "Colaborador" }
-type DocItem = { id: string; nome: string; tipo: string; data: string; status?: string }
-type Decision = { id: string; tipo: "Automática" | "Manual"; resultado: string; data: string; por?: string; obs?: string }
-type Audit = { id: string; acao: string; por: string; quando: string; detalhes?: string }
+type Member = {
+  id: string
+  nome: string
+  papel: "Coordenador" | "Discente" | "Colaborador"
+}
+
+type DocItem = {
+  id: string
+  nome: string
+  tipo: string
+  data: string
+  status?: string
+}
+
+type Decision = {
+  id: string
+  tipo: "Automática" | "Manual"
+  resultado: string
+  data: string
+  por?: string
+  obs?: string
+}
+
+type Audit = {
+  id: string
+  acao: string
+  por: string
+  quando: string
+  detalhes?: string
+}
 
 /* ================= UTIL ================= */
+
+const PAGE_SECTION = "admProjects"
+const PAGE_NAME = "ProjectDetail"
 
 const statusClass = (status?: string) => {
   const s = (status || "").toLowerCase()
   if (s.includes("aprov")) return "bg-green-100 text-green-800"
-  if (s.includes("pend") || s.includes("anál") || s.includes("analise")) return "bg-amber-100 text-amber-800"
-  if (s.includes("reprov") || s.includes("indefer")) return "bg-red-100 text-red-800"
+  if (s.includes("pend") || s.includes("anál") || s.includes("analise")) {
+    return "bg-amber-100 text-amber-800"
+  }
+  if (s.includes("reprov") || s.includes("indefer")) {
+    return "bg-red-100 text-red-800"
+  }
   return "bg-neutral-light text-neutral"
 }
 
-const safe = (v?: any) => (v === undefined || v === null || v === "" ? "—" : String(v))
+const safe = (v?: unknown) =>
+  v === undefined || v === null || v === "" ? "—" : String(v)
+
 const truncate = (txt?: string, n = 140) => {
   const t = (txt || "").trim()
   if (!t) return "—"
@@ -99,16 +140,26 @@ function asArrayKeywords(v?: string[] | string) {
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-neutral-light text-neutral">
+    <span className="inline-flex items-center rounded-full bg-neutral-light px-3 py-1 text-xs font-semibold text-neutral">
       {children}
     </span>
   )
 }
 
-function Section({ title, icon, children, right }: { title: string; icon?: React.ReactNode; children: React.ReactNode; right?: React.ReactNode }) {
+function Section({
+  title,
+  icon,
+  children,
+  right,
+}: {
+  title: string
+  icon?: React.ReactNode
+  children: React.ReactNode
+  right?: React.ReactNode
+}) {
   return (
     <section className="rounded-2xl border border-neutral-light bg-white shadow-card">
-      <div className="px-6 py-4 border-b border-neutral-light flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 border-b border-neutral-light px-6 py-4">
         <div className="flex items-center gap-2">
           {icon}
           <h2 className="text-sm font-bold text-primary">{title}</h2>
@@ -123,7 +174,9 @@ function Section({ title, icon, children, right }: { title: string; icon?: React
 function KV({ k, v }: { k: string; v: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[11px] font-bold uppercase tracking-wide text-neutral/70">{k}</span>
+      <span className="text-[11px] font-bold uppercase tracking-wide text-neutral/70">
+        {k}
+      </span>
       <div className="text-sm text-neutral">{v}</div>
     </div>
   )
@@ -145,16 +198,24 @@ function Tabs({
     { k: "HISTORICO", label: "Histórico", icon: <History size={16} /> },
   ]
 
-  const tabClass = (isOn: boolean) => [
-    "inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all",
-    isOn ? "bg-primary text-white shadow-sm" : "bg-white text-primary border border-neutral-light hover:bg-neutral-light/50",
-  ].join(" ")
+  const tabClass = (isOn: boolean) =>
+    [
+      "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all",
+      isOn
+        ? "bg-primary text-white shadow-sm"
+        : "border border-neutral-light bg-white text-primary hover:bg-neutral-light/50",
+    ].join(" ")
 
   return (
-    <div className="rounded-2xl border border-neutral-light bg-white shadow-card p-2">
+    <div className="rounded-2xl border border-neutral-light bg-white p-2 shadow-card">
       <div className="flex flex-wrap gap-2">
         {items.map((it) => (
-          <button key={it.k} type="button" onClick={() => onChange(it.k)} className={tabClass(active === it.k)}>
+          <button
+            key={it.k}
+            type="button"
+            onClick={() => onChange(it.k)}
+            className={tabClass(active === it.k)}
+          >
             {it.icon}
             {it.label}
           </button>
@@ -164,7 +225,7 @@ function Tabs({
   )
 }
 
-/* ================= MOCKS LOCAIS ================= */
+/* ================= MOCKS LOCAIS ADM ================= */
 
 function buildMockMembers(p: Projeto): Member[] {
   const base: Member[] = []
@@ -177,24 +238,74 @@ function buildMockMembers(p: Projeto): Member[] {
 
 function buildMockDocs(p: Projeto): DocItem[] {
   return [
-    { id: "d1", nome: "Protocolo de Ética", tipo: "PDF", data: "2025-01-12", status: p.protocoloEtica ? "Informado" : "Pendente" },
-    { id: "d2", nome: "Relatório Anual (2024)", tipo: "PDF", data: "2025-02-20", status: "Recebido" },
-    { id: "d3", nome: "Declaração (Participação)", tipo: "PDF", data: "2025-02-28", status: "Emitida" },
+    {
+      id: "d1",
+      nome: "Protocolo de Ética",
+      tipo: "PDF",
+      data: "2025-01-12",
+      status: p.protocoloEtica ? "Informado" : "Pendente",
+    },
+    {
+      id: "d2",
+      nome: "Relatório Anual (2024)",
+      tipo: "PDF",
+      data: "2025-02-20",
+      status: "Recebido",
+    },
+    {
+      id: "d3",
+      nome: "Declaração (Participação)",
+      tipo: "PDF",
+      data: "2025-02-28",
+      status: "Emitida",
+    },
   ]
 }
 
 function buildMockDecisions(): Decision[] {
   return [
-    { id: "a1", tipo: "Automática", resultado: "Distribuído para avaliação automática", data: "2025-01-03", por: "Sistema", obs: "Classificação automática registrada." },
-    { id: "a2", tipo: "Manual", resultado: "Aprovado", data: "2025-01-22", por: "Comissão", obs: "Parecer favorável." },
+    {
+      id: "a1",
+      tipo: "Automática",
+      resultado: "Distribuído para avaliação automática",
+      data: "2025-01-03",
+      por: "Sistema",
+      obs: "Classificação automática registrada.",
+    },
+    {
+      id: "a2",
+      tipo: "Manual",
+      resultado: "Aprovado",
+      data: "2025-01-22",
+      por: "Comissão",
+      obs: "Parecer favorável.",
+    },
   ]
 }
 
 function buildMockAudit(p: Projeto): Audit[] {
   return [
-    { id: "h1", acao: "Cadastro submetido", por: p.pesquisador || "Usuário", quando: "2025-01-01 10:22", detalhes: "Projeto criado e submetido." },
-    { id: "h2", acao: "Status alterado", por: "Administrador", quando: "2025-01-05 14:10", detalhes: `Status definido como: ${p.status || "—"}` },
-    { id: "h3", acao: "Documento anexado", por: "Administrador", quando: "2025-01-12 09:03", detalhes: "Protocolo de Ética anexado." },
+    {
+      id: "h1",
+      acao: "Cadastro submetido",
+      por: p.pesquisador || "Usuário",
+      quando: "2025-01-01 10:22",
+      detalhes: "Projeto criado e submetido.",
+    },
+    {
+      id: "h2",
+      acao: "Status alterado",
+      por: "Administrador",
+      quando: "2025-01-05 14:10",
+      detalhes: `Status definido como: ${p.status || "—"}`,
+    },
+    {
+      id: "h3",
+      acao: "Documento anexado",
+      por: "Administrador",
+      quando: "2025-01-12 09:03",
+      detalhes: "Protocolo de Ética anexado.",
+    },
   ]
 }
 
@@ -206,31 +317,32 @@ export default function ProjectDetail() {
 
   const project = useMemo(() => {
     const list = projetos as Projeto[]
-    // match por id como string
     return list.find((p) => String(p.id) === String(id))
   }, [id])
 
   const [tab, setTab] = useState<TabKey>("OVERVIEW")
 
-  // fallback
   if (!project) {
     return (
       <div className="min-h-screen bg-white">
         <Helmet>
-          <title>Projeto não encontrado • PROPESQ</title>
+          <title>Projeto não encontrado • Administração • PROPESQ</title>
         </Helmet>
-        <div className="max-w-7xl mx-auto px-6 py-12">
+
+        <div className="mx-auto max-w-7xl px-6 py-12">
           <button
-            onClick={() => nav(-1)}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
+            onClick={() => nav("/adm/projetos")}
+            className="inline-flex items-center gap-2 rounded-xl border border-neutral-light px-3 py-2 text-sm font-semibold text-primary hover:bg-neutral-light/50"
           >
             <ArrowLeft size={16} />
-            Voltar
+            Voltar para projetos
           </button>
 
-          <div className="mt-8 rounded-2xl border border-neutral-light bg-white shadow-card p-10 text-center">
+          <div className="mt-8 rounded-2xl border border-neutral-light bg-white p-10 text-center shadow-card">
             <p className="text-base text-neutral">Projeto não encontrado.</p>
-            <p className="text-sm text-neutral/70 mt-1">Verifique o código/rota e tente novamente.</p>
+            <p className="mt-1 text-sm text-neutral/70">
+              Verifique a rota ou o identificador informado.
+            </p>
           </div>
         </div>
       </div>
@@ -248,20 +360,28 @@ export default function ProjectDetail() {
   ]
 
   return (
-    <div className="min-h-screen bg-neutral-light">
+    <div
+      className="min-h-screen bg-neutral-light"
+      data-section={PAGE_SECTION}
+      data-page={PAGE_NAME}
+    >
       <Helmet>
-        <title>{safe(project.titulo)} • Projeto • PROPESQ</title>
+        <title>{safe(project.titulo)} • Detalhes do Projeto • ADM • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
-        {/* Top bar */}
+      <div className="mx-auto max-w-7xl px-6 py-10 space-y-8">
+        {/* topo */}
         <div className="flex flex-col gap-3">
-          <div className="flex items-start justify-between gap-4">
+          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral/60">
+            Administração / Projetos / Detalhes
+          </div>
+
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
-                  onClick={() => nav(-1)}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
+                  onClick={() => nav("/adm/projetos")}
+                  className="inline-flex items-center gap-2 rounded-xl border border-neutral-light px-3 py-2 text-sm font-semibold text-primary hover:bg-neutral-light/50"
                 >
                   <ArrowLeft size={16} />
                   Voltar
@@ -269,7 +389,9 @@ export default function ProjectDetail() {
 
                 <Pill>#{String(project.id)}</Pill>
 
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusClass(project.status)}`}>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass(project.status)}`}
+                >
                   {project.status || "—"}
                 </span>
 
@@ -278,39 +400,29 @@ export default function ProjectDetail() {
                 </span>
               </div>
 
-              <h1 className="mt-3 text-xl font-bold text-primary truncate">{safe(project.titulo)}</h1>
+              <h1 className="mt-3 truncate text-xl font-bold text-primary">
+                {safe(project.titulo)}
+              </h1>
 
-              <p className="text-sm text-neutral mt-1">
-                Coordenação: <span className="font-semibold text-primary">{safe(project.pesquisador)}</span>
+              <p className="mt-1 text-sm text-neutral">
+                Coordenação:{" "}
+                <span className="font-semibold text-primary">
+                  {safe(project.pesquisador)}
+                </span>
                 <span className="mx-2 text-neutral/40">•</span>
-                Período: <span className="font-semibold">{formatPeriod(project)}</span>
+                Período:{" "}
+                <span className="font-semibold">{formatPeriod(project)}</span>
               </p>
             </div>
 
-            {/* Ações rápidas (levam para outras páginas, sem “modal gigante”) */}
+            {/* ação principal única */}
             <div className="flex flex-wrap items-center justify-end gap-2">
               <Link
-                to={`/adm/projetos/${project.id}/editar`}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
+                to={`/adm/projetos/${project.id}/visualizar-editar`}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white hover:opacity-95"
               >
                 <Pencil size={16} />
-                Editar
-              </Link>
-
-              <Link
-                to={`/adm/projetos/${project.id}/imprimir`}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
-              >
-                <FileText size={16} />
-                Imprimir
-              </Link>
-
-              <Link
-                to={`/adm/projetos/${project.id}/status`}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:opacity-95"
-              >
-                <LayoutGrid size={16} />
-                Alterar situação
+                Visualizar / editar
               </Link>
             </div>
           </div>
@@ -320,36 +432,62 @@ export default function ProjectDetail() {
 
         {/* ================== ABA: VISÃO GERAL ================== */}
         {tab === "OVERVIEW" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <Section
               title="Dados principais"
               icon={<Info size={18} className="text-primary" />}
               right={
                 <span className="text-xs text-neutral/70">
-                  Centro: <span className="font-semibold text-neutral">{safe(project.centro)}</span>
+                  Centro:{" "}
+                  <span className="font-semibold text-neutral">
+                    {safe(project.centro)}
+                  </span>
                 </span>
               }
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <KV k="Código" v={<span className="font-semibold">{safe(project.id)}</span>} />
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <KV
+                  k="Código"
+                  v={<span className="font-semibold">{safe(project.id)}</span>}
+                />
                 <KV k="Tipo" v={<span className="capitalize">{safe(project.tipo)}</span>} />
-                <KV k="Situação" v={<span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${statusClass(project.status)}`}>{safe(project.status)}</span>} />
+                <KV
+                  k="Situação"
+                  v={
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusClass(project.status)}`}
+                    >
+                      {safe(project.status)}
+                    </span>
+                  }
+                />
                 <KV k="Unidade" v={safe(project.unidade)} />
                 <KV k="Linha de pesquisa" v={safe(project.linhaPesquisa)} />
-                <KV k="Área / Grande área" v={`${safe(project.areaConhecimento)}${project.grandeArea ? ` • ${project.grandeArea}` : ""}`} />
+                <KV
+                  k="Área / Grande área"
+                  v={`${safe(project.areaConhecimento)}${
+                    project.grandeArea ? ` • ${project.grandeArea}` : ""
+                  }`}
+                />
                 <KV k="Período" v={formatPeriod(project)} />
                 <KV k="Edital" v={safe(project.edital)} />
               </div>
             </Section>
 
-            <Section title="ODS vinculados" icon={<BadgeCheck size={18} className="text-primary" />}>
+            <Section
+              title="ODS vinculados"
+              icon={<BadgeCheck size={18} className="text-primary" />}
+            >
               {odsList.length === 0 ? (
                 <p className="text-sm text-neutral">—</p>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {odsList.map((o) => (
-                    <span key={o.id} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-light text-neutral text-xs font-semibold">
-                      <span className="h-5 w-5 rounded-full bg-white border border-neutral-light grid place-items-center text-[11px]">
+                    <span
+                      key={o.id}
+                      className="inline-flex items-center gap-2 rounded-full bg-neutral-light px-3 py-1 text-xs font-semibold text-neutral"
+                    >
+                      <span className="grid h-5 w-5 place-items-center rounded-full border border-neutral-light bg-white text-[11px]">
                         {o.id}
                       </span>
                       {o.label}
@@ -357,34 +495,41 @@ export default function ProjectDetail() {
                   ))}
                 </div>
               )}
-              <p className="text-xs text-neutral/70 mt-3">
-                *Nesta versão, os ODS estão mockados. Depois ligamos ao cadastro do projeto.
+
+              <p className="mt-3 text-xs text-neutral/70">
+                Nesta versão administrativa, os ODS ainda estão mockados. Depois
+                podem ser vinculados diretamente ao cadastro do projeto.
               </p>
             </Section>
 
-            <Section title="Resumo" icon={<BookOpen size={18} className="text-primary" />}>
-              <p className="text-sm text-neutral leading-relaxed">{truncate(project.objetivos, 380)}</p>
+            <Section
+              title="Resumo"
+              icon={<BookOpen size={18} className="text-primary" />}
+            >
+              <p className="text-sm leading-relaxed text-neutral">
+                {truncate(project.objetivos, 380)}
+              </p>
             </Section>
           </div>
         )}
 
         {/* ================== ABA: CADASTRO ================== */}
         {tab === "CADASTRO" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Section
-              title="Cadastro (somente leitura)"
+              title="Cadastro do projeto"
               icon={<BookOpen size={18} className="text-primary" />}
               right={
                 <Link
-                  to={`/adm/projetos/${project.id}/editar`}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
+                  to={`/adm/projetos/${project.id}/visualizar-editar`}
+                  className="inline-flex items-center gap-2 rounded-xl border border-neutral-light px-3 py-2 text-sm font-semibold text-primary hover:bg-neutral-light/50"
                 >
                   <Pencil size={16} />
-                  Editar cadastro
+                  Visualizar / editar
                 </Link>
               }
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <KV k="Título" v={safe(project.titulo)} />
                 <KV k="Coordenador" v={safe(project.pesquisador)} />
                 <KV k="Centro" v={safe(project.centro)} />
@@ -398,7 +543,14 @@ export default function ProjectDetail() {
               </div>
 
               <div className="mt-6">
-                <KV k="Objetivos" v={<p className="text-sm leading-relaxed">{truncate(project.objetivos, 900)}</p>} />
+                <KV
+                  k="Objetivos"
+                  v={
+                    <p className="text-sm leading-relaxed">
+                      {truncate(project.objetivos, 900)}
+                    </p>
+                  }
+                />
               </div>
 
               <div className="mt-6">
@@ -410,7 +562,10 @@ export default function ProjectDetail() {
                         <span className="text-sm">—</span>
                       ) : (
                         asArrayKeywords(project.palavrasChave).map((kw) => (
-                          <span key={kw} className="px-3 py-1 rounded-full bg-neutral-light text-neutral text-xs font-semibold">
+                          <span
+                            key={kw}
+                            className="rounded-full bg-neutral-light px-3 py-1 text-xs font-semibold text-neutral"
+                          >
                             {kw}
                           </span>
                         ))
@@ -421,14 +576,18 @@ export default function ProjectDetail() {
               </div>
             </Section>
 
-            <Section title="Regras & conformidade" icon={<ShieldCheck size={18} className="text-primary" />}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Section
+              title="Regras e conformidade"
+              icon={<ShieldCheck size={18} className="text-primary" />}
+            >
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <KV k="Comitê de Ética" v={safe(project.comiteEtica)} />
                 <KV k="Protocolo" v={safe(project.protocoloEtica)} />
               </div>
 
-              <p className="text-xs text-neutral/70 mt-5">
-                *Aqui entram validações de campos obrigatórios, e travas de edição por status.
+              <p className="mt-5 text-xs text-neutral/70">
+                Aqui entram validações administrativas, consistência cadastral,
+                campos obrigatórios e travas de edição por status do projeto.
               </p>
             </Section>
           </div>
@@ -443,22 +602,27 @@ export default function ProjectDetail() {
               right={
                 <Link
                   to={`/adm/projetos/${project.id}/membros`}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:opacity-95"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white hover:opacity-95"
                 >
                   <Users size={16} />
                   Gerenciar membros
                 </Link>
               }
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {members.map((m) => (
-                  <div key={m.id} className="rounded-2xl border border-neutral-light p-4">
+                  <div
+                    key={m.id}
+                    className="rounded-2xl border border-neutral-light p-4"
+                  >
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-primary truncate">{m.nome}</p>
+                        <p className="truncate text-sm font-semibold text-primary">
+                          {m.nome}
+                        </p>
                         <p className="text-xs text-neutral/70">{m.papel}</p>
                       </div>
-                      <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-neutral-light text-neutral">
+                      <span className="rounded-full bg-neutral-light px-2.5 py-1 text-[11px] font-bold text-neutral">
                         {m.papel}
                       </span>
                     </div>
@@ -466,8 +630,9 @@ export default function ProjectDetail() {
                 ))}
               </div>
 
-              <p className="text-xs text-neutral/70 mt-4">
-                A edição aqui é “controlada”: esta aba apenas exibe. Para alterar, use “Gerenciar membros”.
+              <p className="mt-4 text-xs text-neutral/70">
+                Nesta visualização administrativa, a aba exibe os membros atuais.
+                Alterações devem ser feitas no módulo dedicado de gerenciamento.
               </p>
             </Section>
           </div>
@@ -475,14 +640,14 @@ export default function ProjectDetail() {
 
         {/* ================== ABA: DOCUMENTOS ================== */}
         {tab === "DOCUMENTOS" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Section
-              title="Documentos"
+              title="Documentos do projeto"
               icon={<FolderOpen size={18} className="text-primary" />}
               right={
                 <Link
                   to={`/adm/projetos/${project.id}/documentos`}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:opacity-95"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white hover:opacity-95"
                 >
                   <Upload size={16} />
                   Gerenciar uploads
@@ -491,34 +656,59 @@ export default function ProjectDetail() {
             >
               <div className="space-y-3">
                 {docs.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-light p-4">
+                  <div
+                    key={d.id}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-light p-4"
+                  >
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-primary truncate">{d.nome}</p>
+                      <p className="truncate text-sm font-semibold text-primary">
+                        {d.nome}
+                      </p>
                       <p className="text-xs text-neutral/70">
                         {d.tipo} • {d.data}
                       </p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${d.status === "Pendente" ? "bg-amber-100 text-amber-800" : "bg-green-100 text-green-800"}`}>
+
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        d.status === "Pendente"
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-green-100 text-green-800"
+                      }`}
+                    >
                       {d.status || "—"}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <p className="text-xs text-neutral/70 mt-4">
-                Esta aba mostra o estado atual. Upload/remoção ficam na rota dedicada.
+              <p className="mt-4 text-xs text-neutral/70">
+                Esta aba exibe o estado atual dos documentos. O fluxo de upload,
+                remoção e validação fica em rota dedicada.
               </p>
             </Section>
 
-            <Section title="Conformidade (Ética)" icon={<ShieldCheck size={18} className="text-primary" />}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Section
+              title="Conformidade e certificação"
+              icon={<ShieldCheck size={18} className="text-primary" />}
+            >
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <KV k="Comitê de Ética" v={safe(project.comiteEtica)} />
                 <KV k="Protocolo" v={safe(project.protocoloEtica)} />
               </div>
-              <div className="mt-6">
+
+              <div className="mt-6 flex flex-wrap gap-3">
                 <Link
-                  to={`/adm/projetos/${project.id}/declaracao`}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
+                  to="/adm/monitoring/report-validation"
+                  className="inline-flex items-center gap-2 rounded-xl border border-neutral-light px-3 py-2 text-sm font-semibold text-primary hover:bg-neutral-light/50"
+                >
+                  <FileText size={16} />
+                  Relatórios
+                </Link>
+
+                <Link
+                  to="/adm/monitoring/monitoring-certification"
+                  className="inline-flex items-center gap-2 rounded-xl border border-neutral-light px-3 py-2 text-sm font-semibold text-primary hover:bg-neutral-light/50"
                 >
                   <FileText size={16} />
                   Emitir declaração
@@ -530,14 +720,14 @@ export default function ProjectDetail() {
 
         {/* ================== ABA: AVALIAÇÃO ================== */}
         {tab === "AVALIACAO" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Section
-              title="Avaliações"
+              title="Avaliações administrativas"
               icon={<GraduationCap size={18} className="text-primary" />}
               right={
                 <Link
                   to={`/adm/projetos/${project.id}/avaliacoes`}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
+                  className="inline-flex items-center gap-2 rounded-xl border border-neutral-light px-3 py-2 text-sm font-semibold text-primary hover:bg-neutral-light/50"
                 >
                   <GraduationCap size={16} />
                   Abrir módulo
@@ -546,30 +736,47 @@ export default function ProjectDetail() {
             >
               <div className="space-y-3">
                 {decisions.map((d) => (
-                  <div key={d.id} className="rounded-2xl border border-neutral-light p-4">
+                  <div
+                    key={d.id}
+                    className="rounded-2xl border border-neutral-light p-4"
+                  >
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-primary">{d.resultado}</p>
+                        <p className="text-sm font-semibold text-primary">
+                          {d.resultado}
+                        </p>
                         <p className="text-xs text-neutral/70">
                           {d.tipo} • {d.data} {d.por ? `• por ${d.por}` : ""}
                         </p>
                       </div>
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-neutral-light text-neutral">
+
+                      <span className="rounded-full bg-neutral-light px-3 py-1 text-xs font-semibold text-neutral">
                         {d.tipo}
                       </span>
                     </div>
-                    {d.obs && <p className="mt-2 text-sm text-neutral">{truncate(d.obs, 220)}</p>}
+
+                    {d.obs && (
+                      <p className="mt-2 text-sm text-neutral">
+                        {truncate(d.obs, 220)}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
             </Section>
 
-            <Section title="Parecer & histórico de decisões" icon={<BadgeCheck size={18} className="text-primary" />}>
+            <Section
+              title="Parecer e decisões"
+              icon={<BadgeCheck size={18} className="text-primary" />}
+            >
               <KV
                 k="Parecer (resumo)"
                 v={
-                  <p className="text-sm text-neutral leading-relaxed">
-                    {truncate("Parecer favorável com recomendações de ajustes pontuais na metodologia e no cronograma.", 320)}
+                  <p className="text-sm leading-relaxed text-neutral">
+                    {truncate(
+                      "Parecer favorável com recomendações de ajustes pontuais na metodologia e no cronograma.",
+                      320
+                    )}
                   </p>
                 }
               />
@@ -577,15 +784,16 @@ export default function ProjectDetail() {
               <div className="mt-5">
                 <Link
                   to={`/adm/projetos/${project.id}/parecer`}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:opacity-95"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white hover:opacity-95"
                 >
                   <FileText size={16} />
                   Ver parecer completo
                 </Link>
               </div>
 
-              <p className="text-xs text-neutral/70 mt-4">
-                O parecer completo e decisões detalhadas ficam em rotas próprias (evita tela gigante).
+              <p className="mt-4 text-xs text-neutral/70">
+                O parecer completo e o histórico detalhado de decisões ficam em
+                rotas próprias para não sobrecarregar a tela.
               </p>
             </Section>
           </div>
@@ -594,29 +802,39 @@ export default function ProjectDetail() {
         {/* ================== ABA: HISTÓRICO ================== */}
         {tab === "HISTORICO" && (
           <div className="grid grid-cols-1 gap-6">
-            <Section title="Histórico de alterações" icon={<History size={18} className="text-primary" />}>
+            <Section
+              title="Histórico administrativo"
+              icon={<History size={18} className="text-primary" />}
+            >
               <div className="space-y-3">
                 {audit.map((h) => (
-                  <div key={h.id} className="rounded-2xl border border-neutral-light p-4">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                  <div
+                    key={h.id}
+                    className="rounded-2xl border border-neutral-light p-4"
+                  >
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                       <div>
-                        <p className="text-sm font-semibold text-primary">{h.acao}</p>
+                        <p className="text-sm font-semibold text-primary">
+                          {h.acao}
+                        </p>
                         <p className="text-xs text-neutral/70">
                           {h.por} • {h.quando}
                         </p>
                       </div>
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-neutral-light text-neutral">
+
+                      <span className="rounded-full bg-neutral-light px-3 py-1 text-xs font-semibold text-neutral">
                         Audit
                       </span>
                     </div>
-                    {h.detalhes && <p className="mt-2 text-sm text-neutral">{truncate(h.detalhes, 220)}</p>}
+
+                    {h.detalhes && (
+                      <p className="mt-2 text-sm text-neutral">
+                        {truncate(h.detalhes, 220)}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
-
-              <p className="text-xs text-neutral/70 mt-4">
-                Aqui você conecta com o backend de auditoria (quem alterou, quando e o que mudou).
-              </p>
             </Section>
           </div>
         )}

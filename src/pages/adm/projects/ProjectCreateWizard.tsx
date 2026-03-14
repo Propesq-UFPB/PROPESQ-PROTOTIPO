@@ -1,11 +1,9 @@
 // src/pages/admin/projects/ProjectCreateWizard.tsx
 import React, { useMemo, useState } from "react"
 import { Helmet } from "react-helmet"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import {
-  ArrowLeft,
   Check,
-  ChevronLeft,
   ChevronRight,
   ClipboardCheck,
   FileText,
@@ -29,17 +27,17 @@ type GeneralData = {
   periodoIni: string
   periodoFim: string
 
-  editalPesquisa: string 
-  termo: string 
-  email: string 
+  editalPesquisa: string
+  termo: string
+  email: string
 
-  palavrasChave: string 
+  palavrasChave: string
   objetivosDS: ODS[]
   areaConhecimento: string
   grandeArea: string
   area: string
   subarea: string
-  especialidade: string 
+  especialidade: string
   linhaPesquisa: string
 }
 
@@ -49,16 +47,16 @@ type InternalData = {
 
   possuiProtocoloEtica: "Sim" | "Não"
   comiteEticaNome: string
-  protocoloEtica: string 
+  protocoloEtica: string
 }
 
-// FALTA AJUSTAR 
+// FALTA AJUSTAR
 type ExternalData = {
-  categoriaProjeto: string // ADICIONAR
-  subcategoriaNivelI: string // ADICIONAR
-  subcategoriaNivelII: string // ADICIONAR
-  definicaoPropriedadeIntelectual: string // ADICIONAR
-  tratamentoProducao: string // já existia (texto)
+  categoriaProjeto: string
+  subcategoriaNivelI: string
+  subcategoriaNivelII: string
+  definicaoPropriedadeIntelectual: string
+  tratamentoProducao: string
 }
 
 type FormState = {
@@ -251,13 +249,11 @@ function OdsPicker({ value, onChange }: { value: ODS[]; onChange: (v: ODS[]) => 
 type Step = 1 | 2 | 3 | 4
 
 export default function ProjectCreateWizard() {
-  const nav = useNavigate()
   const [step, setStep] = useState<Step>(1)
   const [saving, setSaving] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [form, setForm] = useState<FormState>(initialState)
 
-  // mocks de selects (depois você liga em APIs/parametrizações)
   const centros = ["CCHLA", "CCEN", "CT", "CCS", "CE", "CCTA"]
   const unidades = ["Departamento A", "Departamento B", "Laboratório X", "Programa Y"]
 
@@ -272,7 +268,6 @@ export default function ProjectCreateWizard() {
   const linhas = ["Linha 01", "Linha 02", "Linha 03"]
   const grupos = ["GP I", "GP II", "GP III", "Outro"]
 
-  // Externo
   const categoriasProjeto = ["Pesquisa (Externo)", "Extensão (Externo)", "Inovação (Externo)", "Ensino (Externo)"]
   const subcatNivelI = ["Subcategoria Nível I — A", "Subcategoria Nível I — B", "Subcategoria Nível I — C"]
   const subcatNivelII = ["Subcategoria Nível II — 1", "Subcategoria Nível II — 2", "Subcategoria Nível II — 3"]
@@ -283,7 +278,6 @@ export default function ProjectCreateWizard() {
   const canGoStep3 = useMemo(() => {
     const g = form.gerais
 
-    // mínimos “comuns” 
     return Boolean(
       form.tipo &&
         g.titulo.trim() &&
@@ -306,7 +300,6 @@ export default function ProjectCreateWizard() {
 
     if (form.tipo === "interno") {
       const i = form.interno
-      // Grupo de pesquisa está com * na especificação
       if (!i.grupoPesquisa.trim()) return false
 
       if (i.possuiProtocoloEtica === "Sim") {
@@ -344,15 +337,12 @@ export default function ProjectCreateWizard() {
     setStep((prev) => (prev < 4 ? ((prev + 1) as Step) : prev))
   }
 
-  const goPrev = () => setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev))
-
   const submit = async () => {
     if (!canGoStep4) return
     setSaving(true)
     try {
       await new Promise((r) => setTimeout(r, 700))
       setSubmitted(true)
-      // nav("/adm/projetos")
     } finally {
       setSaving(false)
     }
@@ -365,18 +355,9 @@ export default function ProjectCreateWizard() {
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
-        {/* Top */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <button
-              onClick={() => nav(-1)}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
-            >
-              <ArrowLeft size={16} />
-              Voltar
-            </button>
-
-            <h1 className="mt-3 text-xl font-bold text-primary">Cadastrar Projeto</h1>
+            <h1 className="text-xl font-bold text-primary">Cadastrar Projeto</h1>
             <p className="text-sm text-neutral mt-1">
               Fluxo guiado em 4 passos. Ao submeter, o projeto entra com status inicial{" "}
               <span className="font-semibold">SUBMETIDO</span>.
@@ -399,7 +380,6 @@ export default function ProjectCreateWizard() {
           </div>
         </div>
 
-        {/* STEP 1 — Tipo */}
         {step === 1 && (
           <Card
             title="Passo 1 — Tipo de Projeto"
@@ -475,7 +455,6 @@ export default function ProjectCreateWizard() {
           </Card>
         )}
 
-        {/* STEP 2 — Dados gerais */}
         {step === 2 && (
           <Card
             title="Passo 2 — Dados Gerais"
@@ -713,16 +692,7 @@ export default function ProjectCreateWizard() {
               </Field>
             </div>
 
-            <div className="mt-8 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={goPrev}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
-              >
-                <ChevronLeft size={16} />
-                Voltar
-              </button>
-
+            <div className="mt-8 flex justify-end">
               <button
                 type="button"
                 onClick={goNext}
@@ -741,14 +711,12 @@ export default function ProjectCreateWizard() {
           </Card>
         )}
 
-        {/* STEP 3 — Específicos */}
         {step === 3 && (
           <Card
             title="Passo 3 — Dados Específicos"
             subtitle={form.tipo === "interno" ? "Campos adicionais para projeto Interno." : "Campos adicionais para projeto Externo."}
             icon={<ClipboardCheck size={18} className="text-primary" />}
           >
-            {/* Interno */}
             {form.tipo === "interno" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <Field label="Este projeto está vinculado a algum grupo de pesquisa?" required>
@@ -837,7 +805,6 @@ export default function ProjectCreateWizard() {
               </div>
             )}
 
-            {/* Externo */}
             {form.tipo === "externo" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <Field label="Categoria do Projeto (externo)" required>
@@ -930,16 +897,7 @@ export default function ProjectCreateWizard() {
               </div>
             )}
 
-            <div className="mt-8 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={goPrev}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
-              >
-                <ChevronLeft size={16} />
-                Voltar
-              </button>
-
+            <div className="mt-8 flex justify-end">
               <button
                 type="button"
                 onClick={goNext}
@@ -958,7 +916,6 @@ export default function ProjectCreateWizard() {
           </Card>
         )}
 
-        {/* STEP 4 — Revisão */}
         {step === 4 && (
           <Card
             title="Passo 4 — Revisão e Submissão"
@@ -1181,16 +1138,7 @@ export default function ProjectCreateWizard() {
               </div>
             </div>
 
-            <div className="mt-8 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={goPrev}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
-              >
-                <ChevronLeft size={16} />
-                Voltar
-              </button>
-
+            <div className="mt-8 flex justify-end">
               <button
                 type="button"
                 onClick={submit}
@@ -1208,25 +1156,10 @@ export default function ProjectCreateWizard() {
           </Card>
         )}
 
-        {/* Mobile steps (rodapé simples) */}
         <div className="md:hidden flex items-center justify-between gap-2">
           <span className="text-xs text-neutral/70">Passo {step} de 4</span>
 
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={goPrev}
-              disabled={step === 1}
-              className={cx(
-                "inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold",
-                step === 1
-                  ? "border-neutral-light text-neutral/50 cursor-not-allowed"
-                  : "border-neutral-light text-primary hover:bg-neutral-light/50"
-              )}
-            >
-              <ChevronLeft size={16} />
-            </button>
-
             <button
               type="button"
               onClick={goNext}
@@ -1241,9 +1174,11 @@ export default function ProjectCreateWizard() {
           </div>
         </div>
 
-        {/* Atalho: cancelar */}
-        <div className="text-center">
-          <Link to="/adm/projetos" className="text-xs text-neutral/70 underline hover:text-primary">
+        <div className="flex justify-center pt-6">
+          <Link
+            to="/adm/admprojetos"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-neutral-light bg-white text-sm font-semibold text-primary transition-all hover:bg-neutral-light/40 hover:border-primary/40"
+          >
             Cancelar e voltar para Projetos
           </Link>
         </div>

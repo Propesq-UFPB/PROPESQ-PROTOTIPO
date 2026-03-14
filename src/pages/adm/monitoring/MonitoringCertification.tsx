@@ -42,26 +42,26 @@ export default function MonitoringCertification() {
       {/* Quick actions */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <CardLink
-          to="/adm/acompanhamento/replacements"
+          to="/adm/monitoring/replacements"
           title="Substituições de Discentes"
           desc="Analise e aprove solicitações de substituição."
           icon={<Users size={18} />}
         />
         <CardLink
-          to="/adm/acompanhamento/report-validation"
+          to="/adm/monitoring/report-validation"
           title="Validação de Relatórios"
           desc="Valide relatórios submetidos e acompanhe pendências."
           icon={<FileCheck size={18} />}
         />
         <CardLink
-          to="/adm/acompanhamento/certificates"
+          to="/adm/monitoring/AdmCertificates"
           title="Certificados"
           desc="Gere PDFs e gerencie a verificação por QR Code."
           icon={<BadgeCheck size={18} />}
         />
       </section>
 
-      {/* Highlights / KPI placeholders */}
+      {/* Highlights / KPI placeholders 
       <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="rounded-xl border border-neutral-light bg-white p-5">
           <p className="text-xs text-neutral">Substituições pendentes</p>
@@ -79,7 +79,7 @@ export default function MonitoringCertification() {
           <p className="text-xs text-neutral">Validações por QR (7 dias)</p>
           <p className="text-2xl font-bold text-primary mt-2">—</p>
         </div>
-      </section>
+      </section>*/}
 
       {/* Note about certificate verification */}
       <section className="rounded-xl border border-neutral-light bg-white p-5">

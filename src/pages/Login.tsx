@@ -34,19 +34,26 @@ export default function Login() {
     localStorage.setItem("role", role)
     login(email || "usuario@ufpb.br", password, role)
 
-    if (role === "ADMINISTRADOR") navigate("/dashboard") 
-    else navigate("/projetos")
+    if (role === "ADMINISTRADOR") {
+      navigate("/dashboard")
+    } else if (role === "DISCENTE") {
+      navigate("/discente/dashboard")
+    } else {
+      navigate("/projetos")
+    }
   }
 
   return (
-    <div className="
+    <div
+      className="
       min-h-screen
       flex flex-col
       bg-gradient-to-br
       from-neutral-light
       via-white
       to-primary/5
-    ">
+    "
+    >
       <Helmet>
         <title>Login • PROPESQ UFPB</title>
       </Helmet>
