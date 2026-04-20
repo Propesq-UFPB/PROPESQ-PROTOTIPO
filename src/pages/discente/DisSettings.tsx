@@ -1,3 +1,5 @@
+// não estamos usando
+
 import React, { useMemo, useState } from "react"
 import { Helmet } from "react-helmet"
 import Card from "@/components/Card"

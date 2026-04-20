@@ -248,59 +248,6 @@ export default function ParticipationHistory() {
           </p>
         </header>
 
-        {/* INDICADORES */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
-          <Card
-            title=""
-            className="bg-white border-2 border-primary rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-primary">{stats.total}</div>
-              <div className="text-sm font-medium text-primary">Total</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-success rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-success">{stats.concluidas}</div>
-              <div className="text-sm font-medium text-success">Concluídas</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-primary rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-primary">{stats.andamento}</div>
-              <div className="text-sm font-medium text-primary">Em andamento</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-warning rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-warning">{stats.comCertificado}</div>
-              <div className="text-sm font-medium text-warning">Com certificado</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-danger rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-danger">{stats.pendencias}</div>
-              <div className="text-sm font-medium text-danger">Com pendência</div>
-            </div>
-          </Card>
-        </section>
-
         {/* FILTROS */}
         <section>
           <Card

@@ -1,3 +1,5 @@
+// não estamos usando
+
 import React, { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
@@ -499,7 +501,7 @@ export default function NotificationsCenter() {
                         </div>
 
                         <div className="flex flex-col sm:flex-row xl:flex-col gap-2 xl:min-w-[210px]">
-                          <Link
+                          {/*<Link
                             to={item.contextoUrl}
                             className="
                               inline-flex items-center justify-center gap-2
@@ -510,7 +512,7 @@ export default function NotificationsCenter() {
                           >
                             <Eye size={16} />
                             {item.contextoLabel}
-                          </Link>
+                          </Link> */}
 
                           {item.status === "NAO_LIDA" && (
                             <button

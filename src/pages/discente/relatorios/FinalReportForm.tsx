@@ -18,6 +18,15 @@ import {
 
 type ReportStatus = "PENDENTE" | "EM_PREENCHIMENTO" | "REJEITADO" | "ENVIADO"
 
+type ProjectOption = {
+  id: string
+  titulo: string
+  edital: string
+  orientador: string
+  periodo: string
+  prazoRelatorioFinal: string
+}
+
 type FinalReportData = {
   id: string
   titulo: string
@@ -32,6 +41,7 @@ type FinalReportData = {
 }
 
 type FormData = {
+  projetoId: string
   resumoExecucao: string
   objetivosAlcancados: string
   resultadosFinais: string
@@ -43,6 +53,33 @@ type FormData = {
 }
 
 type FormErrors = Partial<Record<keyof FormData, string>>
+
+const PROJECTS: ProjectOption[] = [
+  {
+    id: "proj_002",
+    titulo: "IA Aplicada à Classificação de Produção Científica",
+    edital: "PIBITI 2026",
+    orientador: "Profa. Helena Costa",
+    periodo: "2026.1",
+    prazoRelatorioFinal: "10/12/2026",
+  },
+  {
+    id: "proj_004",
+    titulo: "Painel Analítico para Indicadores de Iniciação Científica",
+    edital: "PIBIC 2025",
+    orientador: "Prof. Ricardo Lima",
+    periodo: "2025.1",
+    prazoRelatorioFinal: "05/12/2025",
+  },
+  {
+    id: "proj_009",
+    titulo: "Sistema Inteligente para Acompanhamento de Projetos de Extensão",
+    edital: "PIBITI 2026",
+    orientador: "Profa. Mariana Costa",
+    periodo: "2026.1",
+    prazoRelatorioFinal: "15/12/2026",
+  },
+]
 
 const REPORTS: FinalReportData[] = [
   {
@@ -72,6 +109,7 @@ const REPORTS: FinalReportData[] = [
 ]
 
 const INITIAL_FORM: FormData = {
+  projetoId: "",
   resumoExecucao: "",
   objetivosAlcancados: "",
   resultadosFinais: "",
@@ -114,6 +152,10 @@ function getStatusClasses(status: ReportStatus) {
 
 function validateForm(data: FormData): FormErrors {
   const errors: FormErrors = {}
+
+  if (!data.projetoId) {
+    errors.projetoId = "Selecione o projeto relacionado ao relatório."
+  }
 
   if (!data.resumoExecucao.trim()) {
     errors.resumoExecucao = "Informe o resumo da execução do projeto."
@@ -170,15 +212,31 @@ export default function FinalReportForm() {
 
   const report = REPORTS.find((item) => item.id === id) ?? REPORTS[0]
 
-  const [form, setForm] = useState<FormData>(INITIAL_FORM)
+  const [form, setForm] = useState<FormData>({
+    ...INITIAL_FORM,
+    projetoId: report?.projetoId ?? "",
+  })
+
   const [errors, setErrors] = useState<FormErrors>({})
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [successType, setSuccessType] = useState<"save" | "submit" | "">("")
 
+  const selectedProject = useMemo(() => {
+    return PROJECTS.find((project) => project.id === form.projetoId) ?? null
+  }, [form.projetoId])
+
+  const currentStatus = report?.status ?? "PENDENTE"
+  const currentObservation = report?.observacao ?? ""
+
+  const reportTitle = selectedProject
+    ? `Relatório Final — ${selectedProject.edital}`
+    : "Relatório Final"
+
   const progress = useMemo(() => {
     const fields = [
+      form.projetoId,
       form.resumoExecucao,
       form.objetivosAlcancados,
       form.resultadosFinais,
@@ -188,7 +246,10 @@ export default function FinalReportForm() {
       form.conclusoes,
     ]
 
-    const filled = fields.filter((value) => value.trim().length > 0).length
+    const filled = fields.filter((value) =>
+      typeof value === "string" ? value.trim().length > 0 : value
+    ).length
+
     return Math.round((filled / fields.length) * 100)
   }, [form])
 
@@ -235,7 +296,6 @@ export default function FinalReportForm() {
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        {/* HEADER */}
         <header className="flex flex-col gap-3">
           <div>
             <Link
@@ -252,11 +312,11 @@ export default function FinalReportForm() {
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                    report.status
+                    currentStatus
                   )}`}
                 >
                   <FileText size={14} />
-                  {getStatusLabel(report.status)}
+                  {getStatusLabel(currentStatus)}
                 </span>
 
                 <span className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
@@ -264,19 +324,18 @@ export default function FinalReportForm() {
                 </span>
               </div>
 
-              <h1 className="text-2xl font-bold text-primary">
-                {report.titulo}
-              </h1>
+              <h1 className="text-2xl font-bold text-primary">{reportTitle}</h1>
 
               <p className="text-base text-neutral leading-7 max-w-4xl">
-                Consolide as informações finais do projeto, apresentando resultados, produtos e conclusões da sua participação.
+                Selecione o projeto e consolide as informações finais da execução,
+                apresentando resultados, produtos e conclusões referentes ao
+                projeto escolhido.
               </p>
             </div>
           </div>
         </header>
 
-        {/* ALERTA DE OBSERVAÇÃO */}
-        {report.observacao && (
+        {currentObservation && (
           <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4 text-sm text-neutral">
             <div className="flex items-start gap-2">
               <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
@@ -284,21 +343,20 @@ export default function FinalReportForm() {
                 <span className="font-semibold text-warning">
                   Observação da avaliação anterior:
                 </span>{" "}
-                {report.observacao}
+                {currentObservation}
               </div>
             </div>
           </div>
         )}
 
-        {/* RESUMO */}
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
             <div className="flex items-start gap-3">
               <FolderKanban size={20} className="text-primary" />
               <div>
-                <div className="text-sm text-neutral">Projeto</div>
+                <div className="text-sm text-neutral">Projeto selecionado</div>
                 <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.projetoTitulo}
+                  {selectedProject?.titulo ?? "Nenhum projeto selecionado"}
                 </div>
               </div>
             </div>
@@ -310,38 +368,13 @@ export default function FinalReportForm() {
               <div>
                 <div className="text-sm text-neutral">Orientador(a)</div>
                 <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.orientador}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <CalendarDays size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Prazo</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.prazo}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <ClipboardList size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Progresso do preenchimento</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {progress}%
+                  {selectedProject?.orientador ?? "—"}
                 </div>
               </div>
             </div>
           </Card>
         </section>
 
-        {/* FORM + LATERAL */}
         <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           <div className="xl:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -354,6 +387,71 @@ export default function FinalReportForm() {
                 className="bg-white border border-neutral/30 rounded-2xl p-8"
               >
                 <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Projeto relacionado *
+                    </label>
+                    <select
+                      value={form.projetoId}
+                      onChange={(e) => updateField("projetoId", e.target.value)}
+                      className="
+                        w-full rounded-xl border border-neutral/30 bg-white
+                        px-4 py-3 text-sm text-primary outline-none
+                        focus:border-primary
+                      "
+                    >
+                      <option value="">Selecione um projeto</option>
+                      {PROJECTS.map((project) => (
+                        <option key={project.id} value={project.id}>
+                          {project.titulo}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.projetoId && (
+                      <p className="mt-1 text-xs text-danger">{errors.projetoId}</p>
+                    )}
+                  </div>
+
+                  {selectedProject && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                          Edital
+                        </div>
+                        <div className="mt-1 text-sm font-semibold text-primary">
+                          {selectedProject.edital}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                          Período
+                        </div>
+                        <div className="mt-1 text-sm font-semibold text-primary">
+                          {selectedProject.periodo}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                          Orientador(a)
+                        </div>
+                        <div className="mt-1 text-sm font-semibold text-primary">
+                          {selectedProject.orientador}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                          Prazo do relatório final
+                        </div>
+                        <div className="mt-1 text-sm font-semibold text-primary">
+                          {selectedProject.prazoRelatorioFinal}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
                       Resumo da execução do projeto *
@@ -369,7 +467,7 @@ export default function FinalReportForm() {
                         px-4 py-3 text-sm text-primary outline-none
                         focus:border-primary resize-none
                       "
-                      placeholder="Apresente uma visão geral da execução do projeto ao longo do período de vigência."
+                      placeholder="Apresente uma visão geral da execução do projeto selecionado ao longo do período."
                     />
                     {errors.resumoExecucao && (
                       <p className="mt-1 text-xs text-danger">
@@ -393,7 +491,7 @@ export default function FinalReportForm() {
                         px-4 py-3 text-sm text-primary outline-none
                         focus:border-primary resize-none
                       "
-                      placeholder="Explique quais objetivos previstos foram alcançados total ou parcialmente."
+                      placeholder="Explique quais objetivos previstos foram alcançados total ou parcialmente no projeto selecionado."
                     />
                     {errors.objetivosAlcancados && (
                       <p className="mt-1 text-xs text-danger">
@@ -535,7 +633,7 @@ export default function FinalReportForm() {
                       <span>
                         Declaro que as informações apresentadas neste relatório
                         final são verdadeiras e representam adequadamente minha
-                        participação e os resultados do projeto.
+                        participação e os resultados do projeto selecionado.
                       </span>
                     </label>
                     {errors.aceiteInformacoes && (
@@ -619,6 +717,9 @@ export default function FinalReportForm() {
             >
               <ul className="space-y-3 text-sm text-neutral">
                 <li className="leading-6">
+                  Selecione primeiro o projeto correto antes de concluir o relatório final.
+                </li>
+                <li className="leading-6">
                   Consolide as informações de forma objetiva, mas completa.
                 </li>
                 <li className="leading-6">
@@ -626,9 +727,6 @@ export default function FinalReportForm() {
                 </li>
                 <li className="leading-6">
                   Relacione a experiência à sua formação acadêmica e profissional.
-                </li>
-                <li className="leading-6">
-                  Apresente conclusões consistentes e coerentes com a execução realizada.
                 </li>
               </ul>
             </Card>
@@ -644,36 +742,34 @@ export default function FinalReportForm() {
               <div className="space-y-4 text-sm">
                 <div>
                   <div className="text-neutral">Título</div>
-                  <div className="mt-1 font-medium text-primary">
-                    {report.titulo}
-                  </div>
+                  <div className="mt-1 font-medium text-primary">{reportTitle}</div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Projeto</div>
                   <div className="mt-1 font-medium text-primary">
-                    {report.projetoTitulo}
+                    {selectedProject?.titulo ?? "Não selecionado"}
                   </div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Edital</div>
                   <div className="mt-1 font-medium text-primary">
-                    {report.edital}
+                    {selectedProject?.edital ?? "—"}
                   </div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Período</div>
                   <div className="mt-1 font-medium text-primary">
-                    {report.periodo}
+                    {selectedProject?.periodo ?? "—"}
                   </div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Prazo final</div>
                   <div className="mt-1 font-medium text-primary">
-                    {report.prazo}
+                    {selectedProject?.prazoRelatorioFinal ?? "—"}
                   </div>
                 </div>
               </div>

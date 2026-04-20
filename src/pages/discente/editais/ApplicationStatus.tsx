@@ -14,6 +14,8 @@ import {
   Circle,
   AlertTriangle,
   Printer,
+  UserCheck,
+  Trophy,
 } from "lucide-react"
 
 type ApplicationStatusType =
@@ -26,6 +28,12 @@ type ApplicationStatusType =
 
 type TimelineStepStatus = "DONE" | "CURRENT" | "PENDING" | "FAILED"
 
+type FinalResultType =
+  | "APROVADO_COM_BOLSA"
+  | "APROVADO_VOLUNTARIO"
+  | "LISTA_DE_ESPERA"
+  | "NAO_APROVADO"
+
 type TimelineStep = {
   titulo: string
   data: string
@@ -33,7 +41,13 @@ type TimelineStep = {
   descricao?: string
 }
 
-type ApplicationStatusData = {
+type FinalResultData = {
+  situacao: FinalResultType
+  posicaoClassificacao?: number
+  mensagem?: string
+}
+
+type ApplicationDetailsData = {
   id: string
   noticeId: string
   editalTitulo: string
@@ -48,11 +62,15 @@ type ApplicationStatusData = {
   status: ApplicationStatusType
   discente: string
   matricula: string
+  cpf: string
+  email: string
+  resumo?: string
   observacao?: string
   timeline: TimelineStep[]
+  resultadoFinal?: FinalResultData
 }
 
-const APPLICATIONS: ApplicationStatusData[] = [
+const APPLICATIONS: ApplicationDetailsData[] = [
   {
     id: "inscricao_001",
     noticeId: "edital_001",
@@ -68,6 +86,10 @@ const APPLICATIONS: ApplicationStatusData[] = [
     status: "EM_ANALISE",
     discente: "Mariana Martins",
     matricula: "20230012345",
+    cpf: "123.456.789-00",
+    email: "mariana@academico.ufpb.br",
+    resumo:
+      "Inscrição realizada para participação em processo seletivo vinculado ao edital PIBIC 2026.",
     observacao:
       "Sua inscrição foi validada documentalmente e está em análise pela unidade responsável.",
     timeline: [
@@ -116,6 +138,10 @@ const APPLICATIONS: ApplicationStatusData[] = [
     status: "INDEFERIDA",
     discente: "Mariana Martins",
     matricula: "20230012345",
+    cpf: "123.456.789-00",
+    email: "mariana@academico.ufpb.br",
+    resumo:
+      "Inscrição registrada para participação em processo seletivo vinculado ao edital PIBITI 2026.",
     observacao:
       "A inscrição foi indeferida devido à ausência de comprovação documental válida no prazo definido.",
     timeline: [
@@ -147,6 +173,62 @@ const APPLICATIONS: ApplicationStatusData[] = [
       },
     ],
   },
+  {
+    id: "inscricao_003",
+    noticeId: "edital_003",
+    editalTitulo: "Edital PIBIC-AF 2026",
+    editalTipo: "PIBIC-AF",
+    unidade: "PROPESQ / UFPB",
+    protocolo: "PROP-2026-000211",
+    dataEnvio: "05/03/2026",
+    horaEnvio: "16:05",
+    modalidade: "Bolsista",
+    planoTitulo: "Plano de Trabalho em Modelagem Preditiva para Dados Educacionais",
+    orientador: "Prof. Carlos Henrique",
+    status: "RESULTADO_PUBLICADO",
+    discente: "Mariana Martins",
+    matricula: "20230012345",
+    cpf: "123.456.789-00",
+    email: "mariana@academico.ufpb.br",
+    resumo:
+      "Inscrição submetida em edital de iniciação científica com acompanhamento concluído e resultado publicado.",
+    observacao:
+      "O resultado final desta inscrição já está disponível para consulta abaixo.",
+    timeline: [
+      {
+        titulo: "Inscrição enviada",
+        data: "05/03/2026 • 16:05",
+        status: "DONE",
+      },
+      {
+        titulo: "Triagem documental",
+        data: "06/03/2026 • 09:20",
+        status: "DONE",
+      },
+      {
+        titulo: "Análise da inscrição",
+        data: "10/03/2026 • 15:10",
+        status: "DONE",
+      },
+      {
+        titulo: "Homologação",
+        data: "14/03/2026 • 11:00",
+        status: "DONE",
+      },
+      {
+        titulo: "Resultado final",
+        data: "20/03/2026 • 08:00",
+        status: "DONE",
+        descricao: "Resultado disponibilizado para consulta no sistema.",
+      },
+    ],
+    resultadoFinal: {
+      situacao: "APROVADO_COM_BOLSA",
+      posicaoClassificacao: 3,
+      mensagem:
+        "Sua inscrição foi aprovada com bolsa, conforme publicação oficial do resultado final.",
+    },
+  },
 ]
 
 function getApplicationStatusLabel(status: ApplicationStatusType) {
@@ -173,7 +255,6 @@ function getApplicationStatusClasses(status: ApplicationStatusType) {
     case "ENVIADA":
       return "border-primary/30 bg-primary/10 text-primary"
     case "EM_TRIAGEM":
-      return "border-warning/30 bg-warning/10 text-warning"
     case "EM_ANALISE":
       return "border-warning/30 bg-warning/10 text-warning"
     case "HOMOLOGADA":
@@ -213,6 +294,58 @@ function getStepTitleClass(status: TimelineStepStatus) {
   }
 }
 
+function getFinalResultLabel(result?: FinalResultData) {
+  if (!result) return "-"
+
+  switch (result.situacao) {
+    case "APROVADO_COM_BOLSA":
+      return "Aprovado com bolsa"
+    case "APROVADO_VOLUNTARIO":
+      return "Aprovado voluntário"
+    case "LISTA_DE_ESPERA":
+      return "Lista de espera"
+    case "NAO_APROVADO":
+      return "Não aprovado"
+    default:
+      return result.situacao
+  }
+}
+
+function getFinalResultClasses(result?: FinalResultData) {
+  if (!result) return "border-neutral/30 bg-neutral/10 text-neutral"
+
+  switch (result.situacao) {
+    case "APROVADO_COM_BOLSA":
+    case "APROVADO_VOLUNTARIO":
+      return "border-success/30 bg-success/10 text-success"
+    case "LISTA_DE_ESPERA":
+      return "border-warning/30 bg-warning/10 text-warning"
+    case "NAO_APROVADO":
+      return "border-danger/30 bg-danger/10 text-danger"
+    default:
+      return "border-neutral/30 bg-neutral/10 text-neutral"
+  }
+}
+
+function getStatusSummary(status: ApplicationStatusType) {
+  switch (status) {
+    case "ENVIADA":
+      return "Sua inscrição foi registrada com sucesso e aguarda as primeiras verificações."
+    case "EM_TRIAGEM":
+      return "Sua inscrição está em triagem documental pela equipe responsável."
+    case "EM_ANALISE":
+      return "Sua inscrição está em processamento e análise pelas equipes responsáveis."
+    case "HOMOLOGADA":
+      return "Sua inscrição foi homologada com sucesso e segue no fluxo do edital."
+    case "INDEFERIDA":
+      return "Sua inscrição foi indeferida. Consulte as observações do processo para mais detalhes."
+    case "RESULTADO_PUBLICADO":
+      return "O resultado final vinculado à sua inscrição já está disponível nesta página."
+    default:
+      return ""
+  }
+}
+
 export default function ApplicationStatus() {
   const { id } = useParams()
 
@@ -221,16 +354,15 @@ export default function ApplicationStatus() {
   return (
     <div className="min-h-screen bg-neutral-light">
       <Helmet>
-        <title>Status da Inscrição • PROPESQ</title>
+        <title>Detalhes da Inscrição • PROPESQ</title>
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        {/* HEADER */}
         <header className="flex flex-col gap-3">
           <div>
             <Link
               to="/discente/editais"
-              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
+              className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
             >
               <ArrowLeft size={16} />
               Voltar para editais
@@ -255,11 +387,12 @@ export default function ApplicationStatus() {
               </div>
 
               <h1 className="text-2xl font-bold text-primary">
-                Acompanhamento da inscrição
+                Detalhes da inscrição
               </h1>
 
-              <p className="text-base text-neutral leading-7 max-w-4xl">
-                Acompanhe o andamento da sua inscrição, as etapas já concluídas e a situação atual no processo seletivo.
+              <p className="max-w-4xl text-base leading-7 text-neutral">
+                Consulte o comprovante da inscrição, acompanhe o andamento do processo
+                e visualize o resultado final quando disponível.
               </p>
             </div>
 
@@ -269,53 +402,47 @@ export default function ApplicationStatus() {
                 inline-flex items-center justify-center gap-2
                 rounded-xl border border-primary
                 px-4 py-3 text-sm font-medium text-primary
-                hover:bg-primary/5 transition
+                transition hover:bg-primary/5
               "
             >
               <Printer size={16} />
-              Imprimir status
+              Imprimir comprovante
             </button>
           </div>
         </header>
 
-        {/* DESTAQUE */}
         <Card
           title=""
-          className="bg-white border border-neutral/30 rounded-2xl p-6"
+          className="rounded-2xl border border-success/30 bg-white p-6"
         >
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-2">
-              <div className="text-sm text-neutral">Situação atual da inscrição</div>
-              <div className="flex flex-wrap items-center gap-3">
-                <span
-                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${getApplicationStatusClasses(
-                    application.status
-                  )}`}
-                >
-                  <FileCheck2 size={16} />
-                  {getApplicationStatusLabel(application.status)}
-                </span>
+            <div className="flex items-start gap-3">
+              <CheckCircle2 size={22} className="mt-0.5 text-success" />
 
-                <span className="text-sm text-neutral">
-                  Protocolo: <span className="font-semibold text-primary">{application.protocolo}</span>
-                </span>
+              <div>
+                <div className="text-base font-semibold text-success">
+                  Inscrição registrada com sucesso
+                </div>
+                <p className="mt-1 text-sm leading-6 text-neutral">
+                  Sua inscrição foi registrada no sistema e recebeu um número de
+                  protocolo para acompanhamento.
+                </p>
               </div>
             </div>
 
             <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3">
-              <div className="text-xs font-medium text-neutral">Edital</div>
-              <div className="mt-1 text-sm font-semibold text-primary">
-                {application.editalTitulo}
+              <div className="text-xs font-medium text-neutral">Protocolo</div>
+              <div className="mt-1 text-base font-bold text-primary">
+                {application.protocolo}
               </div>
             </div>
           </div>
         </Card>
 
-        {/* RESUMO */}
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Card
             title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
+            className="rounded-2xl border border-neutral/30 bg-white p-6"
           >
             <div className="flex items-start gap-3">
               <CalendarDays size={20} className="text-primary" />
@@ -330,7 +457,7 @@ export default function ApplicationStatus() {
 
           <Card
             title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
+            className="rounded-2xl border border-neutral/30 bg-white p-6"
           >
             <div className="flex items-start gap-3">
               <Clock3 size={20} className="text-primary" />
@@ -345,10 +472,10 @@ export default function ApplicationStatus() {
 
           <Card
             title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
+            className="rounded-2xl border border-neutral/30 bg-white p-6"
           >
             <div className="flex items-start gap-3">
-              <ClipboardList size={20} className="text-primary" />
+              <UserCheck size={20} className="text-primary" />
               <div>
                 <div className="text-sm text-neutral">Modalidade</div>
                 <div className="mt-1 text-sm font-semibold text-primary">
@@ -360,39 +487,36 @@ export default function ApplicationStatus() {
 
           <Card
             title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
+            className="rounded-2xl border border-neutral/30 bg-white p-6"
           >
             <div className="flex items-start gap-3">
               <BadgeCheck size={20} className="text-primary" />
               <div>
-                <div className="text-sm text-neutral">Matrícula</div>
+                <div className="text-sm text-neutral">Situação atual</div>
                 <div className="mt-1 text-sm font-semibold text-primary">
-                  {application.matricula}
+                  {getApplicationStatusLabel(application.status)}
                 </div>
               </div>
             </div>
           </Card>
         </section>
 
-        {/* CONTEÚDO */}
-        <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-          <div className="xl:col-span-2 space-y-5">
-            <Card
+        <section className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+          <div className="space-y-5 xl:col-span-2">
+          {/*  <Card
               title={
                 <h2 className="text-sm font-semibold text-primary">
                   Linha do tempo da inscrição
                 </h2>
               }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
+              className="rounded-2xl border border-neutral/30 bg-white p-8"
             >
               <div className="space-y-5">
                 {application.timeline.map((step, index) => (
-                  <div
-                    key={`${step.titulo}-${index}`}
-                    className="flex gap-4"
-                  >
+                  <div key={`${step.titulo}-${index}`} className="flex gap-4">
                     <div className="flex flex-col items-center">
                       <div className="mt-0.5">{getStepIcon(step.status)}</div>
+
                       {index < application.timeline.length - 1 && (
                         <div className="mt-2 h-full min-h-[32px] w-px bg-neutral/20" />
                       )}
@@ -403,12 +527,10 @@ export default function ApplicationStatus() {
                         {step.titulo}
                       </div>
 
-                      <div className="mt-1 text-sm text-neutral">
-                        {step.data}
-                      </div>
+                      <div className="mt-1 text-sm text-neutral">{step.data}</div>
 
                       {step.descricao && (
-                        <p className="mt-2 text-sm text-neutral leading-6">
+                        <p className="mt-2 text-sm leading-6 text-neutral">
                           {step.descricao}
                         </p>
                       )}
@@ -416,7 +538,52 @@ export default function ApplicationStatus() {
                   </div>
                 ))}
               </div>
-            </Card>
+            </Card>*/}
+
+            {application.resultadoFinal && (
+              <Card
+                title={
+                  <h2 className="text-sm font-semibold text-primary">
+                    Resultado final
+                  </h2>
+                }
+                className="rounded-2xl border border-neutral/30 bg-white p-8"
+              >
+                <div className="space-y-5">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-2">
+                      <div className="text-sm text-neutral">Situação final</div>
+
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${getFinalResultClasses(
+                          application.resultadoFinal
+                        )}`}
+                      >
+                        <Trophy size={16} />
+                        {getFinalResultLabel(application.resultadoFinal)}
+                      </span>
+                    </div>
+
+                    {typeof application.resultadoFinal.posicaoClassificacao === "number" && (
+                      <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3">
+                        <div className="text-xs font-medium text-neutral">
+                          Posição na classificação
+                        </div>
+                        <div className="mt-1 text-base font-bold text-primary">
+                          {application.resultadoFinal.posicaoClassificacao}º lugar
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {application.resultadoFinal.mensagem && (
+                    <div className="rounded-xl border border-primary/10 bg-primary/5 px-4 py-4 text-sm leading-6 text-neutral">
+                      {application.resultadoFinal.mensagem}
+                    </div>
+                  )}
+                </div>
+              </Card> 
+            )}
 
             <Card
               title={
@@ -424,9 +591,9 @@ export default function ApplicationStatus() {
                   Dados da inscrição
                 </h2>
               }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
+              className="rounded-2xl border border-neutral/30 bg-white p-8"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
+              <div className="grid grid-cols-1 gap-5 text-sm md:grid-cols-2">
                 <div className="md:col-span-2">
                   <div className="text-neutral">Edital</div>
                   <div className="mt-1 font-semibold text-primary">
@@ -435,7 +602,7 @@ export default function ApplicationStatus() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <div className="text-neutral">Plano de trabalho</div>
+                  <div className="text-neutral">Plano de trabalho selecionado</div>
                   <div className="mt-1 font-semibold text-primary">
                     {application.planoTitulo}
                   </div>
@@ -463,11 +630,32 @@ export default function ApplicationStatus() {
                 </div>
 
                 <div>
-                  <div className="text-neutral">Protocolo</div>
+                  <div className="text-neutral">Matrícula</div>
                   <div className="mt-1 font-medium text-primary">
-                    {application.protocolo}
+                    {application.matricula}
                   </div>
                 </div>
+
+                <div>
+                  <div className="text-neutral">CPF</div>
+                  <div className="mt-1 font-medium text-primary">
+                    {application.cpf}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-neutral">E-mail</div>
+                  <div className="mt-1 font-medium text-primary">
+                    {application.email}
+                  </div>
+                </div>
+
+                {application.resumo && (
+                  <div className="md:col-span-2">
+                    <div className="text-neutral">Resumo</div>
+                    <p className="mt-1 leading-6 text-primary">{application.resumo}</p>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -478,7 +666,7 @@ export default function ApplicationStatus() {
                     Observação do processo
                   </h2>
                 }
-                className="bg-white border border-neutral/30 rounded-2xl p-8"
+                className="rounded-2xl border border-neutral/30 bg-white p-8"
               >
                 <div
                   className={`
@@ -503,7 +691,7 @@ export default function ApplicationStatus() {
                   Resumo do andamento
                 </h2>
               }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
+              className="rounded-2xl border border-neutral/30 bg-white p-8"
             >
               <div className="space-y-4 text-sm">
                 <span
@@ -511,25 +699,12 @@ export default function ApplicationStatus() {
                     application.status
                   )}`}
                 >
-                  <BadgeCheck size={14} />
+                  <FileCheck2 size={14} />
                   {getApplicationStatusLabel(application.status)}
                 </span>
 
-                <p className="text-neutral leading-6">
-                  {application.status === "ENVIADA" &&
-                    "Sua inscrição foi registrada e aguarda as primeiras verificações."}
-
-                  {(application.status === "EM_TRIAGEM" || application.status === "EM_ANALISE") &&
-                    "Sua inscrição está em processamento e análise pelas equipes responsáveis."}
-
-                  {application.status === "HOMOLOGADA" &&
-                    "Sua inscrição foi homologada com sucesso."}
-
-                  {application.status === "INDEFERIDA" &&
-                    "Sua inscrição foi indeferida. Consulte as observações e acompanhe o edital para mais informações."}
-
-                  {application.status === "RESULTADO_PUBLICADO" &&
-                    "O resultado vinculado à sua inscrição já está disponível para consulta."}
+                <p className="leading-6 text-neutral">
+                  {getStatusSummary(application.status)}
                 </p>
               </div>
             </Card>
@@ -540,21 +715,21 @@ export default function ApplicationStatus() {
                   Ações rápidas
                 </h2>
               }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
+              className="rounded-2xl border border-neutral/30 bg-white p-8"
             >
               <div className="flex flex-col gap-3">
-                <Link
-                  to={`/discente/inscricoes/${application.id}/comprovante`}
+                <button
+                  type="button"
                   className="
                     inline-flex items-center justify-center gap-2
                     rounded-xl border border-primary
                     px-4 py-3 text-sm font-medium text-primary
-                    hover:bg-primary/5 transition
+                    transition hover:bg-primary/5
                   "
                 >
-                  <FileText size={16} />
-                  Ver comprovante
-                </Link>
+                  <Printer size={16} />
+                  Imprimir comprovante
+                </button>
 
                 <Link
                   to={`/discente/editais/${application.noticeId}`}
@@ -562,24 +737,24 @@ export default function ApplicationStatus() {
                     inline-flex items-center justify-center gap-2
                     rounded-xl border border-primary
                     px-4 py-3 text-sm font-medium text-primary
-                    hover:bg-primary/5 transition
+                    transition hover:bg-primary/5
                   "
                 >
-                  <ClipboardList size={16} />
+                  <FileText size={16} />
                   Ver edital
                 </Link>
 
                 <Link
-                  to={`/discente/inscricoes/${application.id}/resultado`}
+                  to="/discente/editais"
                   className="
                     inline-flex items-center justify-center gap-2
-                    rounded-xl bg-primary px-4 py-3
-                    text-sm font-semibold text-white
-                    hover:opacity-90 transition
+                    rounded-xl border border-neutral/30
+                    px-4 py-3 text-sm font-medium text-neutral
+                    transition hover:bg-neutral/5
                   "
                 >
-                  <BadgeCheck size={16} />
-                  Ver resultado
+                  <ArrowLeft size={16} />
+                  Voltar para editais
                 </Link>
               </div>
             </Card>
@@ -590,7 +765,7 @@ export default function ApplicationStatus() {
                   Recomendações
                 </h2>
               }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
+              className="rounded-2xl border border-neutral/30 bg-white p-8"
             >
               <ul className="space-y-3 text-sm text-neutral">
                 <li className="leading-6">

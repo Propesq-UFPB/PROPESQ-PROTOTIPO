@@ -1,5 +1,5 @@
-import React from "react"
-import { Link, useParams } from "react-router-dom"
+import React, { useMemo, useState } from "react"
+import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
 import Card from "@/components/Card"
 import {
@@ -10,13 +10,12 @@ import {
   BadgeCheck,
   Clock3,
   UserRound,
-  Eye,
-  Pencil,
   AlertTriangle,
   CheckCircle2,
   ClipboardList,
   Presentation,
   BookOpen,
+  Eye,
 } from "lucide-react"
 
 type EnicStatus =
@@ -74,7 +73,11 @@ const SUBMISSIONS: EnicSubmissionDetails[] = [
       "Foram estruturadas páginas e fluxos para os módulos de perfil, editais, projetos, relatórios e submissões acadêmicas, com foco na experiência do discente e na organização institucional.",
     conclusoes:
       "Os resultados demonstram a viabilidade de uma solução digital integrada para apoiar a gestão acadêmica de pesquisa, com potencial para ampliar a rastreabilidade e a eficiência dos processos.",
-    palavrasChave: ["plataforma digital", "pesquisa acadêmica", "gestão institucional"],
+    palavrasChave: [
+      "plataforma digital",
+      "pesquisa acadêmica",
+      "gestão institucional",
+    ],
     coautores: ["Prof. André Silva"],
     observacoes: [
       "A submissão ainda está em rascunho e pode ser editada livremente.",
@@ -113,36 +116,36 @@ const SUBMISSIONS: EnicSubmissionDetails[] = [
     possuiPendencia: false,
   },
   {
-    id: "enic_005",
-    titulo: "Repositório Digital para Produção Discente",
-    projetoId: "proj_005",
-    projetoTitulo: "Repositório Digital para Produção Discente",
-    edital: "PROBEX 2024",
-    orientador: "Profa. Lúcia Fernandes",
-    evento: "ENIC 2024",
+    id: "enic_003",
+    titulo: "Dashboard Analítico para Indicadores de Iniciação Científica",
+    projetoId: "proj_004",
+    projetoTitulo: "Painel Analítico para Indicadores de Iniciação Científica",
+    edital: "PIBIC 2025",
+    orientador: "Prof. Ricardo Lima",
+    evento: "ENIC 2025",
     modalidade: "Resumo expandido",
-    areaTematica: "Biblioteconomia Digital",
-    prazo: "12/08/2024",
+    areaTematica: "Ciência de Dados",
+    prazo: "20/08/2025",
     status: "REJEITADO",
-    atualizadoEm: "18/08/2024",
-    dataSubmissao: "12/08/2024",
+    atualizadoEm: "18/08/2025",
+    dataSubmissao: "16/08/2025",
     resumo:
-      "O trabalho propõe a organização de produção discente em um repositório digital institucional de acesso estruturado.",
+      "O estudo propõe uma interface analítica para acompanhamento de indicadores acadêmicos relacionados à iniciação científica.",
     metodologia:
-      "Foram analisados modelos de organização de acervo digital, taxonomias de conteúdo e necessidades de representação da produção acadêmica.",
+      "Foi realizada análise de requisitos institucionais, prototipação de dashboards, organização de indicadores e modelagem da experiência de uso.",
     resultados:
-      "O trabalho avançou na modelagem inicial do repositório, porém a submissão apresentou inadequações formais em relação ao evento.",
+      "A proposta resultou em telas estruturadas para leitura de métricas, filtros e painéis com foco em monitoramento acadêmico.",
     conclusoes:
-      "Embora o tema seja relevante, a submissão precisaria de melhor adequação textual e formal para aceitação no evento.",
-    palavrasChave: ["repositório digital", "produção discente", "acervo acadêmico"],
-    coautores: ["Profa. Lúcia Fernandes"],
+      "A solução demonstrou potencial de apoio à gestão, mas necessita de maior consolidação dos resultados apresentados na submissão.",
+    palavrasChave: ["dashboard", "indicadores", "iniciação científica"],
+    coautores: ["Prof. Ricardo Lima"],
     observacoes: [
-      "A comissão apontou inconsistências no texto submetido.",
-      "É recomendável revisar estrutura, clareza e aderência ao formato exigido.",
+      "A comissão solicitou revisão do texto submetido.",
+      "Ajuste especialmente os resultados e a conclusão.",
     ],
     possuiPendencia: true,
     pendenciaTexto:
-      "A submissão foi devolvida por inconsistências no texto e ausência de adequação ao formato exigido.",
+      "A submissão precisa ser revisada conforme as observações da comissão antes de novo envio.",
   },
 ]
 
@@ -168,7 +171,7 @@ function getStatusLabel(status: EnicStatus) {
 function getStatusClasses(status: EnicStatus) {
   switch (status) {
     case "RASCUNHO":
-      return "border-neutral/30 bg-neutral/10 text-neutral"
+      return "border-primary/30 bg-primary/10 text-primary"
     case "PENDENTE":
       return "border-warning/30 bg-warning/10 text-warning"
     case "SUBMETIDO":
@@ -184,99 +187,136 @@ function getStatusClasses(status: EnicStatus) {
   }
 }
 
-function canEdit(status: EnicStatus) {
-  return status === "RASCUNHO" || status === "PENDENTE" || status === "REJEITADO"
+function InfoCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: React.ReactNode
+}) {
+  return (
+    <div className="rounded-2xl border border-neutral/20 bg-white p-4">
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          {icon}
+        </div>
+        <div>
+          <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+            {label}
+          </div>
+          <div className="mt-1 text-sm font-semibold leading-6 text-primary">
+            {value}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function EnicSubmissionView() {
-  const { id } = useParams()
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string>(
+    SUBMISSIONS[0].id
+  )
 
-  const submission = SUBMISSIONS.find((item) => item.id === id) ?? SUBMISSIONS[0]
+  const submission = useMemo(
+    () =>
+      SUBMISSIONS.find((item) => item.id === selectedSubmissionId) ??
+      SUBMISSIONS[0],
+    [selectedSubmissionId]
+  )
 
   return (
     <div className="min-h-screen bg-neutral-light">
       <Helmet>
-        <title>{submission.titulo} • PROPESQ</title>
+        <title>Submissões ENIC • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        {/* HEADER */}
-        <header className="flex flex-col gap-3">
-          <div>
-            <Link
-              to="/discente/enic"
-              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
-            >
-              <ArrowLeft size={16} />
-              Voltar para submissões ENIC
-            </Link>
-          </div>
+      <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between">
+          <Link
+            to="/discente/enic"
+            className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+          >
+            <ArrowLeft size={16} />
+            Voltar para submissões
+          </Link>
+        </div>
 
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                  <Presentation size={14} />
-                  {submission.modalidade}
-                </span>
+        <section className="rounded-3xl border border-neutral/20 bg-white p-6 sm:p-8">
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                <Presentation size={14} />
+                Submissões do ENIC
+              </span>
 
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                    submission.status
-                  )}`}
-                >
-                  <BadgeCheck size={14} />
-                  {getStatusLabel(submission.status)}
-                </span>
-              </div>
+              <span
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                  submission.status
+                )}`}
+              >
+                <BadgeCheck size={14} />
+                {getStatusLabel(submission.status)}
+              </span>
+            </div>
 
-              <h1 className="text-2xl font-bold text-primary">
+            <div>
+              <h1 className="text-2xl font-bold text-primary sm:text-3xl">
                 {submission.titulo}
               </h1>
-
-              <p className="text-base text-neutral leading-7 max-w-4xl">
-                Visualize os detalhes da submissão vinculada ao ENIC, incluindo conteúdo acadêmico, situação atual e observações do processo.
+              <p className="mt-2 max-w-3xl text-sm leading-7 text-neutral sm:text-base">
+                Consulte os detalhes da submissão vinculada ao ENIC, acompanhe
+                o status atual e visualize o conteúdo acadêmico informado.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row xl:flex-col gap-2 xl:min-w-[220px]">
-              {canEdit(submission.status) && (
-                <Link
-                  to={`/discente/enic/${submission.id}/editar`}
-                  className="
-                    inline-flex items-center justify-center gap-2
-                    rounded-xl bg-primary px-4 py-3
-                    text-sm font-semibold text-white
-                    hover:opacity-90 transition
-                  "
-                >
-                  <Pencil size={16} />
-                  Editar submissão
-                </Link>
-              )}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl border border-neutral/20 bg-neutral-light p-4">
+                <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                  Projeto
+                </div>
+                <div className="mt-1 text-sm font-semibold leading-6 text-primary">
+                  {submission.projetoTitulo}
+                </div>
+              </div>
 
-              <Link
-                to={`/discente/enic/${submission.id}/status`}
-                className="
-                  inline-flex items-center justify-center gap-2
-                  rounded-xl border border-primary
-                  px-4 py-3 text-sm font-medium text-primary
-                  hover:bg-primary/5 transition
-                "
-              >
-                <BadgeCheck size={16} />
-                Acompanhar status
-              </Link>
+              <div className="rounded-2xl border border-neutral/20 bg-neutral-light p-4">
+                <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                  Orientador
+                </div>
+                <div className="mt-1 text-sm font-semibold leading-6 text-primary">
+                  {submission.orientador}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-neutral/20 bg-neutral-light p-4">
+                <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                  Submetido em
+                </div>
+                <div className="mt-1 text-sm font-semibold leading-6 text-primary">
+                  {submission.dataSubmissao || "-"}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-neutral/20 bg-neutral-light p-4">
+                <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                  Evento
+                </div>
+                <div className="mt-1 text-sm font-semibold leading-6 text-primary">
+                  {submission.evento}
+                </div>
+              </div>
             </div>
           </div>
-        </header>
+        </section>
 
-        {/* PENDÊNCIA */}
         {submission.possuiPendencia && submission.pendenciaTexto && (
-          <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4 text-sm text-neutral">
-            <div className="flex items-start gap-2">
-              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
-              <div>
+          <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle size={18} className="mt-0.5 shrink-0 text-warning" />
+              <div className="text-sm leading-6 text-neutral">
                 <span className="font-semibold text-warning">
                   Pendência identificada:
                 </span>{" "}
@@ -286,71 +326,73 @@ export default function EnicSubmissionView() {
           </div>
         )}
 
-        {/* RESUMO */}
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <FolderKanban size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Projeto</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {submission.projetoTitulo}
-                </div>
-              </div>
+        <Card
+          title={
+            <div className="flex flex-col gap-1">
+              <h2 className="text-sm font-semibold text-primary">
+                Seleção de submissão
+              </h2>
+              <p className="text-sm text-neutral">
+                Escolha qual submissão deseja consultar.
+              </p>
             </div>
-          </Card>
+          }
+          className="rounded-3xl border border-neutral/20 bg-white p-6"
+        >
+          <div>
+            <label className="mb-2 block text-sm font-medium text-primary">
+              Submissão
+            </label>
+            <select
+              value={selectedSubmissionId}
+              onChange={(e) => setSelectedSubmissionId(e.target.value)}
+              className="w-full rounded-xl border border-neutral/20 bg-white px-4 py-3 text-sm text-primary outline-none transition focus:border-primary"
+            >
+              {SUBMISSIONS.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.titulo} • {item.evento} • {getStatusLabel(item.status)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </Card>
 
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <UserRound size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Orientador(a)</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {submission.orientador}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <CalendarDays size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Prazo</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {submission.prazo}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <Clock3 size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Data da submissão</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {submission.dataSubmissao || "-"}
-                </div>
-              </div>
-            </div>
-          </Card>
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <InfoCard
+            icon={<FolderKanban size={18} />}
+            label="Projeto"
+            value={<span className="line-clamp-3">{submission.projetoTitulo}</span>}
+          />
+          <InfoCard
+            icon={<UserRound size={18} />}
+            label="Orientador"
+            value={submission.orientador}
+          />
+          <InfoCard
+            icon={<CalendarDays size={18} />}
+            label="Data da submissão"
+            value={submission.dataSubmissao || "-"}
+          />
+          <InfoCard
+            icon={<Clock3 size={18} />}
+            label="Última atualização"
+            value={submission.atualizadoEm || "-"}
+          />
         </section>
 
-        {/* CONTEÚDO */}
-        <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-          <div className="xl:col-span-2 space-y-5">
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="space-y-6">
             <Card
               title={
                 <h2 className="text-sm font-semibold text-primary">
                   Informações gerais
                 </h2>
               }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
+              className="rounded-3xl border border-neutral/20 bg-white p-6"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
+              <div className="grid grid-cols-1 gap-5 text-sm md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <div className="text-neutral">Título do trabalho</div>
+                  <div className="text-neutral">Título da submissão</div>
                   <div className="mt-1 font-semibold text-primary">
                     {submission.titulo}
                   </div>
@@ -364,13 +406,33 @@ export default function EnicSubmissionView() {
                 </div>
 
                 <div>
+                  <div className="text-neutral">Status</div>
+                  <div className="mt-1">
+                    <span
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${getStatusClasses(
+                        submission.status
+                      )}`}
+                    >
+                      {getStatusLabel(submission.status)}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-neutral">Edital</div>
+                  <div className="mt-1 font-medium text-primary">
+                    {submission.edital}
+                  </div>
+                </div>
+
+                <div>
                   <div className="text-neutral">Modalidade</div>
                   <div className="mt-1 font-medium text-primary">
                     {submission.modalidade}
                   </div>
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <div className="text-neutral">Área temática</div>
                   <div className="mt-1 font-medium text-primary">
                     {submission.areaTematica}
@@ -378,17 +440,17 @@ export default function EnicSubmissionView() {
                 </div>
 
                 <div>
-                  <div className="text-neutral">Edital vinculado</div>
+                  <div className="text-neutral">Prazo</div>
                   <div className="mt-1 font-medium text-primary">
-                    {submission.edital}
+                    {submission.prazo}
                   </div>
                 </div>
 
-                <div className="md:col-span-2">
-                  <div className="text-neutral">Resumo</div>
-                  <p className="mt-1 text-primary leading-6">
-                    {submission.resumo}
-                  </p>
+                <div>
+                  <div className="text-neutral">Submetido em</div>
+                  <div className="mt-1 font-medium text-primary">
+                    {submission.dataSubmissao || "-"}
+                  </div>
                 </div>
               </div>
             </Card>
@@ -396,29 +458,42 @@ export default function EnicSubmissionView() {
             <Card
               title={
                 <h2 className="text-sm font-semibold text-primary">
-                  Conteúdo acadêmico
+                  Conteúdo submetido
                 </h2>
               }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
+              className="rounded-3xl border border-neutral/20 bg-white p-6"
             >
-              <div className="space-y-5 text-sm">
-                <div>
-                  <div className="text-neutral">Metodologia</div>
-                  <p className="mt-1 text-primary leading-6">
+              <div className="space-y-6">
+                <div className="rounded-2xl border border-neutral/20 bg-neutral-light p-5">
+                  <h3 className="text-sm font-semibold text-primary">Resumo</h3>
+                  <p className="mt-3 text-sm leading-7 text-neutral text-justify">
+                    {submission.resumo}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-neutral/20 bg-neutral-light p-5">
+                  <h3 className="text-sm font-semibold text-primary">
+                    Metodologia
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-neutral text-justify">
                     {submission.metodologia}
                   </p>
                 </div>
 
-                <div>
-                  <div className="text-neutral">Resultados</div>
-                  <p className="mt-1 text-primary leading-6">
+                <div className="rounded-2xl border border-neutral/20 bg-neutral-light p-5">
+                  <h3 className="text-sm font-semibold text-primary">
+                    Resultados
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-neutral text-justify">
                     {submission.resultados}
                   </p>
                 </div>
 
-                <div>
-                  <div className="text-neutral">Conclusões</div>
-                  <p className="mt-1 text-primary leading-6">
+                <div className="rounded-2xl border border-neutral/20 bg-neutral-light p-5">
+                  <h3 className="text-sm font-semibold text-primary">
+                    Conclusões
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-neutral text-justify">
                     {submission.conclusoes}
                   </p>
                 </div>
@@ -428,77 +503,10 @@ export default function EnicSubmissionView() {
             <Card
               title={
                 <h2 className="text-sm font-semibold text-primary">
-                  Observações da submissão
-                </h2>
-              }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
-            >
-              <ul className="space-y-3">
-                {submission.observacoes.map((item, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-3 text-sm text-neutral"
-                  >
-                    {submission.status === "APROVADO" ? (
-                      <CheckCircle2 size={16} className="mt-0.5 text-success" />
-                    ) : (
-                      <ClipboardList size={16} className="mt-0.5 text-primary" />
-                    )}
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          </div>
-
-          <div className="space-y-5">
-            <Card
-              title={
-                <h2 className="text-sm font-semibold text-primary">
-                  Resumo da situação
-                </h2>
-              }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
-            >
-              <div className="space-y-4 text-sm">
-                <span
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${getStatusClasses(
-                    submission.status
-                  )}`}
-                >
-                  <BadgeCheck size={14} />
-                  {getStatusLabel(submission.status)}
-                </span>
-
-                <p className="text-neutral leading-6">
-                  {submission.status === "RASCUNHO" &&
-                    "A submissão ainda está em elaboração e pode ser ajustada antes do envio."}
-
-                  {submission.status === "PENDENTE" &&
-                    "A submissão possui pendências e precisa ser revisada antes da conclusão."}
-
-                  {submission.status === "SUBMETIDO" &&
-                    "O trabalho foi submetido e aguarda movimentação do processo no evento."}
-
-                  {submission.status === "EM_ANALISE" &&
-                    "O conteúdo está em análise pela comissão do evento."}
-
-                  {submission.status === "APROVADO" &&
-                    "O trabalho foi aprovado no ENIC."}
-
-                  {submission.status === "REJEITADO" &&
-                    "A submissão foi rejeitada e requer ajustes para eventual nova versão."}
-                </p>
-              </div>
-            </Card>
-
-            <Card
-              title={
-                <h2 className="text-sm font-semibold text-primary">
                   Palavras-chave
                 </h2>
               }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
+              className="rounded-3xl border border-neutral/20 bg-white p-6"
             >
               <div className="flex flex-wrap gap-2">
                 {submission.palavrasChave.map((keyword) => (
@@ -518,14 +526,17 @@ export default function EnicSubmissionView() {
                   Coautoria
                 </h2>
               }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
+              className="rounded-3xl border border-neutral/20 bg-white p-6"
             >
               <ul className="space-y-3 text-sm text-neutral">
                 {submission.coautores.length === 0 ? (
                   <li>Nenhum coautor informado.</li>
                 ) : (
                   submission.coautores.map((author) => (
-                    <li key={author} className="flex items-start gap-3">
+                    <li
+                      key={author}
+                      className="flex items-start gap-3 rounded-2xl border border-neutral/20 bg-neutral-light p-4"
+                    >
                       <BookOpen size={16} className="mt-0.5 text-primary" />
                       <span>{author}</span>
                     </li>
@@ -533,52 +544,81 @@ export default function EnicSubmissionView() {
                 )}
               </ul>
             </Card>
+          </div>
+
+          <div className="space-y-6">
+            <Card
+              title={
+                <h2 className="text-sm font-semibold text-primary">
+                  Resumo da situação
+                </h2>
+              }
+              className="rounded-3xl border border-neutral/20 bg-white p-6"
+            >
+              <div className="space-y-4 text-sm">
+                <span
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${getStatusClasses(
+                    submission.status
+                  )}`}
+                >
+                  <BadgeCheck size={14} />
+                  {getStatusLabel(submission.status)}
+                </span>
+
+                <p className="leading-6 text-neutral">
+                  {submission.status === "RASCUNHO" &&
+                    "A submissão está em elaboração e ainda não foi enviada para avaliação."}
+                  {submission.status === "PENDENTE" &&
+                    "A submissão está pendente de regularização antes da etapa seguinte."}
+                  {submission.status === "SUBMETIDO" &&
+                    "A submissão foi registrada com sucesso e está disponível para consulta."}
+                  {submission.status === "EM_ANALISE" &&
+                    "A submissão está em análise pela comissão ou equipe responsável."}
+                  {submission.status === "APROVADO" &&
+                    "A submissão foi avaliada e aprovada com sucesso."}
+                  {submission.status === "REJEITADO" &&
+                    "A submissão recebeu devolutiva e precisa de ajustes."}
+                </p>
+              </div>
+            </Card>
 
             <Card
               title={
                 <h2 className="text-sm font-semibold text-primary">
-                  Ações rápidas
+                  Observações e orientações
                 </h2>
               }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
+              className="rounded-3xl border border-neutral/20 bg-white p-6"
+            >
+              <ul className="space-y-3">
+                {submission.observacoes.map((item, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-3 rounded-2xl border border-neutral/20 bg-neutral-light p-4 text-sm text-neutral"
+                  >
+                    {submission.status === "APROVADO" ? (
+                      <CheckCircle2 size={16} className="mt-0.5 text-success" />
+                    ) : (
+                      <ClipboardList size={16} className="mt-0.5 text-primary" />
+                    )}
+                    <span className="leading-6">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card
+              title={
+                <h2 className="text-sm font-semibold text-primary">
+                  Navegação
+                </h2>
+              }
+              className="rounded-3xl border border-neutral/20 bg-white p-6"
             >
               <div className="flex flex-col gap-3">
-                {canEdit(submission.status) && (
-                  <Link
-                    to={`/discente/enic/${submission.id}/editar`}
-                    className="
-                      inline-flex items-center justify-center gap-2
-                      rounded-xl bg-primary px-4 py-3
-                      text-sm font-semibold text-white
-                      hover:opacity-90 transition
-                    "
-                  >
-                    <Pencil size={16} />
-                    Editar submissão
-                  </Link>
-                )}
-
-                <Link
-                  to={`/discente/enic/${submission.id}/status`}
-                  className="
-                    inline-flex items-center justify-center gap-2
-                    rounded-xl border border-primary
-                    px-4 py-3 text-sm font-medium text-primary
-                    hover:bg-primary/5 transition
-                  "
-                >
-                  <BadgeCheck size={16} />
-                  Acompanhar status
-                </Link>
-
                 <Link
                   to={`/discente/projetos/${submission.projetoId}`}
-                  className="
-                    inline-flex items-center justify-center gap-2
-                    rounded-xl border border-primary
-                    px-4 py-3 text-sm font-medium text-primary
-                    hover:bg-primary/5 transition
-                  "
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary/5"
                 >
                   <Eye size={16} />
                   Ver projeto
@@ -586,12 +626,7 @@ export default function EnicSubmissionView() {
 
                 <Link
                   to="/discente/enic"
-                  className="
-                    inline-flex items-center justify-center gap-2
-                    rounded-xl border border-neutral/30
-                    px-4 py-3 text-sm font-medium text-neutral
-                    hover:bg-neutral/5 transition
-                  "
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/30 px-4 py-3 text-sm font-medium text-neutral transition hover:bg-neutral/5"
                 >
                   <ArrowLeft size={16} />
                   Voltar à lista

@@ -87,55 +87,6 @@ const REPORTS: StudentReport[] = [
     resumo:
       "Registro de submissão de trabalho vinculado ao evento acadêmico ENIC, associado ao projeto atual.",
   },
-  {
-    id: "rel_004",
-    titulo: "Relatório Parcial PROBEX 2025",
-    tipo: "PARCIAL",
-    projetoId: "proj_003",
-    projetoTitulo: "Ambiente Web para Apoio à Submissão ENIC",
-    edital: "PROBEX 2025",
-    periodo: "2025.2",
-    prazo: "20/10/2025",
-    status: "APROVADO",
-    atualizadoEm: "18/10/2025",
-    possuiPendencia: false,
-    resumo:
-      "Relatório parcial já submetido e aprovado, referente às atividades desenvolvidas no projeto de extensão.",
-  },
-  {
-    id: "rel_005",
-    titulo: "Relatório Final PIBIC 2025",
-    tipo: "FINAL",
-    projetoId: "proj_004",
-    projetoTitulo: "Painel Analítico para Indicadores de Iniciação Científica",
-    edital: "PIBIC 2025",
-    periodo: "2025.1",
-    prazo: "05/12/2025",
-    status: "REJEITADO",
-    atualizadoEm: "07/12/2025",
-    possuiPendencia: true,
-    pendenciaTexto:
-      "O relatório precisa ser ajustado conforme observações do avaliador e reenviado dentro do prazo complementar.",
-    resumo:
-      "Relatório final com necessidade de correções após análise da equipe responsável.",
-  },
-  {
-    id: "rel_006",
-    titulo: "Relatório Parcial PIBIC 2024",
-    tipo: "PARCIAL",
-    projetoId: "proj_005",
-    projetoTitulo: "Repositório Digital para Produção Discente",
-    edital: "PROBEX 2024",
-    periodo: "2024.2",
-    prazo: "12/10/2024",
-    status: "ATRASADO",
-    atualizadoEm: "11/10/2024",
-    possuiPendencia: true,
-    pendenciaTexto:
-      "O prazo regular foi encerrado e o relatório ainda não foi submetido.",
-    resumo:
-      "Relatório pendente de envio, com prazo já ultrapassado no sistema.",
-  },
 ]
 
 type TypeFilter = "TODOS" | ReportType
@@ -579,48 +530,6 @@ export default function ReportsList() {
                           </div>
                         </div>
                       )}
-
-                      {/* RODAPÉ */}
-                      <div className="flex flex-wrap gap-2">
-                        <Link
-                          to={`/discente/relatorios/${report.id}`}
-                          className="
-                            inline-flex items-center gap-2
-                            rounded-xl border border-primary
-                            px-4 py-2 text-sm font-medium text-primary
-                            hover:bg-primary/5 transition
-                          "
-                        >
-                          <Eye size={15} />
-                          Ver detalhes
-                        </Link>
-
-                        <Link
-                          to={getPrimaryAction(report)}
-                          className="
-                            inline-flex items-center gap-2
-                            rounded-xl border border-primary
-                            px-4 py-2 text-sm font-medium text-primary
-                            hover:bg-primary/5 transition
-                          "
-                        >
-                          <Pencil size={15} />
-                          {getPrimaryActionLabel(report)}
-                        </Link>
-
-                        <Link
-                          to={`/discente/relatorios/${report.id}/status`}
-                          className="
-                            inline-flex items-center gap-2
-                            rounded-xl border border-neutral/30
-                            px-4 py-2 text-sm font-medium text-neutral
-                            hover:bg-neutral/5 transition
-                          "
-                        >
-                          <BadgeCheck size={15} />
-                          Acompanhar
-                        </Link>
-                      </div>
                     </div>
                   </article>
                 ))}

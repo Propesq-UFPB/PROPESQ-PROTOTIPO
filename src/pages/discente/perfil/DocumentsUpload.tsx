@@ -1,3 +1,5 @@
+// Não estou usando
+
 import React, { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
@@ -196,59 +198,6 @@ export default function DocumentsUpload() {
             </p>
           </div>
         </header>
-
-        {/* RESUMO */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
-          <Card
-            title=""
-            className="bg-white border-2 border-primary rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-primary">{stats.total}</div>
-              <div className="text-sm font-medium text-primary">Total</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-success rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-success">{stats.enviados}</div>
-              <div className="text-sm font-medium text-success">Enviados</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-warning rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-warning">{stats.pendentes}</div>
-              <div className="text-sm font-medium text-warning">Em análise</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-danger rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-danger">{stats.rejeitados}</div>
-              <div className="text-sm font-medium text-danger">Rejeitados</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-neutral rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-neutral">{stats.naoEnviados}</div>
-              <div className="text-sm font-medium text-neutral">Não enviados</div>
-            </div>
-          </Card>
-        </section>
 
         {/* AVISO */}
         <Card

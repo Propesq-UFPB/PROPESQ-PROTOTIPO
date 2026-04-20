@@ -252,58 +252,6 @@ export default function CertificatesList() {
           </p>
         </header>
 
-        {/* INDICADORES */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
-          <Card
-            title=""
-            className="bg-white border-2 border-primary rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-primary">{stats.total}</div>
-              <div className="text-sm font-medium text-primary">Total</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-success rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-success">{stats.disponiveis}</div>
-              <div className="text-sm font-medium text-success">Disponíveis</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-primary rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-primary">{stats.processamento}</div>
-              <div className="text-sm font-medium text-primary">Em processamento</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-warning rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-warning">{stats.pendentes}</div>
-              <div className="text-sm font-medium text-warning">Pendentes</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-danger rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-danger">{stats.indeferidos}</div>
-              <div className="text-sm font-medium text-danger">Indeferidos</div>
-            </div>
-          </Card>
-        </section>
 
         {/* FILTROS */}
         <section>
@@ -453,18 +401,6 @@ export default function CertificatesList() {
                         </div>
 
                         <div className="flex flex-col sm:flex-row xl:flex-col gap-2 xl:min-w-[210px]">
-                          <Link
-                            to={`/discente/certificados/${item.id}`}
-                            className="
-                              inline-flex items-center justify-center gap-2
-                              rounded-xl border border-primary
-                              px-4 py-3 text-sm font-medium text-primary
-                              hover:bg-primary/5 transition
-                            "
-                          >
-                            <Eye size={16} />
-                            Visualizar
-                          </Link>
 
                           <button
                             type="button"

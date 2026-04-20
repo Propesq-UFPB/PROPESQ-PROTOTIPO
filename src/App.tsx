@@ -85,24 +85,24 @@ import ReportsList from "./pages/discente/relatorios/ReportsList"
 import PartialReportForm from "./pages/discente/relatorios/PartialReportForm"
 import FinalReportForm from "./pages/discente/relatorios/FinalReportForm"
 import ReportView from "./pages/discente/relatorios/ReportView"
-import ReportStatus from "./pages/discente/relatorios/ReportStatus"
+// import ReportStatus from "./pages/discente/relatorios/ReportStatus"
 
 import EnicSubmissionForm from "./pages/discente/enic/EnicSubmissionForm"
-import EnicSubmissionStatus from "./pages/discente/enic/EnicSubmissionStatus"
+// import EnicSubmissionStatus from "./pages/discente/enic/EnicSubmissionStatus"
 import EnicSubmissionView from "./pages/discente/enic/EnicSubmissionView"
 import EnicSubmissionsList from "./pages/discente/enic/EnicSubmissionsList"
 
-import NotificationsCenter from "./pages/discente/notificacoes/NotificationsCenter"
-import MessageThread from "./pages/discente/notificacoes/MessageThread"
-import MessagesInbox from "./pages/discente/notificacoes/MessagesInbox"
+// import NotificationsCenter from "./pages/discente/notificacoes/NotificationsCenter"
+// import MessageThread from "./pages/discente/notificacoes/MessageThread"
+// import MessagesInbox from "./pages/discente/notificacoes/MessagesInbox"
 
 import CertificatesList from "./pages/discente/certificados/CertificatesList"
-import DisCertificateView from "./pages/discente/certificados/CertificateView"
+//import DisCertificateView from "./pages/discente/certificados/CertificateView"
 import ParticipationHistory from "./pages/discente/certificados/ParticipationHistory"
 
 import AvailablePlans from "./pages/discente/planos/AvailablePlans"
 import PlanView from "./pages/discente/planos/PlanView"
-import InterestForm from "./pages/discente/planos/InterestForm"
+// import InterestForm from "./pages/discente/planos/InterestForm"
 
 import DisSettings from "./pages/discente/DisSettings"
 
@@ -252,24 +252,24 @@ export default function App() {
         <Route path="/discente/relatorios/:id/parcial" element={<Protected><Shell><PartialReportForm /></Shell></Protected>} />
         <Route path="/discente/relatorios/:id/final" element={<Protected><Shell><FinalReportForm /></Shell></Protected>} />
         <Route path="/discente/relatorios/:id/visualizar" element={<Protected><Shell><ReportView /></Shell></Protected>} />
-        <Route path="/discente/relatorios/:id/status" element={<Protected><Shell><ReportStatus /></Shell></Protected>} />
+        {/*<Route path="/discente/relatorios/:id/status" element={<Protected><Shell><ReportStatus /></Shell></Protected>} />*/}
 
         <Route path="/discente/enic/inscricao" element={<Protected><Shell><EnicSubmissionForm /></Shell></Protected>} />
-        <Route path="/discente/enic/status" element={<Protected><Shell><EnicSubmissionStatus /></Shell></Protected>} />
+        {/*<Route path="/discente/enic/status" element={<Protected><Shell><EnicSubmissionStatus /></Shell></Protected>} />*/}
         <Route path="/discente/enic/visualizar/:id" element={<Protected><Shell><EnicSubmissionView /></Shell></Protected>} />
         <Route path="/discente/enic/submissions" element={<Protected><Shell><EnicSubmissionsList /></Shell></Protected>} />
 
-        <Route path="/discente/notificacoes" element={<Protected><Shell><NotificationsCenter /></Shell></Protected>} />
-        <Route path="/discente/notificacoes/inbox" element={<Protected><Shell><MessagesInbox /></Shell></Protected>} />
-        <Route path="/discente/notificacoes/thread/:id" element={<Protected><Shell><MessageThread /></Shell></Protected>} />
+        {/* <Route path="/discente/notificacoes" element={<Protected><Shell><NotificationsCenter /></Shell></Protected>} />*/}
+        {/* <Route path="/discente/notificacoes/inbox" element={<Protected><Shell><MessagesInbox /></Shell></Protected>} />*/}
+        {/* <Route path="/discente/notificacoes/thread/:id" element={<Protected><Shell><MessageThread /></Shell></Protected>} />*/}
 
         <Route path="/discente/certificados" element={<Protected><Shell><CertificatesList /></Shell></Protected>} />  
-        <Route path="/discente/certificados/:id" element={<Protected><Shell><DisCertificateView /></Shell></Protected>} />
+        {/* <Route path="/discente/certificados/:id" element={<Protected><Shell><DisCertificateView /></Shell></Protected>} />*/}
         <Route path="/discente/historico-participacao" element={<Protected><Shell><ParticipationHistory /></Shell></Protected>} />
 
         <Route path="/discente/planos-disponiveis" element={<Protected><Shell><AvailablePlans /></Shell></Protected>} />
         <Route path="/discente/planos-disponiveis/:id" element={<Protected><Shell><PlanView /></Shell></Protected>} />
-        <Route path="/discente/planos-disponiveis/:id/interesse" element={<Protected><Shell><InterestForm /></Shell></Protected>} />
+        {/* <Route path="/discente/planos-disponiveis/:id/interesse" element={<Protected><Shell><InterestForm /></Shell></Protected>} /> */}
 
         <Route path="/discente/configuracoes" element={<Protected><Shell><DisSettings /></Shell></Protected>} />
 

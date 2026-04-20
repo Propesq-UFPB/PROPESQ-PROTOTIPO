@@ -17,6 +17,15 @@ import {
 
 type ReportStatus = "PENDENTE" | "EM_PREENCHIMENTO" | "REJEITADO" | "ENVIADO"
 
+type ProjectOption = {
+  id: string
+  titulo: string
+  edital: string
+  orientador: string
+  periodo: string
+  prazoRelatorio: string
+}
+
 type PartialReportData = {
   id: string
   titulo: string
@@ -31,6 +40,7 @@ type PartialReportData = {
 }
 
 type FormData = {
+  projetoId: string
   atividadesRealizadas: string
   comparacaoPlanoExecutado: string
   outrasAtividades: string
@@ -40,6 +50,33 @@ type FormData = {
 }
 
 type FormErrors = Partial<Record<keyof FormData, string>>
+
+const PROJECTS: ProjectOption[] = [
+  {
+    id: "proj_001",
+    titulo: "Plataforma Digital para Gestão de Pesquisa Acadêmica",
+    edital: "PIBIC 2026",
+    orientador: "Prof. André Silva",
+    periodo: "2026.1",
+    prazoRelatorio: "30/06/2026",
+  },
+  {
+    id: "proj_004",
+    titulo: "Painel Analítico para Indicadores de Iniciação Científica",
+    edital: "PIBIC 2025",
+    orientador: "Prof. Ricardo Lima",
+    periodo: "2025.1",
+    prazoRelatorio: "20/06/2025",
+  },
+  {
+    id: "proj_009",
+    titulo: "Sistema Inteligente para Acompanhamento de Projetos de Extensão",
+    edital: "PIBITI 2026",
+    orientador: "Profa. Mariana Costa",
+    periodo: "2026.1",
+    prazoRelatorio: "10/07/2026",
+  },
+]
 
 const REPORTS: PartialReportData[] = [
   {
@@ -69,6 +106,7 @@ const REPORTS: PartialReportData[] = [
 ]
 
 const INITIAL_FORM: FormData = {
+  projetoId: "",
   atividadesRealizadas: "",
   comparacaoPlanoExecutado: "",
   outrasAtividades: "",
@@ -109,6 +147,10 @@ function getStatusClasses(status: ReportStatus) {
 
 function validateForm(data: FormData): FormErrors {
   const errors: FormErrors = {}
+
+  if (!data.projetoId) {
+    errors.projetoId = "Selecione o projeto relacionado ao relatório."
+  }
 
   if (!data.atividadesRealizadas.trim()) {
     errors.atividadesRealizadas = "Informe as atividades realizadas."
@@ -154,15 +196,31 @@ export default function PartialReportForm() {
 
   const report = REPORTS.find((item) => item.id === id) ?? REPORTS[0]
 
-  const [form, setForm] = useState<FormData>(INITIAL_FORM)
+  const [form, setForm] = useState<FormData>({
+    ...INITIAL_FORM,
+    projetoId: report?.projetoId ?? "",
+  })
+
   const [errors, setErrors] = useState<FormErrors>({})
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [successType, setSuccessType] = useState<"save" | "submit" | "">("")
 
+  const selectedProject = useMemo(() => {
+    return PROJECTS.find((project) => project.id === form.projetoId) ?? null
+  }, [form.projetoId])
+
+  const currentStatus = report?.status ?? "PENDENTE"
+  const currentObservation = report?.observacao ?? ""
+
+  const reportTitle = selectedProject
+    ? `Relatório Parcial — ${selectedProject.edital}`
+    : "Relatório Parcial"
+
   const progress = useMemo(() => {
     const fields = [
+      form.projetoId,
       form.atividadesRealizadas,
       form.comparacaoPlanoExecutado,
       form.outrasAtividades,
@@ -217,7 +275,6 @@ export default function PartialReportForm() {
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        {/* HEADER */}
         <header className="flex flex-col gap-3">
           <div>
             <Link
@@ -234,11 +291,11 @@ export default function PartialReportForm() {
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                    report.status
+                    currentStatus
                   )}`}
                 >
                   <FileText size={14} />
-                  {getStatusLabel(report.status)}
+                  {getStatusLabel(currentStatus)}
                 </span>
 
                 <span className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
@@ -246,19 +303,17 @@ export default function PartialReportForm() {
                 </span>
               </div>
 
-              <h1 className="text-2xl font-bold text-primary">
-                {report.titulo}
-              </h1>
+              <h1 className="text-2xl font-bold text-primary">{reportTitle}</h1>
 
               <p className="text-base text-neutral leading-7 max-w-4xl">
-                Preencha as informações referentes à execução parcial do projeto e ao andamento das atividades desenvolvidas no período.
+                Selecione o projeto e preencha o relatório parcial correspondente
+                às atividades desenvolvidas no período.
               </p>
             </div>
           </div>
         </header>
 
-        {/* ALERTA DE OBSERVAÇÃO */}
-        {report.observacao && (
+        {currentObservation && (
           <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4 text-sm text-neutral">
             <div className="flex items-start gap-2">
               <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
@@ -266,21 +321,20 @@ export default function PartialReportForm() {
                 <span className="font-semibold text-warning">
                   Observação da avaliação anterior:
                 </span>{" "}
-                {report.observacao}
+                {currentObservation}
               </div>
             </div>
           </div>
         )}
 
-        {/* RESUMO */}
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
             <div className="flex items-start gap-3">
               <FolderKanban size={20} className="text-primary" />
               <div>
-                <div className="text-sm text-neutral">Projeto</div>
+                <div className="text-sm text-neutral">Projeto selecionado</div>
                 <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.projetoTitulo}
+                  {selectedProject?.titulo ?? "Nenhum projeto selecionado"}
                 </div>
               </div>
             </div>
@@ -292,38 +346,13 @@ export default function PartialReportForm() {
               <div>
                 <div className="text-sm text-neutral">Orientador(a)</div>
                 <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.orientador}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <CalendarDays size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Prazo</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.prazo}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <ClipboardList size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Progresso do preenchimento</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {progress}%
+                  {selectedProject?.orientador ?? "—"}
                 </div>
               </div>
             </div>
           </Card>
         </section>
 
-        {/* FORM + LATERAL */}
         <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           <div className="xl:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -336,6 +365,71 @@ export default function PartialReportForm() {
                 className="bg-white border border-neutral/30 rounded-2xl p-8"
               >
                 <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Projeto relacionado *
+                    </label>
+                    <select
+                      value={form.projetoId}
+                      onChange={(e) => updateField("projetoId", e.target.value)}
+                      className="
+                        w-full rounded-xl border border-neutral/30 bg-white
+                        px-4 py-3 text-sm text-primary outline-none
+                        focus:border-primary
+                      "
+                    >
+                      <option value="">Selecione um projeto</option>
+                      {PROJECTS.map((project) => (
+                        <option key={project.id} value={project.id}>
+                          {project.titulo}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.projetoId && (
+                      <p className="mt-1 text-xs text-danger">{errors.projetoId}</p>
+                    )}
+                  </div>
+
+                  {selectedProject && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                          Edital
+                        </div>
+                        <div className="mt-1 text-sm font-semibold text-primary">
+                          {selectedProject.edital}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                          Período
+                        </div>
+                        <div className="mt-1 text-sm font-semibold text-primary">
+                          {selectedProject.periodo}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                          Orientador(a)
+                        </div>
+                        <div className="mt-1 text-sm font-semibold text-primary">
+                          {selectedProject.orientador}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                          Prazo do relatório
+                        </div>
+                        <div className="mt-1 text-sm font-semibold text-primary">
+                          {selectedProject.prazoRelatorio}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
                       Atividades realizadas *
@@ -351,7 +445,7 @@ export default function PartialReportForm() {
                         px-4 py-3 text-sm text-primary outline-none
                         focus:border-primary resize-none
                       "
-                      placeholder="Descreva as atividades efetivamente realizadas até o momento, incluindo reuniões, entregas, leituras, modelagens, implementações e demais ações relevantes."
+                      placeholder="Descreva as atividades efetivamente realizadas no projeto selecionado."
                     />
                     {errors.atividadesRealizadas && (
                       <p className="mt-1 text-xs text-danger">
@@ -375,7 +469,7 @@ export default function PartialReportForm() {
                         px-4 py-3 text-sm text-primary outline-none
                         focus:border-primary resize-none
                       "
-                      placeholder="Explique se o plano de trabalho original foi seguido integralmente ou se houve modificações, adaptações ou redirecionamentos."
+                      placeholder="Explique se o plano do projeto foi seguido integralmente ou se houve ajustes."
                     />
                     {errors.comparacaoPlanoExecutado && (
                       <p className="mt-1 text-xs text-danger">
@@ -399,7 +493,7 @@ export default function PartialReportForm() {
                         px-4 py-3 text-sm text-primary outline-none
                         focus:border-primary resize-none
                       "
-                      placeholder="Informe atividades complementares não diretamente previstas no plano, como seminários, capacitações, apresentações, oficinas ou ações de apoio."
+                      placeholder="Informe atividades complementares relacionadas ao projeto."
                     />
                     {errors.outrasAtividades && (
                       <p className="mt-1 text-xs text-danger">
@@ -423,7 +517,7 @@ export default function PartialReportForm() {
                         px-4 py-3 text-sm text-primary outline-none
                         focus:border-primary resize-none
                       "
-                      placeholder="Descreva resultados já alcançados, entregas parciais, avanços metodológicos, protótipos, análises ou evidências de progresso."
+                      placeholder="Descreva os resultados preliminares obtidos no projeto."
                     />
                     {errors.resultadosPreliminares && (
                       <p className="mt-1 text-xs text-danger">
@@ -447,7 +541,7 @@ export default function PartialReportForm() {
                         px-4 py-3 text-sm text-primary outline-none
                         focus:border-primary resize-none
                       "
-                      placeholder="Informe limitações, dificuldades técnicas, metodológicas, institucionais ou de execução enfrentadas no período."
+                      placeholder="Informe as dificuldades encontradas durante a execução do projeto."
                     />
                     {errors.dificuldadesEncontradas && (
                       <p className="mt-1 text-xs text-danger">
@@ -469,7 +563,7 @@ export default function PartialReportForm() {
                       <span>
                         Declaro que as informações apresentadas neste relatório
                         parcial são verdadeiras e compatíveis com as atividades
-                        realizadas no projeto.
+                        realizadas no projeto selecionado.
                       </span>
                     </label>
                     {errors.aceiteInformacoes && (
@@ -553,6 +647,9 @@ export default function PartialReportForm() {
             >
               <ul className="space-y-3 text-sm text-neutral">
                 <li className="leading-6">
+                  Selecione primeiro o projeto correto antes de preencher o relatório.
+                </li>
+                <li className="leading-6">
                   Descreva com objetividade o que foi realmente executado no período.
                 </li>
                 <li className="leading-6">
@@ -560,9 +657,6 @@ export default function PartialReportForm() {
                 </li>
                 <li className="leading-6">
                   Destaque resultados já obtidos, mesmo que ainda parciais.
-                </li>
-                <li className="leading-6">
-                  Registre dificuldades e limitações de forma transparente.
                 </li>
               </ul>
             </Card>
@@ -578,36 +672,34 @@ export default function PartialReportForm() {
               <div className="space-y-4 text-sm">
                 <div>
                   <div className="text-neutral">Título</div>
-                  <div className="mt-1 font-medium text-primary">
-                    {report.titulo}
-                  </div>
+                  <div className="mt-1 font-medium text-primary">{reportTitle}</div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Projeto</div>
                   <div className="mt-1 font-medium text-primary">
-                    {report.projetoTitulo}
+                    {selectedProject?.titulo ?? "Não selecionado"}
                   </div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Edital</div>
                   <div className="mt-1 font-medium text-primary">
-                    {report.edital}
+                    {selectedProject?.edital ?? "—"}
                   </div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Período</div>
                   <div className="mt-1 font-medium text-primary">
-                    {report.periodo}
+                    {selectedProject?.periodo ?? "—"}
                   </div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Prazo final</div>
                   <div className="mt-1 font-medium text-primary">
-                    {report.prazo}
+                    {selectedProject?.prazoRelatorio ?? "—"}
                   </div>
                 </div>
               </div>
@@ -634,7 +726,7 @@ export default function PartialReportForm() {
 
                 <div className="flex items-start gap-3">
                   <CheckCircle2 size={16} className="mt-0.5 text-success" />
-                  <span>Garanta coerência entre atividades, resultados e dificuldades.</span>
+                  <span>Garanta coerência entre projeto, atividades e resultados.</span>
                 </div>
               </div>
             </Card>

@@ -55,66 +55,6 @@ const PLANS: AvailablePlan[] = [
       "Plano voltado ao apoio na modelagem de dados, estruturação de indicadores e desenvolvimento de fluxos analíticos para a plataforma acadêmica.",
     palavrasChave: ["dados", "dashboards", "indicadores"],
   },
-  {
-    id: "plan_002",
-    titulo: "Plano de Trabalho em Inteligência Artificial para Educação",
-    projetoId: "proj_002",
-    projetoTitulo: "IA Aplicada à Classificação de Produção Científica",
-    orientador: "Profa. Helena Costa",
-    edital: "PIBITI 2026",
-    area: "INTELIGENCIA_ARTIFICIAL",
-    status: "EM_SELECAO",
-    periodo: "2026.1",
-    vigencia: "10/05/2026 a 30/11/2026",
-    resumo:
-      "Plano focado em preparação de dados, classificação automatizada e apoio à análise de produção científica institucional.",
-    palavrasChave: ["IA", "classificação", "metadados"],
-  },
-  {
-    id: "plan_003",
-    titulo: "Plano de Trabalho em Sistemas Digitais para Gestão Acadêmica",
-    projetoId: "proj_001",
-    projetoTitulo: "Plataforma Digital para Gestão de Pesquisa Acadêmica",
-    orientador: "Prof. André Silva",
-    edital: "PIBIC 2026",
-    area: "SISTEMAS_INFORMACAO",
-    status: "DISPONIVEL",
-    periodo: "2026.1",
-    vigencia: "01/05/2026 a 31/12/2026",
-    resumo:
-      "Plano destinado ao desenvolvimento de interfaces, fluxos do sistema e organização funcional de módulos acadêmicos.",
-    palavrasChave: ["sistemas", "frontend", "requisitos"],
-  },
-  {
-    id: "plan_004",
-    titulo: "Plano de Trabalho em Engenharia de Software Acadêmica",
-    projetoId: "proj_003",
-    projetoTitulo: "Ambiente Web para Apoio à Submissão ENIC",
-    orientador: "Prof. Marcos Oliveira",
-    edital: "PROBEX 2025",
-    area: "ENGENHARIA_SOFTWARE",
-    status: "ENCERRADO",
-    periodo: "2025.2",
-    vigencia: "01/08/2025 a 20/12/2025",
-    resumo:
-      "Plano com foco em prototipação, construção de páginas e suporte ao fluxo de submissões e acompanhamento do ENIC.",
-    palavrasChave: ["engenharia de software", "protótipos", "fluxo web"],
-  },
-  {
-    id: "plan_005",
-    titulo: "Plano de Trabalho em Ações Extensionistas Digitais",
-    projetoId: "proj_005",
-    projetoTitulo: "Repositório Digital para Produção Discente",
-    orientador: "Profa. Lúcia Fernandes",
-    edital: "PROBEX 2024",
-    area: "EXTENSAO",
-    status: "ENCERRADO",
-    periodo: "2024.2",
-    vigencia: "10/08/2024 a 15/10/2024",
-    resumo:
-      "Plano de apoio à organização de produção discente, acervos digitais e representação de conteúdos acadêmicos.",
-    palavrasChave: ["extensão", "repositório", "acervo digital"],
-  },
 ]
 
 type StatusFilter = "TODOS" | PlanStatus
@@ -435,20 +375,6 @@ export default function AvailablePlans() {
                             Visualizar
                           </Link>
 
-                          {item.status !== "ENCERRADO" && (
-                            <Link
-                              to={`/discente/planos/${item.id}/interesse`}
-                              className="
-                                inline-flex items-center justify-center gap-2
-                                rounded-xl bg-primary px-4 py-3
-                                text-sm font-semibold text-white
-                                hover:opacity-90 transition
-                              "
-                            >
-                              <ClipboardList size={16} />
-                              Demonstrar interesse
-                            </Link>
-                          )}
                         </div>
                       </div>
 

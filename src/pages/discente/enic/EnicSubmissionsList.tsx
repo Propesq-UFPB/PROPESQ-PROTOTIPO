@@ -87,38 +87,6 @@ const SUBMISSIONS: EnicSubmission[] = [
     resumo:
       "Submissão encaminhada ao evento e aguardando retorno da comissão avaliadora.",
   },
-  {
-    id: "enic_004",
-    titulo: "Ambiente Web para Apoio à Submissão ENIC",
-    projetoId: "proj_003",
-    projetoTitulo: "Ambiente Web para Apoio à Submissão ENIC",
-    edital: "PROBEX 2025",
-    evento: "ENIC 2025",
-    modalidade: "Resumo simples",
-    prazo: "10/08/2025",
-    status: "APROVADO",
-    atualizadoEm: "20/08/2025",
-    possuiPendencia: false,
-    resumo:
-      "Submissão aprovada no evento com apresentação vinculada ao projeto de apoio ao ENIC.",
-  },
-  {
-    id: "enic_005",
-    titulo: "Repositório Digital para Produção Discente",
-    projetoId: "proj_005",
-    projetoTitulo: "Repositório Digital para Produção Discente",
-    edital: "PROBEX 2024",
-    evento: "ENIC 2024",
-    modalidade: "Resumo expandido",
-    prazo: "12/08/2024",
-    status: "REJEITADO",
-    atualizadoEm: "18/08/2024",
-    possuiPendencia: true,
-    pendenciaTexto:
-      "A submissão foi devolvida por inconsistências no texto e ausência de adequação ao formato exigido.",
-    resumo:
-      "Trabalho rejeitado após análise, exigindo reformulação para eventual nova submissão em outra edição.",
-  },
 ]
 
 type StatusFilter = "TODOS" | EnicStatus
@@ -235,19 +203,6 @@ export default function EnicSubmissionsList() {
               Gerencie seus trabalhos submetidos ao ENIC e acompanhe o andamento das análises.
             </p>
           </div>
-
-          <Link
-            to="/discente/enic/novo"
-            className="
-              inline-flex items-center justify-center gap-2
-              rounded-xl bg-primary px-4 py-3
-              text-sm font-semibold text-white
-              hover:opacity-90 transition
-            "
-          >
-            <Pencil size={16} />
-            Nova submissão
-          </Link>
         </header>
 
         {/* INDICADORES */}
@@ -519,48 +474,6 @@ export default function EnicSubmissionsList() {
                           </div>
                         </div>
                       )}
-
-                      {/* RODAPÉ */}
-                      <div className="flex flex-wrap gap-2">
-                        <Link
-                          to={`/discente/enic/${item.id}`}
-                          className="
-                            inline-flex items-center gap-2
-                            rounded-xl border border-primary
-                            px-4 py-2 text-sm font-medium text-primary
-                            hover:bg-primary/5 transition
-                          "
-                        >
-                          <Eye size={15} />
-                          Ver detalhes
-                        </Link>
-
-                        <Link
-                          to={getPrimaryAction(item)}
-                          className="
-                            inline-flex items-center gap-2
-                            rounded-xl border border-primary
-                            px-4 py-2 text-sm font-medium text-primary
-                            hover:bg-primary/5 transition
-                          "
-                        >
-                          <Pencil size={15} />
-                          {getPrimaryActionLabel(item)}
-                        </Link>
-
-                        <Link
-                          to={`/discente/enic/${item.id}/status`}
-                          className="
-                            inline-flex items-center gap-2
-                            rounded-xl border border-neutral/30
-                            px-4 py-2 text-sm font-medium text-neutral
-                            hover:bg-neutral/5 transition
-                          "
-                        >
-                          <BadgeCheck size={15} />
-                          Acompanhar
-                        </Link>
-                      </div>
                     </div>
                   </article>
                 ))}

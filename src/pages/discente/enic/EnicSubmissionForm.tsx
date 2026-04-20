@@ -359,30 +359,6 @@ export default function EnicSubmissionForm() {
               </div>
             </div>
           </Card>
-
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <ClipboardList size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Progresso</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {progress}%
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <FileText size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Status</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {getStatusLabel(draft.status)}
-                </div>
-              </div>
-            </div>
-          </Card>
         </section>
 
         {/* FORM + LATERAL */}
