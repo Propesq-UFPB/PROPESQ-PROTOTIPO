@@ -120,13 +120,15 @@ export default function ProfileEdit() {
         {/* HEADER */}
         <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <Link
-              to="/discente/perfil"
-              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
-            >
-              <ArrowLeft size={16} />
-              Voltar para perfil
-            </Link>
+            <div className="flex items-center justify-between mb-4">
+              <Link
+                to="/discente/perfil"
+                className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
+              >
+                <ArrowLeft size={16} />
+                Voltar para perfil
+              </Link>
+            </div>
 
             <h1 className="mt-2 text-2xl font-bold text-primary">
               Editar Perfil
@@ -290,26 +292,6 @@ export default function ProfileEdit() {
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Semestre atual *
-                </label>
-                <input
-                  type="text"
-                  value={form.semestre}
-                  onChange={(e) => updateField("semestre", e.target.value)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="Ex.: 2026.1"
-                />
-                {errors.semestre && (
-                  <p className="mt-1 text-xs text-danger">{errors.semestre}</p>
-                )}
-              </div>
-
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-primary mb-1.5">
                   Currículo Lattes
@@ -328,23 +310,6 @@ export default function ProfileEdit() {
                 {errors.lattes && (
                   <p className="mt-1 text-xs text-danger">{errors.lattes}</p>
                 )}
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Área de interesse
-                </label>
-                <textarea
-                  value={form.areaInteresse}
-                  onChange={(e) => updateField("areaInteresse", e.target.value)}
-                  rows={4}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary resize-none
-                  "
-                  placeholder="Descreva suas áreas de interesse acadêmico"
-                />
               </div>
             </div>
           </Card>

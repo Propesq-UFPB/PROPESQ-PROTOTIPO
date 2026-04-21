@@ -8,12 +8,9 @@ import {
   Send,
   FileText,
   FolderKanban,
-  CalendarDays,
   UserRound,
   AlertTriangle,
   CheckCircle2,
-  ClipboardList,
-  Award,
 } from "lucide-react"
 
 type ReportStatus = "PENDENTE" | "EM_PREENCHIMENTO" | "REJEITADO" | "ENVIADO"
@@ -42,13 +39,16 @@ type FinalReportData = {
 
 type FormData = {
   projetoId: string
-  resumoExecucao: string
-  objetivosAlcancados: string
-  resultadosFinais: string
-  produtosGerados: string
-  contribuicoesFormacao: string
-  dificuldadesLimitacoes: string
+  resumo: string
+  palavrasChave: string
+  title: string
+  abstract: string
+  keywords: string
+  introducao: string
+  procedimentosMetodologicos: string
+  resultadosDiscussao: string
   conclusoes: string
+  referencias: string
   aceiteInformacoes: boolean
 }
 
@@ -104,19 +104,22 @@ const REPORTS: FinalReportData[] = [
     prazo: "05/12/2025",
     status: "REJEITADO",
     observacao:
-      "Apresentar com maior clareza os resultados finais obtidos, os produtos gerados e as conclusões decorrentes da execução do projeto.",
+      "Apresentar com maior clareza a estrutura do texto final, incluindo resumo, abstract, resultados e referências.",
   },
 ]
 
 const INITIAL_FORM: FormData = {
   projetoId: "",
-  resumoExecucao: "",
-  objetivosAlcancados: "",
-  resultadosFinais: "",
-  produtosGerados: "",
-  contribuicoesFormacao: "",
-  dificuldadesLimitacoes: "",
+  resumo: "",
+  palavrasChave: "",
+  title: "",
+  abstract: "",
+  keywords: "",
+  introducao: "",
+  procedimentosMetodologicos: "",
+  resultadosDiscussao: "",
   conclusoes: "",
+  referencias: "",
   aceiteInformacoes: false,
 }
 
@@ -157,46 +160,61 @@ function validateForm(data: FormData): FormErrors {
     errors.projetoId = "Selecione o projeto relacionado ao relatório."
   }
 
-  if (!data.resumoExecucao.trim()) {
-    errors.resumoExecucao = "Informe o resumo da execução do projeto."
-  } else if (data.resumoExecucao.trim().length < 30) {
-    errors.resumoExecucao = "Descreva a execução com mais detalhes."
+  if (!data.resumo.trim()) {
+    errors.resumo = "Informe o resumo."
+  } else if (data.resumo.trim().length < 20) {
+    errors.resumo = "Descreva melhor o resumo."
   }
 
-  if (!data.objetivosAlcancados.trim()) {
-    errors.objetivosAlcancados = "Informe os objetivos alcançados."
-  } else if (data.objetivosAlcancados.trim().length < 30) {
-    errors.objetivosAlcancados = "Descreva melhor os objetivos alcançados."
+  if (!data.palavrasChave.trim()) {
+    errors.palavrasChave = "Informe as palavras-chave."
   }
 
-  if (!data.resultadosFinais.trim()) {
-    errors.resultadosFinais = "Informe os resultados finais."
-  } else if (data.resultadosFinais.trim().length < 30) {
-    errors.resultadosFinais = "Descreva melhor os resultados finais."
+  if (!data.title.trim()) {
+    errors.title = "Informe o title."
+  } else if (data.title.trim().length < 5) {
+    errors.title = "Informe um título em inglês mais completo."
   }
 
-  if (!data.produtosGerados.trim()) {
-    errors.produtosGerados = "Informe os produtos gerados."
-  } else if (data.produtosGerados.trim().length < 20) {
-    errors.produtosGerados = "Descreva melhor os produtos gerados."
+  if (!data.abstract.trim()) {
+    errors.abstract = "Informe o abstract."
+  } else if (data.abstract.trim().length < 20) {
+    errors.abstract = "Descreva melhor o abstract."
   }
 
-  if (!data.contribuicoesFormacao.trim()) {
-    errors.contribuicoesFormacao = "Informe as contribuições para sua formação."
-  } else if (data.contribuicoesFormacao.trim().length < 20) {
-    errors.contribuicoesFormacao = "Descreva melhor as contribuições acadêmicas."
+  if (!data.keywords.trim()) {
+    errors.keywords = "Informe as keywords."
   }
 
-  if (!data.dificuldadesLimitacoes.trim()) {
-    errors.dificuldadesLimitacoes = "Informe dificuldades e limitações."
-  } else if (data.dificuldadesLimitacoes.trim().length < 15) {
-    errors.dificuldadesLimitacoes = "Descreva melhor as dificuldades encontradas."
+  if (!data.introducao.trim()) {
+    errors.introducao = "Informe a introdução."
+  } else if (data.introducao.trim().length < 30) {
+    errors.introducao = "Descreva melhor a introdução."
+  }
+
+  if (!data.procedimentosMetodologicos.trim()) {
+    errors.procedimentosMetodologicos = "Informe os procedimentos metodológicos."
+  } else if (data.procedimentosMetodologicos.trim().length < 30) {
+    errors.procedimentosMetodologicos =
+      "Descreva melhor os procedimentos metodológicos."
+  }
+
+  if (!data.resultadosDiscussao.trim()) {
+    errors.resultadosDiscussao = "Informe os resultados e discussão."
+  } else if (data.resultadosDiscussao.trim().length < 30) {
+    errors.resultadosDiscussao = "Descreva melhor os resultados e discussão."
   }
 
   if (!data.conclusoes.trim()) {
-    errors.conclusoes = "Informe as conclusões finais."
-  } else if (data.conclusoes.trim().length < 30) {
+    errors.conclusoes = "Informe as conclusões."
+  } else if (data.conclusoes.trim().length < 20) {
     errors.conclusoes = "Descreva melhor as conclusões."
+  }
+
+  if (!data.referencias.trim()) {
+    errors.referencias = "Informe as referências."
+  } else if (data.referencias.trim().length < 10) {
+    errors.referencias = "Descreva melhor as referências."
   }
 
   if (!data.aceiteInformacoes) {
@@ -237,13 +255,16 @@ export default function FinalReportForm() {
   const progress = useMemo(() => {
     const fields = [
       form.projetoId,
-      form.resumoExecucao,
-      form.objetivosAlcancados,
-      form.resultadosFinais,
-      form.produtosGerados,
-      form.contribuicoesFormacao,
-      form.dificuldadesLimitacoes,
+      form.resumo,
+      form.palavrasChave,
+      form.title,
+      form.abstract,
+      form.keywords,
+      form.introducao,
+      form.procedimentosMetodologicos,
+      form.resultadosDiscussao,
       form.conclusoes,
+      form.referencias,
     ]
 
     const filled = fields.filter((value) =>
@@ -300,7 +321,7 @@ export default function FinalReportForm() {
           <div>
             <Link
               to="/discente/relatorios"
-              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
             >
               <ArrowLeft size={16} />
               Voltar para relatórios
@@ -327,9 +348,8 @@ export default function FinalReportForm() {
               <h1 className="text-2xl font-bold text-primary">{reportTitle}</h1>
 
               <p className="text-base text-neutral leading-7 max-w-4xl">
-                Selecione o projeto e consolide as informações finais da execução,
-                apresentando resultados, produtos e conclusões referentes ao
-                projeto escolhido.
+                Selecione o projeto e preencha a estrutura textual do relatório
+                final com resumo, abstract, seções do artigo e referências.
               </p>
             </div>
           </div>
@@ -454,168 +474,178 @@ export default function FinalReportForm() {
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
-                      Resumo da execução do projeto *
+                      Resumo *
                     </label>
                     <textarea
-                      value={form.resumoExecucao}
-                      onChange={(e) =>
-                        updateField("resumoExecucao", e.target.value)
-                      }
-                      rows={5}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Apresente uma visão geral da execução do projeto selecionado ao longo do período."
+                      value={form.resumo}
+                      onChange={(e) => updateField("resumo", e.target.value)}
+                      rows={4}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Escreva o resumo do trabalho."
                     />
-                    {errors.resumoExecucao && (
+                    {errors.resumo && (
+                      <p className="mt-1 text-xs text-danger">{errors.resumo}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Palavras-chave *
+                    </label>
+                    <input
+                      type="text"
+                      value={form.palavrasChave}
+                      onChange={(e) =>
+                        updateField("palavrasChave", e.target.value)
+                      }
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                      placeholder="Ex.: inteligência artificial; classificação; pesquisa científica"
+                    />
+                    {errors.palavrasChave && (
                       <p className="mt-1 text-xs text-danger">
-                        {errors.resumoExecucao}
+                        {errors.palavrasChave}
                       </p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
-                      Objetivos alcançados *
+                      Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={form.title}
+                      onChange={(e) => updateField("title", e.target.value)}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                      placeholder="Write the title in English"
+                    />
+                    {errors.title && (
+                      <p className="mt-1 text-xs text-danger">{errors.title}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Abstract *
                     </label>
                     <textarea
-                      value={form.objetivosAlcancados}
-                      onChange={(e) =>
-                        updateField("objetivosAlcancados", e.target.value)
-                      }
-                      rows={5}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Explique quais objetivos previstos foram alcançados total ou parcialmente no projeto selecionado."
+                      value={form.abstract}
+                      onChange={(e) => updateField("abstract", e.target.value)}
+                      rows={4}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Write the abstract in English."
                     />
-                    {errors.objetivosAlcancados && (
+                    {errors.abstract && (
+                      <p className="mt-1 text-xs text-danger">{errors.abstract}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Keywords *
+                    </label>
+                    <input
+                      type="text"
+                      value={form.keywords}
+                      onChange={(e) => updateField("keywords", e.target.value)}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                      placeholder="Ex.: artificial intelligence; scientific production; classification"
+                    />
+                    {errors.keywords && (
+                      <p className="mt-1 text-xs text-danger">{errors.keywords}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Introdução *
+                    </label>
+                    <textarea
+                      value={form.introducao}
+                      onChange={(e) => updateField("introducao", e.target.value)}
+                      rows={5}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Apresente o contexto, problema, justificativa e objetivos."
+                    />
+                    {errors.introducao && (
                       <p className="mt-1 text-xs text-danger">
-                        {errors.objetivosAlcancados}
+                        {errors.introducao}
                       </p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
-                      Resultados finais *
+                      Procedimentos metodológicos *
                     </label>
                     <textarea
-                      value={form.resultadosFinais}
+                      value={form.procedimentosMetodologicos}
                       onChange={(e) =>
-                        updateField("resultadosFinais", e.target.value)
+                        updateField("procedimentosMetodologicos", e.target.value)
+                      }
+                      rows={5}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Descreva materiais, métodos, etapas e procedimentos adotados."
+                    />
+                    {errors.procedimentosMetodologicos && (
+                      <p className="mt-1 text-xs text-danger">
+                        {errors.procedimentosMetodologicos}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Resultados e discussão *
+                    </label>
+                    <textarea
+                      value={form.resultadosDiscussao}
+                      onChange={(e) =>
+                        updateField("resultadosDiscussao", e.target.value)
                       }
                       rows={6}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Descreva os principais resultados obtidos, evidências geradas, implementações, análises ou impactos alcançados."
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Apresente os principais resultados obtidos e discuta seus significados."
                     />
-                    {errors.resultadosFinais && (
+                    {errors.resultadosDiscussao && (
                       <p className="mt-1 text-xs text-danger">
-                        {errors.resultadosFinais}
+                        {errors.resultadosDiscussao}
                       </p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
-                      Produtos gerados *
-                    </label>
-                    <textarea
-                      value={form.produtosGerados}
-                      onChange={(e) =>
-                        updateField("produtosGerados", e.target.value)
-                      }
-                      rows={5}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Informe produtos resultantes do projeto, como relatórios, dashboards, protótipos, artigos, apresentações, materiais ou sistemas."
-                    />
-                    {errors.produtosGerados && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.produtosGerados}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Contribuições para a formação acadêmica *
-                    </label>
-                    <textarea
-                      value={form.contribuicoesFormacao}
-                      onChange={(e) =>
-                        updateField("contribuicoesFormacao", e.target.value)
-                      }
-                      rows={5}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Explique como a participação no projeto contribuiu para sua formação técnica, científica, acadêmica ou profissional."
-                    />
-                    {errors.contribuicoesFormacao && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.contribuicoesFormacao}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Dificuldades e limitações *
-                    </label>
-                    <textarea
-                      value={form.dificuldadesLimitacoes}
-                      onChange={(e) =>
-                        updateField("dificuldadesLimitacoes", e.target.value)
-                      }
-                      rows={5}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Informe dificuldades metodológicas, técnicas, institucionais ou operacionais que impactaram a execução do projeto."
-                    />
-                    {errors.dificuldadesLimitacoes && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.dificuldadesLimitacoes}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Conclusões finais *
+                      Conclusões *
                     </label>
                     <textarea
                       value={form.conclusoes}
-                      onChange={(e) =>
-                        updateField("conclusoes", e.target.value)
-                      }
-                      rows={6}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Apresente as conclusões gerais do projeto e sua avaliação final sobre a experiência desenvolvida."
+                      onChange={(e) => updateField("conclusoes", e.target.value)}
+                      rows={4}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Apresente as conclusões finais do trabalho."
                     />
                     {errors.conclusoes && (
                       <p className="mt-1 text-xs text-danger">
                         {errors.conclusoes}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Referências *
+                    </label>
+                    <textarea
+                      value={form.referencias}
+                      onChange={(e) => updateField("referencias", e.target.value)}
+                      rows={5}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Liste as referências utilizadas."
+                    />
+                    {errors.referencias && (
+                      <p className="mt-1 text-xs text-danger">
+                        {errors.referencias}
                       </p>
                     )}
                   </div>
@@ -632,8 +662,8 @@ export default function FinalReportForm() {
                       />
                       <span>
                         Declaro que as informações apresentadas neste relatório
-                        final são verdadeiras e representam adequadamente minha
-                        participação e os resultados do projeto selecionado.
+                        final são verdadeiras e representam adequadamente o
+                        conteúdo submetido.
                       </span>
                     </label>
                     {errors.aceiteInformacoes && (
@@ -717,16 +747,16 @@ export default function FinalReportForm() {
             >
               <ul className="space-y-3 text-sm text-neutral">
                 <li className="leading-6">
-                  Selecione primeiro o projeto correto antes de concluir o relatório final.
+                  Preencha o resumo e o abstract de forma coerente entre si.
                 </li>
                 <li className="leading-6">
-                  Consolide as informações de forma objetiva, mas completa.
+                  Utilize palavras-chave e keywords objetivas e relacionadas ao tema.
                 </li>
                 <li className="leading-6">
-                  Destaque resultados efetivos e produtos concretos gerados no projeto.
+                  Estruture bem introdução, metodologia, resultados e conclusões.
                 </li>
                 <li className="leading-6">
-                  Relacione a experiência à sua formação acadêmica e profissional.
+                  Revise as referências antes do envio final.
                 </li>
               </ul>
             </Card>
@@ -772,6 +802,11 @@ export default function FinalReportForm() {
                     {selectedProject?.prazoRelatorioFinal ?? "—"}
                   </div>
                 </div>
+
+                <div>
+                  <div className="text-neutral">Progresso do preenchimento</div>
+                  <div className="mt-1 font-medium text-primary">{progress}%</div>
+                </div>
               </div>
             </Card>
 
@@ -786,17 +821,17 @@ export default function FinalReportForm() {
               <div className="space-y-3 text-sm text-neutral">
                 <div className="flex items-start gap-3">
                   <CheckCircle2 size={16} className="mt-0.5 text-success" />
-                  <span>Revise a consistência entre objetivos, resultados e conclusões.</span>
+                  <span>Mantenha consistência entre resumo, abstract e seções principais.</span>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <CheckCircle2 size={16} className="mt-0.5 text-success" />
-                  <span>Descreva produtos e entregas de forma clara e verificável.</span>
+                  <span>Apresente resultados com clareza e discussão bem conectada.</span>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Award size={16} className="mt-0.5 text-primary" />
-                  <span>Valorize as contribuições da experiência para sua formação.</span>
+                  <CheckCircle2 size={16} className="mt-0.5 text-success" />
+                  <span>Confirme se todas as referências citadas estão listadas.</span>
                 </div>
               </div>
             </Card>

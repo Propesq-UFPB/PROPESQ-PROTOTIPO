@@ -1,5 +1,3 @@
-// Não estou usando
-
 import React, { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
@@ -59,20 +57,6 @@ const INITIAL_DOCUMENTS: StudentDocument[] = [
     arquivo: "conta_bb_print.jpg",
     atualizadoEm: "10/03/2026",
     observacao: "O documento enviado não apresenta claramente agência e conta.",
-  },
-  {
-    id: "historico",
-    nome: "Histórico escolar",
-    obrigatorio: false,
-    status: "NAO_ENVIADO",
-    arquivo: "",
-  },
-  {
-    id: "lattes",
-    nome: "Currículo Lattes em PDF",
-    obrigatorio: false,
-    status: "NAO_ENVIADO",
-    arquivo: "",
   },
 ]
 
@@ -177,34 +161,35 @@ export default function DocumentsUpload() {
         <title>Documentos • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
+      <div className="mx-auto max-w-7xl px-6 py-5 space-y-5">
         {/* HEADER */}
-        <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
             <Link
               to="/discente/perfil"
-              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
             >
               <ArrowLeft size={16} />
               Voltar para perfil
             </Link>
+          </div>
 
-            <h1 className="mt-2 text-2xl font-bold text-primary">
+          <div>
+            <h1 className="text-2xl font-bold text-primary">
               Documentos do Discente
             </h1>
-
             <p className="mt-1 text-base text-neutral">
               Envie, acompanhe e atualize os documentos obrigatórios e complementares.
             </p>
           </div>
-        </header>
+        </div>
 
         {/* AVISO */}
         <Card
           title=""
-          className="bg-white border border-neutral/30 rounded-2xl p-6"
+          className="bg-white border border-neutral/30 rounded-2xl px-6 py-4"
         >
-          <div className="space-y-2 text-sm">
+          <div className="space-y-1 text-sm">
             <div className="font-semibold text-primary">
               Orientações para envio
             </div>
@@ -260,7 +245,7 @@ export default function DocumentsUpload() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
                         <div>
                           <div className="text-neutral">Arquivo atual</div>
                           <div className="font-medium text-primary">
@@ -284,7 +269,7 @@ export default function DocumentsUpload() {
                       )}
                     </div>
 
-                    <div className="flex flex-col sm:flex-row lg:flex-col gap-2 lg:min-w-[180px]">
+                    <div className="flex flex-col gap-2 sm:flex-row lg:min-w-[180px] lg:flex-col">
                       <button
                         type="button"
                         onClick={() => handleMockUpload(doc.id)}
@@ -322,7 +307,7 @@ export default function DocumentsUpload() {
         </section>
 
         {/* RODAPÉ DE AÇÕES */}
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
           <Link
             to="/discente/perfil"
             className="

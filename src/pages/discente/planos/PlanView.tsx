@@ -248,13 +248,15 @@ export default function PlanView() {
 
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-5">
         <header className="space-y-4">
-          <Link
-            to="/discente/planos"
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-          >
-            <ArrowLeft size={16} />
-            Voltar para planos
-          </Link>
+          <div className="flex items-center justify-between mb-4">
+            <Link
+              to="/discente/planos-disponiveis"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
+            >
+              <ArrowLeft size={16} />
+              Voltar para planos
+            </Link>
+          </div>
 
           <Card title="" className="rounded-3xl border border-neutral/30 bg-white p-7 md:p-8">
             <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">

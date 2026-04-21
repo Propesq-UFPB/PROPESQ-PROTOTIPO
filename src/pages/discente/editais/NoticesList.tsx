@@ -11,6 +11,10 @@ import {
   Eye,
   Send,
   Clock3,
+  Megaphone,
+  AlertCircle,
+  ClipboardList,
+  FileUp,
 } from "lucide-react"
 
 type NoticeStatus = "ABERTO" | "EM_ANALISE" | "ENCERRADO" | "RESULTADO_PUBLICADO"
@@ -28,6 +32,41 @@ type Notice = {
   possuiInscricao: boolean
   minhaSituacao?: "NAO_INSCRITO" | "INSCRITO" | "EM_ANALISE" | "CLASSIFICADO" | "INDEFERIDO"
 }
+
+type HighlightNotice = {
+  id: string
+  titulo: string
+  descricao: string
+  prazo: string
+  icon: React.ReactNode
+}
+
+const HIGHLIGHT_NOTICES: HighlightNotice[] = [
+  {
+    id: "aviso_001",
+    titulo: "Prazo para envio de relatório parcial",
+    descricao:
+      "Fique atento ao período de submissão do relatório parcial no sistema, conforme cronograma da CGPAIC.",
+    prazo: "Até 10/08/2026",
+    icon: <ClipboardList size={18} />,
+  },
+  {
+    id: "aviso_002",
+    titulo: "Prazo para envio de relatório final",
+    descricao:
+      "O relatório final deve ser submetido dentro do prazo estabelecido para encerramento das atividades do projeto.",
+    prazo: "Até 20/12/2026",
+    icon: <FileUp size={18} />,
+  },
+  {
+    id: "aviso_003",
+    titulo: "Submissão do resumo ENIC",
+    descricao:
+      "Os discentes vinculados aos programas devem realizar a submissão do resumo para apresentação no ENIC.",
+    prazo: "Até 05/09/2026",
+    icon: <AlertCircle size={18} />,
+  },
+]
 
 const NOTICES: Notice[] = [
   {
@@ -172,18 +211,6 @@ export default function NoticesList() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("TODOS")
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("TODOS")
 
-  const stats = useMemo(() => {
-    return {
-      total: NOTICES.length,
-      abertos: NOTICES.filter((item) => item.status === "ABERTO").length,
-      emAnalise: NOTICES.filter((item) => item.status === "EM_ANALISE").length,
-      comResultado: NOTICES.filter((item) => item.status === "RESULTADO_PUBLICADO").length,
-      minhasInscricoes: NOTICES.filter(
-        (item) => item.minhaSituacao && item.minhaSituacao !== "NAO_INSCRITO"
-      ).length,
-    }
-  }, [])
-
   const filteredNotices = useMemo(() => {
     const term = search.trim().toLowerCase()
 
@@ -222,55 +249,45 @@ export default function NoticesList() {
           </p>
         </header>
 
-        {/* INDICADORES */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+        {/* AVISOS CGPAIC */}
+        <section>
           <Card
-            title=""
-            className="bg-white border-2 border-primary rounded-3xl py-3 text-center"
+            title={
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                <Megaphone size={16} />
+                Avisos da CGPAIC
+              </div>
+            }
+            className="bg-white border border-primary/20 rounded-2xl p-6"
           >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-primary">{stats.total}</div>
-              <div className="text-sm font-medium text-primary">Total de editais</div>
-            </div>
-          </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {HIGHLIGHT_NOTICES.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-2xl border border-primary/15 bg-primary/5 p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-white text-primary border border-primary/15">
+                      {item.icon}
+                    </div>
 
-          <Card
-            title=""
-            className="bg-white border-2 border-success rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-success">{stats.abertos}</div>
-              <div className="text-sm font-medium text-success">Abertos</div>
-            </div>
-          </Card>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-semibold text-primary">
+                          {item.titulo}
+                        </h3>
+                        <span className="rounded-full border border-warning/30 bg-warning/10 px-2.5 py-1 text-[11px] font-semibold text-warning">
+                          {item.prazo}
+                        </span>
+                      </div>
 
-          <Card
-            title=""
-            className="bg-white border-2 border-warning rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-warning">{stats.emAnalise}</div>
-              <div className="text-sm font-medium text-warning">Em análise</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-primary rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-primary">{stats.comResultado}</div>
-              <div className="text-sm font-medium text-primary">Com resultado</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-neutral rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-neutral">{stats.minhasInscricoes}</div>
-              <div className="text-sm font-medium text-neutral">Minhas inscrições</div>
+                      <p className="mt-2 text-sm leading-6 text-neutral">
+                        {item.descricao}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </Card>
         </section>
@@ -430,7 +447,7 @@ export default function NoticesList() {
                             "
                           >
                             <Eye size={16} />
-                            Visualizar
+                            Baixar PDF
                           </Link>
 
                           {notice.possuiInscricao && notice.status === "ABERTO" && (

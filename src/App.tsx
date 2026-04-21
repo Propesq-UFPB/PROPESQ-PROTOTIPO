@@ -97,7 +97,7 @@ import EnicSubmissionsList from "./pages/discente/enic/EnicSubmissionsList"
 // import MessagesInbox from "./pages/discente/notificacoes/MessagesInbox"
 
 import CertificatesList from "./pages/discente/certificados/CertificatesList"
-//import DisCertificateView from "./pages/discente/certificados/CertificateView"
+// import DisCertificateView from "./pages/discente/certificados/CertificateView"
 import ParticipationHistory from "./pages/discente/certificados/ParticipationHistory"
 
 import AvailablePlans from "./pages/discente/planos/AvailablePlans"

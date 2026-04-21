@@ -156,7 +156,7 @@ const REPORTS: ReportDetails[] = [
     projetoId: "proj_004",
     projetoTitulo: "Painel Analítico para Indicadores de Iniciação Científica",
     edital: "PIBIC 2025",
-    orientador: "PROF. RICARDO LIMA",
+    orientador: "PROF. LUCIANO",
     periodo: "2025.1",
     prazo: "05/12/2025",
     status: "REJEITADO",

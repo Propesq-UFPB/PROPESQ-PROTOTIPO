@@ -212,6 +212,7 @@ export default function ParticipationHistory() {
 
   const filteredParticipations = useMemo(() => {
     const term = search.trim().toLowerCase()
+    const [year, setYear] = useState<string>("todos")
 
     return PARTICIPATIONS.filter((item) => {
       const matchesSearch =
@@ -332,14 +333,7 @@ export default function ParticipationHistory() {
 
         {/* LISTA */}
         <section>
-          <Card
-            title={
-              <h2 className="text-sm font-semibold text-primary">
-                Registros de participação do discente
-              </h2>
-            }
-            className="bg-white border border-neutral/30 rounded-2xl p-8"
-          >
+          <Card title={undefined} className="bg-white border border-neutral/30 rounded-2xl p-8">
             {filteredParticipations.length === 0 ? (
               <div className="rounded-2xl border border-neutral/20 bg-neutral/5 px-4 py-8 text-center">
                 <div className="text-base font-semibold text-primary">

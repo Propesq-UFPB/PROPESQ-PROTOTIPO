@@ -1,11 +1,8 @@
-import React, { useMemo, useState } from "react"
+import React from "react"
 import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
-import Card from "@/components/Card"
 import {
-  Search,
-  Filter,
-  ClipboardList,
+  ArrowLeft,
   FolderKanban,
   UserRound,
   BadgeCheck,
@@ -55,10 +52,22 @@ const PLANS: AvailablePlan[] = [
       "Plano voltado ao apoio na modelagem de dados, estruturação de indicadores e desenvolvimento de fluxos analíticos para a plataforma acadêmica.",
     palavrasChave: ["dados", "dashboards", "indicadores"],
   },
+  {
+    id: "plan_002",
+    titulo: "Plano de Trabalho em Inteligência Artificial para Sistemas Acadêmicos",
+    projetoId: "proj_002",
+    projetoTitulo: "Soluções Inteligentes para Apoio à Gestão Universitária",
+    orientador: "Profa. Marina Costa",
+    edital: "PIBITI 2026",
+    area: "INTELIGENCIA_ARTIFICIAL",
+    status: "EM_SELECAO",
+    periodo: "2026.1",
+    vigencia: "01/06/2026 a 31/12/2026",
+    resumo:
+      "Plano direcionado ao desenvolvimento de modelos e fluxos de IA aplicados à automação de processos, análise de dados institucionais e apoio à tomada de decisão.",
+    palavrasChave: ["ia", "automação", "análise preditiva"],
+  },
 ]
-
-type StatusFilter = "TODOS" | PlanStatus
-type AreaFilter = "TODOS" | PlanArea
 
 function getStatusLabel(status: PlanStatus) {
   switch (status) {
@@ -121,323 +130,143 @@ function getAreaClasses(area: PlanArea) {
 }
 
 export default function AvailablePlans() {
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("TODOS")
-  const [areaFilter, setAreaFilter] = useState<AreaFilter>("TODOS")
-
-  const stats = useMemo(() => {
-    return {
-      total: PLANS.length,
-      disponiveis: PLANS.filter((item) => item.status === "DISPONIVEL").length,
-      emSelecao: PLANS.filter((item) => item.status === "EM_SELECAO").length,
-      encerrados: PLANS.filter((item) => item.status === "ENCERRADO").length,
-      areas: new Set(PLANS.map((item) => item.area)).size,
-    }
-  }, [])
-
-  const filteredPlans = useMemo(() => {
-    const term = search.trim().toLowerCase()
-
-    return PLANS.filter((item) => {
-      const matchesSearch =
-        !term ||
-        item.titulo.toLowerCase().includes(term) ||
-        item.projetoTitulo.toLowerCase().includes(term) ||
-        item.orientador.toLowerCase().includes(term) ||
-        item.edital.toLowerCase().includes(term) ||
-        item.resumo.toLowerCase().includes(term)
-
-      const matchesStatus =
-        statusFilter === "TODOS" || item.status === statusFilter
-
-      const matchesArea =
-        areaFilter === "TODOS" || item.area === areaFilter
-
-      return matchesSearch && matchesStatus && matchesArea
-    })
-  }, [search, statusFilter, areaFilter])
-
   return (
     <div className="min-h-screen bg-neutral-light">
       <Helmet>
         <title>Planos Disponíveis • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        {/* HEADER */}
-        <header>
+      <div className="mx-auto max-w-7xl space-y-5 px-6 py-5">
+
+        <header className="rounded-2xl border border-neutral/20 bg-white px-6 py-6">
           <h1 className="text-2xl font-bold text-primary">
             Planos de Trabalho Disponíveis
           </h1>
-          <p className="mt-1 text-base text-neutral">
-            Consulte planos disponíveis para seleção e acompanhe oportunidades vinculadas a projetos e editais.
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
+            Consulte os planos disponíveis para seleção e visualize as oportunidades
+            vinculadas a projetos e editais.
           </p>
         </header>
 
-        {/* INDICADORES */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-          <Card
-            title=""
-            className="bg-white border-2 border-primary rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-primary">{stats.total}</div>
-              <div className="text-sm font-medium text-primary">Total de planos</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-success rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-success">{stats.disponiveis}</div>
-              <div className="text-sm font-medium text-success">Disponíveis</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-warning rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-warning">{stats.emSelecao}</div>
-              <div className="text-sm font-medium text-warning">Em seleção</div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border-2 border-neutral rounded-3xl py-3 text-center"
-          >
-            <div className="space-y-1">
-              <div className="text-base font-bold text-neutral">{stats.areas}</div>
-              <div className="text-sm font-medium text-neutral">Áreas</div>
-            </div>
-          </Card>
-        </section>
-
-        {/* FILTROS */}
-        <section>
-          <Card
-            title={
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                <Filter size={16} />
-                Busca e filtros
+        <section className="rounded-2xl border border-neutral/30 bg-white p-6 md:p-8">
+          {PLANS.length === 0 ? (
+            <div className="rounded-2xl border border-neutral/20 bg-neutral/5 px-4 py-8 text-center">
+              <div className="text-base font-semibold text-primary">
+                Nenhum plano encontrado
               </div>
-            }
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Buscar plano
-                </label>
-
-                <div className="relative">
-                  <Search
-                    size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral"
-                  />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Título, projeto, orientador..."
-                    className="
-                      w-full rounded-xl border border-neutral/30 bg-white
-                      pl-10 pr-4 py-3 text-sm text-primary outline-none
-                      focus:border-primary
-                    "
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Status
-                </label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
+              <p className="mt-1 text-sm text-neutral">
+                Não há planos disponíveis no momento.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {PLANS.map((item) => (
+                <article
+                  key={item.id}
+                  className="rounded-2xl border border-neutral/20 bg-white p-5 transition hover:border-primary/20"
                 >
-                  <option value="TODOS">Todos</option>
-                  <option value="DISPONIVEL">Disponível</option>
-                  <option value="EM_SELECAO">Em seleção</option>
-                  <option value="ENCERRADO">Encerrado</option>
-                </select>
-              </div>
+                  <div className="flex flex-col gap-5">
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-lg font-semibold text-primary">
+                            {item.titulo}
+                          </h3>
 
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Área
-                </label>
-                <select
-                  value={areaFilter}
-                  onChange={(e) => setAreaFilter(e.target.value as AreaFilter)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                >
-                  <option value="TODOS">Todas</option>
-                  <option value="CIENCIA_DADOS">Ciência de Dados</option>
-                  <option value="INTELIGENCIA_ARTIFICIAL">Inteligência Artificial</option>
-                  <option value="SISTEMAS_INFORMACAO">Sistemas de Informação</option>
-                  <option value="ENGENHARIA_SOFTWARE">Engenharia de Software</option>
-                  <option value="EXTENSAO">Extensão</option>
-                </select>
-              </div>
-            </div>
-          </Card>
-        </section>
-
-        {/* LISTA */}
-        <section>
-          <Card
-            title={
-              <h2 className="text-sm font-semibold text-primary">
-                Planos disponíveis para consulta
-              </h2>
-            }
-            className="bg-white border border-neutral/30 rounded-2xl p-8"
-          >
-            {filteredPlans.length === 0 ? (
-              <div className="rounded-2xl border border-neutral/20 bg-neutral/5 px-4 py-8 text-center">
-                <div className="text-base font-semibold text-primary">
-                  Nenhum plano encontrado
-                </div>
-                <p className="mt-1 text-sm text-neutral">
-                  Ajuste os filtros para visualizar outros resultados.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-5">
-                {filteredPlans.map((item) => (
-                  <article
-                    key={item.id}
-                    className="rounded-2xl border border-neutral/20 p-5"
-                  >
-                    <div className="flex flex-col gap-4">
-                      {/* TOPO */}
-                      <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-                        <div className="space-y-3">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-lg font-semibold text-primary">
-                              {item.titulo}
-                            </h3>
-
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getAreaClasses(
-                                item.area
-                              )}`}
-                            >
-                              <BookOpen size={14} />
-                              {getAreaLabel(item.area)}
-                            </span>
-
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                                item.status
-                              )}`}
-                            >
-                              {item.status === "DISPONIVEL" ? (
-                                <CheckCircle2 size={14} />
-                              ) : (
-                                <Clock3 size={14} />
-                              )}
-                              {getStatusLabel(item.status)}
-                            </span>
-                          </div>
-
-                          <p className="text-sm text-neutral leading-6">
-                            {item.resumo}
-                          </p>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row xl:flex-col gap-2 xl:min-w-[210px]">
-                          <Link
-                            to={`/discente/planos/${item.id}`}
-                            className="
-                              inline-flex items-center justify-center gap-2
-                              rounded-xl border border-primary
-                              px-4 py-3 text-sm font-medium text-primary
-                              hover:bg-primary/5 transition
-                            "
-                          >
-                            <Eye size={16} />
-                            Visualizar
-                          </Link>
-
-                        </div>
-                      </div>
-
-                      {/* META */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
-                        <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
-                          <div className="flex items-center gap-2 text-neutral">
-                            <FolderKanban size={15} />
-                            Projeto
-                          </div>
-                          <div className="mt-1 font-medium text-primary">
-                            {item.projetoTitulo}
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
-                          <div className="flex items-center gap-2 text-neutral">
-                            <UserRound size={15} />
-                            Orientador(a)
-                          </div>
-                          <div className="mt-1 font-medium text-primary">
-                            {item.orientador}
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
-                          <div className="flex items-center gap-2 text-neutral">
-                            <BadgeCheck size={15} />
-                            Edital
-                          </div>
-                          <div className="mt-1 font-medium text-primary">
-                            {item.edital}
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
-                          <div className="flex items-center gap-2 text-neutral">
-                            <CalendarDays size={15} />
-                            Vigência
-                          </div>
-                          <div className="mt-1 font-medium text-primary">
-                            {item.vigencia}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* TAGS */}
-                      <div className="flex flex-wrap gap-2">
-                        {item.palavrasChave.map((keyword) => (
                           <span
-                            key={keyword}
-                            className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getAreaClasses(
+                              item.area
+                            )}`}
                           >
-                            {keyword}
+                            <BookOpen size={14} />
+                            {getAreaLabel(item.area)}
                           </span>
-                        ))}
+
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                              item.status
+                            )}`}
+                          >
+                            {item.status === "DISPONIVEL" ? (
+                              <CheckCircle2 size={14} />
+                            ) : (
+                              <Clock3 size={14} />
+                            )}
+                            {getStatusLabel(item.status)}
+                          </span>
+                        </div>
+
+                        <p className="max-w-4xl text-sm leading-6 text-neutral">
+                          {item.resumo}
+                        </p>
+                      </div>
+
+                      <Link
+                        to={`/discente/planos/${item.id}`}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary/5 xl:min-w-[180px]"
+                      >
+                        <Eye size={16} />
+                        Visualizar
+                      </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 xl:grid-cols-4">
+                      <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
+                        <div className="flex items-center gap-2 text-neutral">
+                          <FolderKanban size={15} />
+                          Projeto
+                        </div>
+                        <div className="mt-1 font-medium text-primary">
+                          {item.projetoTitulo}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
+                        <div className="flex items-center gap-2 text-neutral">
+                          <UserRound size={15} />
+                          Orientador(a)
+                        </div>
+                        <div className="mt-1 font-medium text-primary">
+                          {item.orientador}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
+                        <div className="flex items-center gap-2 text-neutral">
+                          <BadgeCheck size={15} />
+                          Edital
+                        </div>
+                        <div className="mt-1 font-medium text-primary">
+                          {item.edital}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
+                        <div className="flex items-center gap-2 text-neutral">
+                          <CalendarDays size={15} />
+                          Vigência
+                        </div>
+                        <div className="mt-1 font-medium text-primary">
+                          {item.vigencia}
+                        </div>
                       </div>
                     </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </Card>
+
+                    <div className="flex flex-wrap gap-2">
+                      {item.palavrasChave.map((keyword) => (
+                        <span
+                          key={keyword}
+                          className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </div>

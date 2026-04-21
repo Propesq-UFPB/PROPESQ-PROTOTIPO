@@ -9,11 +9,10 @@ import {
   FileText,
   FolderKanban,
   CalendarDays,
-  UserRound,
   AlertTriangle,
   CheckCircle2,
-  ClipboardList,
   Presentation,
+  Upload,
 } from "lucide-react"
 
 type EnicStatus = "RASCUNHO" | "PENDENTE" | "REJEITADO"
@@ -32,16 +31,20 @@ type EnicDraft = {
 }
 
 type FormData = {
-  tituloTrabalho: string
+  titulo: string
   projetoId: string
-  modalidade: string
-  areaTematica: string
+  modalidadeApresentacao: string
   resumo: string
   palavrasChave: string
+  title: string
+  abstract: string
+  keywords: string
+  introducao: string
   metodologia: string
   resultados: string
   conclusoes: string
-  coautores: string
+  referencias: string
+  anexoPdf: File | null
   aceiteInformacoes: boolean
 }
 
@@ -96,16 +99,20 @@ const AVAILABLE_PROJECTS = [
 ]
 
 const INITIAL_FORM: FormData = {
-  tituloTrabalho: "",
+  titulo: "",
   projetoId: "",
-  modalidade: "",
-  areaTematica: "",
+  modalidadeApresentacao: "",
   resumo: "",
   palavrasChave: "",
+  title: "",
+  abstract: "",
+  keywords: "",
+  introducao: "",
   metodologia: "",
   resultados: "",
   conclusoes: "",
-  coautores: "",
+  referencias: "",
+  anexoPdf: null,
   aceiteInformacoes: false,
 }
 
@@ -138,50 +145,61 @@ function getStatusClasses(status: EnicStatus) {
 function validateForm(data: FormData): FormErrors {
   const errors: FormErrors = {}
 
-  if (!data.tituloTrabalho.trim()) {
-    errors.tituloTrabalho = "Informe o título do trabalho."
-  } else if (data.tituloTrabalho.trim().length < 10) {
-    errors.tituloTrabalho = "Informe um título mais descritivo."
+  if (!data.titulo.trim()) {
+    errors.titulo = "Informe o título."
   }
 
   if (!data.projetoId.trim()) {
     errors.projetoId = "Selecione um projeto vinculado."
   }
 
-  if (!data.modalidade.trim()) {
-    errors.modalidade = "Selecione a modalidade."
-  }
-
-  if (!data.areaTematica.trim()) {
-    errors.areaTematica = "Informe a área temática."
+  if (!data.modalidadeApresentacao.trim()) {
+    errors.modalidadeApresentacao =
+      "Selecione a indicação de modalidade."
   }
 
   if (!data.resumo.trim()) {
-    errors.resumo = "Informe o resumo do trabalho."
-  } else if (data.resumo.trim().length < 50) {
-    errors.resumo = "Descreva o resumo com mais detalhes."
+    errors.resumo = "Informe o resumo."
   }
 
   if (!data.palavrasChave.trim()) {
     errors.palavrasChave = "Informe as palavras-chave."
   }
 
+  if (!data.title.trim()) {
+    errors.title = "Informe o title."
+  }
+
+  if (!data.abstract.trim()) {
+    errors.abstract = "Informe o abstract."
+  }
+
+  if (!data.keywords.trim()) {
+    errors.keywords = "Informe as keywords."
+  }
+
+  if (!data.introducao.trim()) {
+    errors.introducao = "Informe a introdução."
+  }
+
   if (!data.metodologia.trim()) {
     errors.metodologia = "Informe a metodologia."
-  } else if (data.metodologia.trim().length < 30) {
-    errors.metodologia = "Descreva a metodologia com mais detalhes."
   }
 
   if (!data.resultados.trim()) {
-    errors.resultados = "Informe os principais resultados."
-  } else if (data.resultados.trim().length < 30) {
-    errors.resultados = "Descreva melhor os resultados."
+    errors.resultados = "Informe os resultados."
   }
 
   if (!data.conclusoes.trim()) {
     errors.conclusoes = "Informe as conclusões."
-  } else if (data.conclusoes.trim().length < 20) {
-    errors.conclusoes = "Descreva melhor as conclusões."
+  }
+
+  if (!data.referencias.trim()) {
+    errors.referencias = "Informe as referências."
+  }
+
+  if (!data.anexoPdf) {
+    errors.anexoPdf = "Anexe o arquivo em PDF."
   }
 
   if (!data.aceiteInformacoes) {
@@ -220,16 +238,20 @@ export default function EnicSubmissionForm() {
 
   const progress = useMemo(() => {
     const fields = [
-      form.tituloTrabalho,
+      form.titulo,
       form.projetoId,
-      form.modalidade,
-      form.areaTematica,
+      form.modalidadeApresentacao,
       form.resumo,
       form.palavrasChave,
+      form.title,
+      form.abstract,
+      form.keywords,
+      form.introducao,
       form.metodologia,
       form.resultados,
       form.conclusoes,
-      form.coautores,
+      form.referencias,
+      form.anexoPdf ? "ok" : "",
     ]
 
     const filled = fields.filter((value) => value.trim().length > 0).length
@@ -279,15 +301,14 @@ export default function EnicSubmissionForm() {
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        {/* HEADER */}
         <header className="flex flex-col gap-3">
-          <div>
+          <div className="flex items-center justify-between">
             <Link
-              to="/discente/enic"
-              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
+              to="/discente/enic/submissions"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
             >
               <ArrowLeft size={16} />
-              Voltar para submissões ENIC
+              Voltar para submissões
             </Link>
           </div>
 
@@ -313,13 +334,12 @@ export default function EnicSubmissionForm() {
               </h1>
 
               <p className="text-base text-neutral leading-7 max-w-4xl">
-                Preencha os dados do trabalho acadêmico e realize a submissão vinculada ao projeto selecionado.
+                Preencha os campos obrigatórios do trabalho e anexe o PDF para realizar a submissão.
               </p>
             </div>
           </div>
         </header>
 
-        {/* OBSERVAÇÃO */}
         {draft.observacao && (
           <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4 text-sm text-neutral">
             <div className="flex items-start gap-2">
@@ -334,7 +354,6 @@ export default function EnicSubmissionForm() {
           </div>
         )}
 
-        {/* RESUMO */}
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
             <div className="flex items-start gap-3">
@@ -361,7 +380,6 @@ export default function EnicSubmissionForm() {
           </Card>
         </section>
 
-        {/* FORM + LATERAL */}
         <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           <div className="xl:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -376,25 +394,17 @@ export default function EnicSubmissionForm() {
                 <div className="space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
-                      Título do trabalho *
+                      Título *
                     </label>
                     <input
                       type="text"
-                      value={form.tituloTrabalho}
-                      onChange={(e) =>
-                        updateField("tituloTrabalho", e.target.value)
-                      }
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary
-                      "
-                      placeholder="Digite o título do trabalho"
+                      value={form.titulo}
+                      onChange={(e) => updateField("titulo", e.target.value)}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                      placeholder="Digite o título"
                     />
-                    {errors.tituloTrabalho && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.tituloTrabalho}
-                      </p>
+                    {errors.titulo && (
+                      <p className="mt-1 text-xs text-danger">{errors.titulo}</p>
                     )}
                   </div>
 
@@ -405,11 +415,7 @@ export default function EnicSubmissionForm() {
                     <select
                       value={form.projetoId}
                       onChange={(e) => updateField("projetoId", e.target.value)}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary
-                      "
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
                     >
                       <option value="">Selecione um projeto</option>
                       {AVAILABLE_PROJECTS.map((project) => (
@@ -445,53 +451,6 @@ export default function EnicSubmissionForm() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-medium text-primary mb-1.5">
-                        Modalidade *
-                      </label>
-                      <select
-                        value={form.modalidade}
-                        onChange={(e) => updateField("modalidade", e.target.value)}
-                        className="
-                          w-full rounded-xl border border-neutral/30 bg-white
-                          px-4 py-3 text-sm text-primary outline-none
-                          focus:border-primary
-                        "
-                      >
-                        <option value="">Selecione</option>
-                        <option value="RESUMO_SIMPLES">Resumo simples</option>
-                        <option value="RESUMO_EXPANDIDO">Resumo expandido</option>
-                        <option value="APRESENTACAO">Apresentação</option>
-                      </select>
-                      {errors.modalidade && (
-                        <p className="mt-1 text-xs text-danger">{errors.modalidade}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-primary mb-1.5">
-                        Área temática *
-                      </label>
-                      <input
-                        type="text"
-                        value={form.areaTematica}
-                        onChange={(e) =>
-                          updateField("areaTematica", e.target.value)
-                        }
-                        className="
-                          w-full rounded-xl border border-neutral/30 bg-white
-                          px-4 py-3 text-sm text-primary outline-none
-                          focus:border-primary
-                        "
-                        placeholder="Ex.: Ciência de Dados"
-                      />
-                      {errors.areaTematica && (
-                        <p className="mt-1 text-xs text-danger">{errors.areaTematica}</p>
-                      )}
-                    </div>
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
                       Resumo *
@@ -499,13 +458,9 @@ export default function EnicSubmissionForm() {
                     <textarea
                       value={form.resumo}
                       onChange={(e) => updateField("resumo", e.target.value)}
-                      rows={6}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Apresente o contexto, objetivo e visão geral do trabalho."
+                      rows={5}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Digite o resumo"
                     />
                     {errors.resumo && (
                       <p className="mt-1 text-xs text-danger">{errors.resumo}</p>
@@ -514,7 +469,7 @@ export default function EnicSubmissionForm() {
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
-                      Palavras-chave *
+                      Palavras-Chave *
                     </label>
                     <input
                       type="text"
@@ -522,12 +477,8 @@ export default function EnicSubmissionForm() {
                       onChange={(e) =>
                         updateField("palavrasChave", e.target.value)
                       }
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary
-                      "
-                      placeholder="Ex.: ciência de dados, IA, pesquisa acadêmica"
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                      placeholder="Ex.: acessibilidade, pesquisa, inovação"
                     />
                     {errors.palavrasChave && (
                       <p className="mt-1 text-xs text-danger">
@@ -538,25 +489,81 @@ export default function EnicSubmissionForm() {
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
+                      Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={form.title}
+                      onChange={(e) => updateField("title", e.target.value)}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                      placeholder="Enter the title in English"
+                    />
+                    {errors.title && (
+                      <p className="mt-1 text-xs text-danger">{errors.title}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Abstract *
+                    </label>
+                    <textarea
+                      value={form.abstract}
+                      onChange={(e) => updateField("abstract", e.target.value)}
+                      rows={5}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Enter the abstract in English"
+                    />
+                    {errors.abstract && (
+                      <p className="mt-1 text-xs text-danger">{errors.abstract}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Keywords *
+                    </label>
+                    <input
+                      type="text"
+                      value={form.keywords}
+                      onChange={(e) => updateField("keywords", e.target.value)}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                      placeholder="Ex.: research, innovation, technology"
+                    />
+                    {errors.keywords && (
+                      <p className="mt-1 text-xs text-danger">{errors.keywords}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Introdução *
+                    </label>
+                    <textarea
+                      value={form.introducao}
+                      onChange={(e) => updateField("introducao", e.target.value)}
+                      rows={5}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Descreva a introdução"
+                    />
+                    {errors.introducao && (
+                      <p className="mt-1 text-xs text-danger">{errors.introducao}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
                       Metodologia *
                     </label>
                     <textarea
                       value={form.metodologia}
-                      onChange={(e) =>
-                        updateField("metodologia", e.target.value)
-                      }
+                      onChange={(e) => updateField("metodologia", e.target.value)}
                       rows={5}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Descreva métodos, técnicas, etapas e procedimentos utilizados."
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Descreva a metodologia"
                     />
                     {errors.metodologia && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.metodologia}
-                      </p>
+                      <p className="mt-1 text-xs text-danger">{errors.metodologia}</p>
                     )}
                   </div>
 
@@ -566,21 +573,13 @@ export default function EnicSubmissionForm() {
                     </label>
                     <textarea
                       value={form.resultados}
-                      onChange={(e) =>
-                        updateField("resultados", e.target.value)
-                      }
+                      onChange={(e) => updateField("resultados", e.target.value)}
                       rows={5}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Descreva os principais resultados obtidos no trabalho."
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Descreva os resultados"
                     />
                     {errors.resultados && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.resultados}
-                      </p>
+                      <p className="mt-1 text-xs text-danger">{errors.resultados}</p>
                     )}
                   </div>
 
@@ -590,41 +589,77 @@ export default function EnicSubmissionForm() {
                     </label>
                     <textarea
                       value={form.conclusoes}
-                      onChange={(e) =>
-                        updateField("conclusoes", e.target.value)
-                      }
+                      onChange={(e) => updateField("conclusoes", e.target.value)}
                       rows={5}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Apresente as conclusões principais do trabalho."
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Descreva as conclusões"
                     />
                     {errors.conclusoes && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.conclusoes}
-                      </p>
+                      <p className="mt-1 text-xs text-danger">{errors.conclusoes}</p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
-                      Coautores
+                      Referências *
                     </label>
                     <textarea
-                      value={form.coautores}
-                      onChange={(e) =>
-                        updateField("coautores", e.target.value)
-                      }
-                      rows={3}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Informe nomes de coautores, se houver."
+                      value={form.referencias}
+                      onChange={(e) => updateField("referencias", e.target.value)}
+                      rows={5}
+                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
+                      placeholder="Informe as referências bibliográficas"
                     />
+                    {errors.referencias && (
+                      <p className="mt-1 text-xs text-danger">{errors.referencias}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1.5">
+                        Anexo (PDF) *
+                      </label>
+                      <label className="flex items-center gap-3 rounded-xl border border-dashed border-neutral/30 bg-white px-4 py-3 text-sm text-neutral cursor-pointer hover:border-primary/40 transition">
+                        <Upload size={16} className="text-primary" />
+                        <span>
+                          {form.anexoPdf ? form.anexoPdf.name : "Selecionar arquivo PDF"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          className="hidden"
+                          onChange={(e) =>
+                            updateField("anexoPdf", e.target.files?.[0] ?? null)
+                          }
+                        />
+                      </label>
+                      {errors.anexoPdf && (
+                        <p className="mt-1 text-xs text-danger">{errors.anexoPdf}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1.5">
+                        Indicação de modalidade *
+                      </label>
+                      <select
+                        value={form.modalidadeApresentacao}
+                        onChange={(e) =>
+                          updateField("modalidadeApresentacao", e.target.value)
+                        }
+                        className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                      >
+                        <option value="">Selecione</option>
+                        <option value="ORAL">Oral</option>
+                        <option value="POSTER">Pôster</option>
+                      </select>
+                      {errors.modalidadeApresentacao && (
+                        <p className="mt-1 text-xs text-danger">
+                          {errors.modalidadeApresentacao}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div>
@@ -635,11 +670,11 @@ export default function EnicSubmissionForm() {
                         onChange={(e) =>
                           updateField("aceiteInformacoes", e.target.checked)
                         }
-                        className="mt-1 h-4 w-4 rounded border-neutral/40"
+                        className="mt-0.5 h-4 w-4 rounded border-neutral/40"
                       />
                       <span>
-                        Declaro que as informações da submissão são verdadeiras,
-                        compatíveis com o projeto e atendem às exigências do evento.
+                        Declaro que as informações da submissão são verdadeiras e
+                        atendem às exigências do evento.
                       </span>
                     </label>
                     {errors.aceiteInformacoes && (
@@ -670,12 +705,7 @@ export default function EnicSubmissionForm() {
               <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
                 <Link
                   to="/discente/enic"
-                  className="
-                    inline-flex items-center justify-center gap-2
-                    rounded-xl border border-neutral/30
-                    px-4 py-3 text-sm font-medium text-neutral
-                    hover:bg-neutral/5 transition
-                  "
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/30 px-4 py-3 text-sm font-medium text-neutral hover:bg-neutral/5 transition"
                 >
                   Cancelar
                 </Link>
@@ -684,12 +714,7 @@ export default function EnicSubmissionForm() {
                   type="button"
                   onClick={handleSave}
                   disabled={saving || submitting}
-                  className="
-                    inline-flex items-center justify-center gap-2
-                    rounded-xl border border-primary
-                    px-4 py-3 text-sm font-medium text-primary
-                    hover:bg-primary/5 transition disabled:opacity-60
-                  "
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary hover:bg-primary/5 transition disabled:opacity-60"
                 >
                   <Save size={16} />
                   {saving ? "Salvando..." : "Salvar rascunho"}
@@ -698,12 +723,7 @@ export default function EnicSubmissionForm() {
                 <button
                   type="submit"
                   disabled={saving || submitting}
-                  className="
-                    inline-flex items-center justify-center gap-2
-                    rounded-xl bg-primary px-4 py-3
-                    text-sm font-semibold text-white
-                    hover:opacity-90 transition disabled:opacity-60
-                  "
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-60"
                 >
                   <Send size={16} />
                   {submitting ? "Enviando..." : "Submeter trabalho"}
@@ -723,16 +743,16 @@ export default function EnicSubmissionForm() {
             >
               <ul className="space-y-3 text-sm text-neutral">
                 <li className="leading-6">
-                  Verifique se o título e o resumo refletem fielmente o trabalho desenvolvido.
+                  Preencha os campos em português e inglês com consistência.
                 </li>
                 <li className="leading-6">
-                  Utilize linguagem objetiva e alinhada ao formato acadêmico.
+                  Verifique se o PDF anexado corresponde à versão final do trabalho.
                 </li>
                 <li className="leading-6">
-                  Destaque metodologia, resultados e conclusões com clareza.
+                  Revise introdução, metodologia, resultados e conclusões antes da submissão.
                 </li>
                 <li className="leading-6">
-                  Revise antes de submeter a versão final ao evento.
+                  Confirme a modalidade desejada para apresentação.
                 </li>
               </ul>
             </Card>
@@ -787,12 +807,12 @@ export default function EnicSubmissionForm() {
               <div className="space-y-3 text-sm text-neutral">
                 <div className="flex items-start gap-3">
                   <CheckCircle2 size={16} className="mt-0.5 text-success" />
-                  <span>Salve o rascunho ao longo do preenchimento.</span>
+                  <span>Salve o rascunho durante o preenchimento.</span>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <CheckCircle2 size={16} className="mt-0.5 text-success" />
-                  <span>Revise coerência entre resumo, metodologia e resultados.</span>
+                  <span>Revise a versão em português e em inglês.</span>
                 </div>
 
                 <div className="flex items-start gap-3">

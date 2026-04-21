@@ -106,13 +106,15 @@ export default function BankDataForm() {
         {/* HEADER */}
         <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <Link
-              to="/discente/perfil"
-              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
-            >
-              <ArrowLeft size={16} />
-              Voltar para perfil
-            </Link>
+            <div className="flex items-center justify-between mb-4">
+              <Link
+                to="/discente/perfil"
+                className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
+              >
+                <ArrowLeft size={16} />
+                Voltar para perfil
+              </Link>
+            </div>
 
             <h1 className="mt-2 text-2xl font-bold text-primary">
               Dados Bancários
@@ -129,7 +131,7 @@ export default function BankDataForm() {
           title=""
           className="bg-white border border-neutral/30 rounded-2xl p-6"
         >
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2 text-sm mt-0">
             <div className="font-semibold text-primary">
               Atenção ao preenchimento
             </div>
@@ -305,42 +307,6 @@ export default function BankDataForm() {
                   <p className="mt-1 text-xs text-danger">{errors.cpfTitular}</p>
                 )}
               </div>
-            </div>
-          </Card>
-
-          {/* STATUS */}
-          <Card
-            title={
-              <h2 className="text-sm font-semibold text-primary">
-                Situação da validação bancária
-              </h2>
-            }
-            className="bg-white border border-neutral/30 rounded-2xl p-8"
-          >
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-1">
-                <div className="text-sm text-neutral">
-                  Status atual
-                </div>
-                <div className="text-base font-semibold text-primary">
-                  Aguardando conferência
-                </div>
-                <p className="text-sm text-neutral">
-                  Após a atualização, os dados poderão passar por nova validação.
-                </p>
-              </div>
-
-              <span
-                className="
-                  inline-flex items-center justify-center
-                  rounded-full border border-warning/30
-                  bg-warning/10 px-4 py-2
-                  text-sm font-semibold text-warning
-                  w-fit
-                "
-              >
-                Pendente de validação
-              </span>
             </div>
           </Card>
 

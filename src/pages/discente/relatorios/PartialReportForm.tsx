@@ -276,10 +276,11 @@ export default function PartialReportForm() {
 
       <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
         <header className="flex flex-col gap-3">
+          {/* VOLTAR */}
           <div>
             <Link
               to="/discente/relatorios"
-              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
             >
               <ArrowLeft size={16} />
               Voltar para relatórios
@@ -480,7 +481,7 @@ export default function PartialReportForm() {
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
-                      Outras atividades complementares *
+                      Outras atividades *
                     </label>
                     <textarea
                       value={form.outrasAtividades}
@@ -522,53 +523,6 @@ export default function PartialReportForm() {
                     {errors.resultadosPreliminares && (
                       <p className="mt-1 text-xs text-danger">
                         {errors.resultadosPreliminares}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Dificuldades encontradas *
-                    </label>
-                    <textarea
-                      value={form.dificuldadesEncontradas}
-                      onChange={(e) =>
-                        updateField("dificuldadesEncontradas", e.target.value)
-                      }
-                      rows={5}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary resize-none
-                      "
-                      placeholder="Informe as dificuldades encontradas durante a execução do projeto."
-                    />
-                    {errors.dificuldadesEncontradas && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.dificuldadesEncontradas}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="flex items-start gap-3 text-sm text-primary">
-                      <input
-                        type="checkbox"
-                        checked={form.aceiteInformacoes}
-                        onChange={(e) =>
-                          updateField("aceiteInformacoes", e.target.checked)
-                        }
-                        className="mt-1 h-4 w-4 rounded border-neutral/40"
-                      />
-                      <span>
-                        Declaro que as informações apresentadas neste relatório
-                        parcial são verdadeiras e compatíveis com as atividades
-                        realizadas no projeto selecionado.
-                      </span>
-                    </label>
-                    {errors.aceiteInformacoes && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.aceiteInformacoes}
                       </p>
                     )}
                   </div>

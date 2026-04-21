@@ -31,6 +31,7 @@ import {
   Mail,
   Wallet,
   History,
+  Folder,
 } from "lucide-react"
 
 import LogoImg from "@/utils/img/logo_propesq.png"
@@ -397,9 +398,9 @@ export default function AppHeader() {
     ],
     "/discente/editais": [
       { to: "/discente/editais", label: "Lista de Editais", icon: <Megaphone size={16} />, end: true },
-      { to: "/discente/editais/1", label: "Visualizar Edital", icon: <Eye size={16} />, end: true },
+      // { to: "/discente/editais/1", label: "Visualizar Edital", icon: <Eye size={16} />, end: true },
       { to: "/discente/editais/1/inscricao", label: "Inscrição", icon: <Pencil size={16} />, end: true },
-      { to: "/discente/editais/1/status", label: "Status da Inscrição", icon: <Workflow size={16} />, end: true },
+      // { to: "/discente/editais/1/status", label: "Status da Inscrição", icon: <Workflow size={16} />, end: true },
       { to: "/discente/editais/1/resultado", label: "Resultado", icon: <Award size={16} />, end: true },
     ],
     "/discente/planos-disponiveis": [
@@ -415,7 +416,7 @@ export default function AppHeader() {
     "/discente/enic/submissions": [
       { to: "/discente/enic/submissions", label: "Submissões", icon: <ClipboardList size={16} />, end: true },
       { to: "/discente/enic/inscricao", label: "Nova Submissão", icon: <Plus size={16} />, end: true },
-      { to: "/discente/enic/visualizar/1", label: "Visualizar", icon: <Eye size={16} />, end: true },
+      { to: "/discente/enic/visualizar/1", label: "Consultar", icon: <Eye size={16} />, end: true },
     ],
     "/discente/certificados": [
       { to: "/discente/certificados", label: "Lista de Certificados", icon: <FileBadge size={16} />, end: true },
@@ -425,6 +426,7 @@ export default function AppHeader() {
       { to: "/discente/perfil", label: "Meu Perfil", icon: <User size={16} />, end: true },
       { to: "/discente/perfil/editar", label: "Editar Perfil", icon: <Pencil size={16} />, end: true },
       { to: "/discente/perfil/dados-bancarios", label: "Dados Bancários", icon: <Wallet size={16} />, end: true },
+      { to: "/discente/perfil/documentos", label: "Documentos", icon: <Folder size={16} />, end: true },
     ],
   }
 
