@@ -380,57 +380,82 @@ function Collapsible({
 }
 
 function ScheduleGrid({ items }: { items: ScheduleItem[] }) {
-  const years = ["2025", "2026"]
-  const monthsPerYear: Record<string, string[]> = {
-    "2025": ["Set/25", "Out/25", "Nov/25", "Dez/25"],
-    "2026": ["Jan/26", "Fev/26", "Mar/26", "Abr/26", "Mai/26", "Jun/26", "Jul/26", "Ago/26"],
-  }
+  const MONTH_LABELS = [
+    { full: "Set/25", label: "Set", ano: "2025" },
+    { full: "Out/25", label: "Out", ano: "2025" },
+    { full: "Nov/25", label: "Nov", ano: "2025" },
+    { full: "Dez/25", label: "Dez", ano: "2025" },
+    { full: "Jan/26", label: "Jan", ano: "2026" },
+    { full: "Fev/26", label: "Fev", ano: "2026" },
+    { full: "Mar/26", label: "Mar", ano: "2026" },
+    { full: "Abr/26", label: "Abr", ano: "2026" },
+    { full: "Mai/26", label: "Mai", ano: "2026" },
+    { full: "Jun/26", label: "Jun", ano: "2026" },
+    { full: "Jul/26", label: "Jul", ano: "2026" },
+    { full: "Ago/26", label: "Ago", ano: "2026" },
+  ]
+
+  const YEAR_LABELS = [
+    { ano: "2025", cols: 4 },
+    { ano: "2026", cols: 8 },
+  ]
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-[760px] w-full border-collapse text-xs">
+      <table className="min-w-[760px] w-full border-separate border-spacing-y-2 text-xs">
         <thead>
           <tr>
-            <th
-              className="w-56 border border-neutral/20 bg-primary/5 px-3 py-2 text-left font-semibold text-primary"
-              rowSpan={2}
-            >
+            <th className="w-64 px-3 py-2 text-left font-medium text-neutral">
               Atividade
             </th>
-            {years.map((y) => (
+
+            {YEAR_LABELS.map(({ ano, cols }) => (
               <th
-                key={y}
-                colSpan={monthsPerYear[y].length}
-                className="border border-neutral/20 bg-primary/5 px-2 py-2 text-center font-semibold text-primary"
+                key={ano}
+                colSpan={cols}
+                className="px-2 py-2 text-center font-semibold text-neutral"
               >
-                {y}
+                {ano}
               </th>
             ))}
           </tr>
+
           <tr>
-            {SCHEDULE_MONTHS.map((m) => (
+            <th />
+            {MONTH_LABELS.map(({ label }, idx) => (
               <th
-                key={m}
-                className="whitespace-nowrap border border-neutral/20 bg-neutral/5 px-1 py-1.5 text-center font-medium text-neutral"
+                key={idx}
+                className="px-1 py-2 text-center font-medium text-neutral"
               >
-                {m.split("/")[0]}
+                {label}
               </th>
             ))}
           </tr>
         </thead>
+
         <tbody>
-          {items.map((item, i) => (
-            <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-neutral/5"}>
-              <td className="border border-neutral/20 px-3 py-3 leading-5 text-primary">
+          {items.map((item, rowIdx) => (
+            <tr key={rowIdx}>
+              <td className="rounded-l-2xl border border-neutral/15 bg-neutral-light/40 px-4 py-3 font-medium leading-5 text-primary">
                 {item.atividade}
               </td>
-              {SCHEDULE_MONTHS.map((m) => (
-                <td key={m} className="border border-neutral/20 p-0">
-                  {item.meses.includes(m) && (
-                    <div className="min-h-[34px] w-full bg-primary/20" />
-                  )}
-                </td>
-              ))}
+
+              {MONTH_LABELS.map(({ full }, colIdx) => {
+                const ativo = item.meses.includes(full)
+
+                return (
+                  <td
+                    key={colIdx}
+                    className="border-y border-neutral/15 bg-neutral-light/20 px-1 py-3 text-center last:rounded-r-2xl"
+                  >
+                    <div
+                      className={`mx-auto h-5 w-full max-w-[28px] rounded-md ${
+                        ativo ? "bg-primary/70" : "bg-transparent"
+                      }`}
+                    />
+                  </td>
+                )
+              })}
             </tr>
           ))}
         </tbody>

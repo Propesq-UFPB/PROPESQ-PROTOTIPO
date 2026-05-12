@@ -376,11 +376,7 @@ export default function NoticesList() {
         {/* LISTA */}
         <section>
           <Card
-            title={
-              <h2 className="text-sm font-semibold text-primary">
-                Lista de editais
-              </h2>
-            }
+            title={undefined}
             className="bg-white border border-neutral/30 rounded-2xl p-8"
           >
             {filteredNotices.length === 0 ? (

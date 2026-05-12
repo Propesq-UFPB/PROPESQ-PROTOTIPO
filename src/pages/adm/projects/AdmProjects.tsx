@@ -545,7 +545,7 @@ export default function AdmProjects() {
       data-page={PAGE_NAME}
     >
       <Helmet>
-        <title>Projetos • Administração • PROPESQ</title>
+        <title>Projetos • PROPESQ</title>
       </Helmet>
 
       <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">

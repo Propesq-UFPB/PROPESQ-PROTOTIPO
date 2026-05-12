@@ -61,6 +61,7 @@ import ProjectCommunication from "./pages/adm/projects/ProjectCommunication"
 import ProjectViewEdit from "./pages/adm/projects/ProjectViewEdit"
 import AdmProjects from "./pages/adm/projects/AdmProjects"
 
+
 // discente pages
 import DisDashboard from "./pages/discente/DisDashboard"
 
@@ -105,6 +106,22 @@ import PlanView from "./pages/discente/planos/PlanView"
 // import InterestForm from "./pages/discente/planos/InterestForm"
 
 import DisSettings from "./pages/discente/DisSettings"
+
+
+// coordenador pages
+import CoordinatorProjects from "./pages/coordenador/projetos/CoordinatorProjects"
+import CoordinatorProjectForm from "./pages/coordenador/projetos/CoordinatorProjectForm"
+import CoordinatorProjectView from "./pages/coordenador/projetos/CoordinatorProjectView"
+
+import CoordinatorEvaluations from "./pages/coordenador/avaliacoes/CoordinatorEvaluations"
+import CoordinatorEvaluationDetail from "./pages/coordenador/avaliacoes/CoordinatorEvaluationDetail"
+
+import CoordinatorIndications from "./pages/coordenador/indicacoes/CoordinatorIndications"
+
+import CoordinatorReports from "./pages/coordenador/relatorios/CoordinatorReports"
+import CoordinatorReportReview from "./pages/coordenador/relatorios/CoordinatorReportReview"
+
+
 
 import Projects from "./pages/Projects"
 import MyProjects from "./pages/MyProjects"
@@ -273,7 +290,21 @@ export default function App() {
 
         <Route path="/discente/configuracoes" element={<Protected><Shell><DisSettings /></Shell></Protected>} />
 
-        
+        {/* Coordenador */}
+        <Route path="/coordenador/projetos" element={<Protected><Shell><CoordinatorProjects /></Shell></Protected>} />
+        <Route path="/coordenador/projetos/novo" element={<Protected><Shell><CoordinatorProjectForm /></Shell></Protected>} />
+        <Route path="/coordenador/projetos/:id" element={<Protected><Shell><CoordinatorProjectView /></Shell></Protected>} />
+
+        <Route path="/coordenador/avaliacoes" element={<Protected><Shell><CoordinatorEvaluations /></Shell></Protected>} />
+        <Route path="/coordenador/avaliacoes/:id" element={<Protected><Shell><CoordinatorEvaluationDetail /></Shell></Protected>} />
+
+        <Route path="/coordenador/indicacoes" element={<Protected><Shell><CoordinatorIndications /></Shell></Protected>} />
+
+        <Route path="/coordenador/relatorios" element={<Protected><Shell><CoordinatorReports /></Shell></Protected>} />
+        <Route path="/coordenador/relatorios/:id/revisao" element={<Protected><Shell><CoordinatorReportReview /></Shell></Protected>} />
+
+
+
 
         <Route path="/projetos" element={<Protected><Shell><Projects /></Shell></Protected>} />
         <Route path="/meus-projetos" element={<Protected><Shell><MyProjects /></Shell></Protected>} />

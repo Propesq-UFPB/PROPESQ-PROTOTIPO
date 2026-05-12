@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
-import Card from "@/components/Card"
 import {
   Search,
   FolderKanban,
@@ -10,9 +9,6 @@ import {
   UserRound,
   CalendarDays,
   Eye,
-  Link2,
-  History,
-  Filter,
   AlertTriangle,
   SlidersHorizontal,
   X,
@@ -252,16 +248,6 @@ export default function MyProjects() {
     }
   }, [])
 
-  const stats = useMemo(() => {
-    return {
-      total: PROJECTS.length,
-      ativos: PROJECTS.filter((item) => item.statusProjeto === "ATIVO").length,
-      vinculados: PROJECTS.filter((item) => item.statusVinculo === "VINCULADO").length,
-      pendencias: PROJECTS.filter((item) => item.possuiPendencia).length,
-      encerrados: PROJECTS.filter((item) => item.statusProjeto === "ENCERRADO").length,
-    }
-  }, [])
-
   const filteredProjects = useMemo(() => {
     const nq = normalize(q)
     const nTitulo = normalize(titulo)
@@ -368,7 +354,7 @@ export default function MyProjects() {
         <title>Meus Projetos • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
+      <div className="mx-auto w-full max-w-7xl px-6 py-5 space-y-5">
         <header>
           <h1 className="text-2xl font-bold text-primary">Meus Projetos</h1>
           <p className="mt-1 text-base text-neutral">
@@ -376,45 +362,8 @@ export default function MyProjects() {
           </p>
         </header>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
-          <Card title="" className="rounded-2xl border border-neutral/20 p-5 text-center">
-            <div className="space-y-1">
-              <div className="text-base font-bold text-primary">{stats.total}</div>
-              <div className="text-sm font-medium text-primary">Total</div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border-2 border-success rounded-3xl py-3 text-center">
-            <div className="space-y-1">
-              <div className="text-base font-bold text-success">{stats.ativos}</div>
-              <div className="text-sm font-medium text-success">Projetos ativos</div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border-2 border-primary rounded-3xl py-3 text-center">
-            <div className="space-y-1">
-              <div className="text-base font-bold text-primary">{stats.vinculados}</div>
-              <div className="text-sm font-medium text-primary">Vínculos ativos</div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border-2 border-warning rounded-3xl py-3 text-center">
-            <div className="space-y-1">
-              <div className="text-base font-bold text-warning">{stats.pendencias}</div>
-              <div className="text-sm font-medium text-warning">Pendências</div>
-            </div>
-          </Card>
-
-          <Card title="" className="bg-white border-2 border-neutral rounded-3xl py-3 text-center">
-            <div className="space-y-1">
-              <div className="text-base font-bold text-neutral">{stats.encerrados}</div>
-              <div className="text-sm font-medium text-neutral">Encerrados</div>
-            </div>
-          </Card>
-        </section>
-
-        <div className="rounded-2xl border border-neutral-light bg-white shadow-card">
-          <div className="flex flex-col gap-3 border-b border-neutral-light p-4 md:flex-row md:items-center md:gap-4 md:p-5">
+        <section className="w-full rounded-2xl border border-neutral/20 bg-white shadow-card">
+          <div className="flex flex-col gap-3 border-b border-neutral/20 p-4 md:flex-row md:items-center md:gap-4 md:p-5">
             <div className="relative flex-1">
               <Search
                 size={15}
@@ -424,7 +373,7 @@ export default function MyProjects() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Buscar por título, orientador, área, unidade ou edital…"
-                className="w-full rounded-xl border border-neutral-light py-2 pl-8 pr-3 text-[13px] leading-5 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                className="w-full rounded-xl border border-neutral/20 py-2 pl-8 pr-3 text-[13px] leading-5 focus:outline-none focus:ring-2 focus:ring-accent/40"
               />
             </div>
 
@@ -432,7 +381,7 @@ export default function MyProjects() {
               <button
                 type="button"
                 onClick={() => setAdvancedOpen((v) => !v)}
-                className="inline-flex items-center gap-2 rounded-xl border border-neutral-light px-3 py-2 text-[13px] font-semibold text-primary hover:bg-neutral-light/50"
+                className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 px-3 py-2 text-[13px] font-semibold text-primary transition hover:bg-neutral-light/50"
               >
                 <SlidersHorizontal size={15} />
                 Busca avançada
@@ -441,7 +390,7 @@ export default function MyProjects() {
               <button
                 type="button"
                 onClick={clearAll}
-                className="inline-flex items-center gap-2 rounded-xl border border-neutral-light px-3 py-2 text-[13px] font-semibold text-neutral hover:bg-neutral-light/50"
+                className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 px-3 py-2 text-[13px] font-semibold text-neutral transition hover:bg-neutral-light/50"
               >
                 <X size={15} />
                 Limpar
@@ -462,7 +411,7 @@ export default function MyProjects() {
                   label="Título:"
                   field={
                     <input
-                      className="w-full max-w-3xl rounded-sm border border-border px-2 py-1.5 text-[13px]"
+                      className="w-full rounded-xl border border-neutral/20 bg-white px-3 py-2 text-[13px]"
                       value={titulo}
                       onChange={(e) => setTitulo(e.target.value)}
                       placeholder="Título do projeto…"
@@ -476,7 +425,7 @@ export default function MyProjects() {
                   label="Área:"
                   field={
                     <select
-                      className="w-full max-w-md rounded-sm border border-border bg-white px-2 py-1.5 text-[13px]"
+                      className="w-full rounded-xl border border-neutral/20 bg-white px-3 py-2 text-[13px]"
                       value={area}
                       onChange={(e) => setArea(e.target.value)}
                     >
@@ -496,7 +445,7 @@ export default function MyProjects() {
                   label="Orientador(a):"
                   field={
                     <select
-                      className="w-full max-w-2xl rounded-sm border border-border bg-white px-2 py-1.5 text-[13px]"
+                      className="w-full rounded-xl border border-neutral/20 bg-white px-3 py-2 text-[13px]"
                       value={orientador}
                       onChange={(e) => setOrientador(e.target.value)}
                     >
@@ -516,7 +465,7 @@ export default function MyProjects() {
                   label="Centro/Unidade:"
                   field={
                     <select
-                      className="w-full max-w-2xl rounded-sm border border-border bg-white px-2 py-1.5 text-[13px]"
+                      className="w-full rounded-xl border border-neutral/20 bg-white px-3 py-2 text-[13px]"
                       value={unidade}
                       onChange={(e) => setUnidade(e.target.value)}
                     >
@@ -536,7 +485,7 @@ export default function MyProjects() {
                   label="Edital:"
                   field={
                     <select
-                      className="w-full max-w-2xl rounded-sm border border-border bg-white px-2 py-1.5 text-[13px]"
+                      className="w-full rounded-xl border border-neutral/20 bg-white px-3 py-2 text-[13px]"
                       value={edital}
                       onChange={(e) => setEdital(e.target.value)}
                     >
@@ -556,7 +505,7 @@ export default function MyProjects() {
                   label="Situação do Projeto:"
                   field={
                     <select
-                      className="w-full max-w-md rounded-sm border border-border bg-white px-2 py-1.5 text-[13px]"
+                      className="w-full rounded-xl border border-neutral/20 bg-white px-3 py-2 text-[13px]"
                       value={statusProjeto}
                       onChange={(e) => setStatusProjeto(e.target.value as ProjectStatus)}
                     >
@@ -574,7 +523,7 @@ export default function MyProjects() {
                   label="Status do vínculo:"
                   field={
                     <select
-                      className="w-full max-w-md rounded-sm border border-border bg-white px-2 py-1.5 text-[13px]"
+                      className="w-full rounded-xl border border-neutral/20 bg-white px-3 py-2 text-[13px]"
                       value={statusVinculo}
                       onChange={(e) => setStatusVinculo(e.target.value as BondStatus)}
                     >
@@ -591,7 +540,7 @@ export default function MyProjects() {
                   onCheck={setUseParticipacao}
                   label="Participação:"
                   field={
-                    <div className="flex items-center gap-6">
+                    <div className="flex flex-wrap items-center gap-6 rounded-xl border border-neutral/20 bg-white px-3 py-2">
                       <label className="flex items-center gap-2 text-[13px]">
                         <input
                           type="radio"
@@ -619,7 +568,7 @@ export default function MyProjects() {
                   onCheck={setUsePendencia}
                   label="Pendência:"
                   field={
-                    <div className="flex items-center gap-6">
+                    <div className="flex flex-wrap items-center gap-6 rounded-xl border border-neutral/20 bg-white px-3 py-2">
                       <label className="flex items-center gap-2 text-[13px]">
                         <input
                           type="radio"
@@ -642,7 +591,7 @@ export default function MyProjects() {
                   }
                 />
 
-                <div className="border-t border-neutral-light/70 pt-2" />
+                <div className="border-t border-neutral/20 pt-2" />
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
@@ -658,7 +607,7 @@ export default function MyProjects() {
                         type="date"
                         value={periodoIni}
                         onChange={(e) => setPeriodoIni(e.target.value)}
-                        className="w-full rounded-xl border border-neutral-light py-2 pl-8 pr-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-accent/40"
+                        className="w-full rounded-xl border border-neutral/20 py-2 pl-8 pr-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-accent/40"
                       />
                     </div>
                   </div>
@@ -676,7 +625,7 @@ export default function MyProjects() {
                         type="date"
                         value={periodoFim}
                         onChange={(e) => setPeriodoFim(e.target.value)}
-                        className="w-full rounded-xl border border-neutral-light py-2 pl-8 pr-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-accent/40"
+                        className="w-full rounded-xl border border-neutral/20 py-2 pl-8 pr-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-accent/40"
                       />
                     </div>
                   </div>
@@ -684,156 +633,115 @@ export default function MyProjects() {
               </div>
             </div>
           )}
-        </div>
+        </section>
 
-        <section>
-          <Card
-            title={
-              <h2 className="text-sm font-semibold text-primary">
-                Projetos vinculados ao discente{" "}
-                <span className="text-neutral/70">({filteredProjects.length})</span>
-              </h2>
-            }
-            className="bg-white border border-neutral/30 rounded-2xl p-8"
-          >
-            {filteredProjects.length === 0 ? (
-              <div className="rounded-2xl border border-neutral/20 bg-neutral/5 px-4 py-8 text-center">
-                <div className="text-base font-semibold text-primary">
-                  Nenhum projeto encontrado
-                </div>
-                <p className="mt-1 text-sm text-neutral">
-                  Ajuste os filtros para visualizar outros resultados.
-                </p>
+        <section className="w-full rounded-2xl border border-neutral/20 bg-white shadow-card">
+          {filteredProjects.length === 0 ? (
+            <div className="px-5 py-10 text-center">
+              <div className="text-base font-semibold text-primary">
+                Nenhum projeto encontrado
               </div>
-            ) : (
-              <div className="space-y-5">
-                {filteredProjects.map((project) => (
-                  <article
-                    key={project.id}
-                    className="rounded-2xl border border-neutral/20 p-5"
-                  >
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-                        <div className="space-y-3">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-lg font-semibold text-primary">
-                              {project.titulo}
-                            </h3>
+              <p className="mt-1 text-sm text-neutral">
+                Ajuste os filtros para visualizar outros resultados.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-neutral/20">
+              {filteredProjects.map((project) => (
+                <article key={project.id} className="w-full px-5 py-5">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="min-w-0 flex-1 space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-lg font-semibold text-primary">
+                            {project.titulo}
+                          </h3>
 
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getProjectStatusClasses(
-                                project.statusProjeto
-                              )}`}
-                            >
-                              <FolderKanban size={14} />
-                              {getProjectStatusLabel(project.statusProjeto)}
-                            </span>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getProjectStatusClasses(
+                              project.statusProjeto
+                            )}`}
+                          >
+                            <FolderKanban size={14} />
+                            {getProjectStatusLabel(project.statusProjeto)}
+                          </span>
 
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getBondStatusClasses(
-                                project.statusVinculo
-                              )}`}
-                            >
-                              <BadgeCheck size={14} />
-                              {getBondStatusLabel(project.statusVinculo)}
-                            </span>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getBondStatusClasses(
+                              project.statusVinculo
+                            )}`}
+                          >
+                            <BadgeCheck size={14} />
+                            {getBondStatusLabel(project.statusVinculo)}
+                          </span>
 
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getParticipationClasses(
-                                project.participacao
-                              )}`}
-                            >
-                              <BadgeCheck size={14} />
-                              {project.participacao === "BOLSISTA" ? "Bolsista" : "Voluntário"}
-                            </span>
-                          </div>
-
-                          <p className="text-sm text-neutral leading-6">
-                            {project.resumo}
-                          </p>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getParticipationClasses(
+                              project.participacao
+                            )}`}
+                          >
+                            <BadgeCheck size={14} />
+                            {project.participacao === "BOLSISTA" ? "Bolsista" : "Voluntário"}
+                          </span>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row xl:flex-col gap-2 xl:min-w-[190px]">
-                          <Link
-                            to={`/discente/projetos/${project.id}`}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary hover:bg-primary/5 transition"
-                          >
-                            <Eye size={16} />
-                            Visualizar
-                          </Link>
-                          {/* 
-                          <Link
-                            to={`/discente/projetos/${project.id}/vinculo`}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition"
-                          >
-                            <Link2 size={16} />
-                            Ver vínculo
-                          </Link>*/}
-                        </div>
+                        <p className="text-sm leading-6 text-neutral">
+                          {project.resumo}
+                        </p>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
-                        <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
-                          <div className="flex items-center gap-2 text-neutral">
-                            <UserRound size={15} />
-                            Orientador(a)
-                          </div>
-                          <div className="mt-1 font-medium text-primary">
-                            {project.orientador}
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
-                          <div className="flex items-center gap-2 text-neutral">
-                            <FolderKanban size={15} />
-                            Área
-                          </div>
-                          <div className="mt-1 font-medium text-primary">
-                            {project.area}
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
-                          <div className="flex items-center gap-2 text-neutral">
-                            <CalendarDays size={15} />
-                            Período
-                          </div>
-                          <div className="mt-1 font-medium text-primary">
-                            {formatDateBr(project.inicio)} até {formatDateBr(project.fim)}
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
-                          <div className="flex items-center gap-2 text-neutral">
-                            <Clock3 size={15} />
-                            Edital
-                          </div>
-                          <div className="mt-1 font-medium text-primary">
-                            {project.edital}
-                          </div>
-                        </div>
+                      <div className="flex shrink-0">
+                        <Link
+                          to={`/discente/projetos/${project.id}`}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary/5"
+                        >
+                          <Eye size={16} />
+                          Visualizar
+                        </Link>
                       </div>
-
-                      {project.possuiPendencia && project.pendenciaTexto && (
-                        <div className="rounded-xl border border-warning/20 bg-warning/5 px-4 py-3 text-sm text-neutral">
-                          <div className="flex items-start gap-2">
-                            <AlertTriangle size={16} className="mt-0.5 text-warning shrink-0" />
-                            <div>
-                              <span className="font-semibold text-warning">
-                                Pendência identificada:
-                              </span>{" "}
-                              {project.pendenciaTexto}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
                     </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </Card>
+
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                      <InfoBox
+                        icon={<UserRound size={15} />}
+                        label="Orientador(a)"
+                        value={project.orientador}
+                      />
+                      <InfoBox
+                        icon={<FolderKanban size={15} />}
+                        label="Área"
+                        value={project.area}
+                      />
+                      <InfoBox
+                        icon={<CalendarDays size={15} />}
+                        label="Período"
+                        value={`${formatDateBr(project.inicio)} até ${formatDateBr(project.fim)}`}
+                      />
+                      <InfoBox
+                        icon={<Clock3 size={15} />}
+                        label="Edital"
+                        value={project.edital}
+                      />
+                    </div>
+
+                    {project.possuiPendencia && project.pendenciaTexto && (
+                      <div className="rounded-xl border border-warning/20 bg-warning/5 px-4 py-3 text-sm text-neutral">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
+                          <div>
+                            <span className="font-semibold text-warning">
+                              Pendência identificada:
+                            </span>{" "}
+                            {project.pendenciaTexto}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </div>
@@ -847,14 +755,36 @@ function Row(props: {
   field: React.ReactNode
 }) {
   return (
-    <div className="grid grid-cols-[18px_180px_1fr] items-center gap-3">
-      <input
-        type="checkbox"
-        checked={props.checked}
-        onChange={(e) => props.onCheck(e.target.checked)}
-      />
-      <div className="text-[13px] leading-4">{props.label}</div>
-      <div>{props.field}</div>
+    <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-[18px_220px_minmax(0,1fr)]">
+      <div className="pt-2">
+        <input
+          type="checkbox"
+          checked={props.checked}
+          onChange={(e) => props.onCheck(e.target.checked)}
+        />
+      </div>
+
+      <div className="pt-2 text-[13px] leading-4 text-primary">
+        {props.label}
+      </div>
+
+      <div className="min-w-0">{props.field}</div>
+    </div>
+  )
+}
+
+function InfoBox(props: {
+  icon: React.ReactNode
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-xl border border-neutral/20 bg-white px-4 py-3">
+      <div className="flex items-center gap-2 text-neutral">
+        {props.icon}
+        {props.label}
+      </div>
+      <div className="mt-1 font-medium text-primary">{props.value}</div>
     </div>
   )
 }

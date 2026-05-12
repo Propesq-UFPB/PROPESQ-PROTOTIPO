@@ -5,20 +5,17 @@ import {
   History,
   ChevronDown,
   Eye,
-  // CheckCircle2,
-  // XCircle,
-  // Clock3,
   FileText,
   Download,
   ArrowRightLeft,
   Info,
   User,
   BookOpen,
+  SlidersHorizontal,
+  X,
 } from "lucide-react"
 
 type Call = { id: string; title: string; baseYear: number }
-
-// type ReplacementStatus = "PENDING" | "APPROVED" | "REJECTED"
 
 type Student = {
   id: string
@@ -30,9 +27,8 @@ type Student = {
 
 type ReplacementChange = {
   id: string
-  at: string // ISO
+  at: string
   by: string
-  // sem aprovar/rejeitar
   action: "REQUESTED" | "EDITED"
   note?: string
   fromStudent?: Student
@@ -48,17 +44,9 @@ type ReplacementRequest = {
   currentStudent: Student
   newStudent: Student
   reason: string
-
-  // sem status de decisão
-  // status: ReplacementStatus
-
   createdAt: string
   updatedAt?: string
   history: ReplacementChange[]
-}
-
-function uid(prefix = "id") {
-  return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`
 }
 
 function chip(text: string) {
@@ -69,14 +57,18 @@ function chip(text: string) {
   )
 }
 
-//  Chip neutro (somente visualização)
 function statusChip() {
   return chip("Registrado")
 }
 
 function formatStudent(s: Student) {
   const inst = s.institution === "UFPB" ? "UFPB" : "Externa"
-  const lvl = s.level === "MEDIO" ? "Ens. médio" : s.level === "SUPERIOR" ? "Graduação" : "Pós"
+  const lvl =
+    s.level === "MEDIO"
+      ? "Ens. médio"
+      : s.level === "SUPERIOR"
+      ? "Graduação"
+      : "Pós"
   return `${s.name} • ${inst} • ${lvl}`
 }
 
@@ -93,9 +85,9 @@ function Section({
 }) {
   return (
     <section className="rounded-xl border border-neutral-light bg-white p-5">
-      <div className="flex items-start justify-between gap-3 mb-4 flex-col md:flex-row md:items-center">
+      <div className="mb-4 flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
         <div className="flex items-center gap-2">
-          <span className="p-2 rounded-lg bg-neutral-light/60">{icon}</span>
+          <span className="rounded-lg bg-neutral-light/60 p-2">{icon}</span>
           <h2 className="text-sm font-semibold text-primary">{title}</h2>
         </div>
         {right ? <div className="shrink-0">{right}</div> : null}
@@ -121,8 +113,39 @@ function TimelineItem({
       <div className="mt-0.5 shrink-0">{icon}</div>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-primary">{title}</p>
-        {subtitle ? <p className="text-sm text-neutral mt-1 break-words">{subtitle}</p> : null}
-        {meta ? <p className="text-xs text-neutral mt-1">{meta}</p> : null}
+        {subtitle ? (
+          <p className="mt-1 break-words text-sm text-neutral">{subtitle}</p>
+        ) : null}
+        {meta ? <p className="mt-1 text-xs text-neutral">{meta}</p> : null}
+      </div>
+    </div>
+  )
+}
+
+function Row({
+  checked,
+  onCheck,
+  label,
+  field,
+}: {
+  checked: boolean
+  onCheck: (value: boolean) => void
+  label: string
+  field: React.ReactNode
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-2 md:grid-cols-[170px_minmax(0,1fr)] md:items-start">
+      <label className="flex items-center gap-2 pt-1 text-[13px] font-medium text-primary">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onCheck(e.target.checked)}
+          className="accent-primary"
+        />
+        <span>{label}</span>
+      </label>
+      <div className={checked ? "opacity-100" : "pointer-events-none opacity-50"}>
+        {field}
       </div>
     </div>
   )
@@ -133,6 +156,7 @@ export default function StudentReplacements() {
     { id: "call_2026_01", title: "Edital PROPESQ 01/2026", baseYear: 2026 },
     { id: "call_2025_03", title: "PIBIC 03/2025", baseYear: 2025 },
   ])
+
   const [selectedCallId, setSelectedCallId] = useState(calls[0]?.id ?? "")
 
   const [requests] = useState<ReplacementRequest[]>([
@@ -142,8 +166,20 @@ export default function StudentReplacements() {
       projectId: "p2",
       projectTitle: "Otimização de energia em datacenters",
       advisor: "Prof. Diego Ramos",
-      currentStudent: { id: "s1", name: "Discente Luiza", institution: "UFPB", level: "SUPERIOR", doc: "20201234" },
-      newStudent: { id: "s9", name: "Discente Marcos", institution: "UFPB", level: "SUPERIOR", doc: "20209999" },
+      currentStudent: {
+        id: "s1",
+        name: "Discente Luiza",
+        institution: "UFPB",
+        level: "SUPERIOR",
+        doc: "20201234",
+      },
+      newStudent: {
+        id: "s9",
+        name: "Discente Marcos",
+        institution: "UFPB",
+        level: "SUPERIOR",
+        doc: "20209999",
+      },
       reason: "Desligamento do discente por incompatibilidade de horários.",
       createdAt: "2026-01-18T15:30:00Z",
       updatedAt: "2026-01-18T15:30:00Z",
@@ -154,8 +190,18 @@ export default function StudentReplacements() {
           by: "Coordenador do projeto",
           action: "REQUESTED",
           note: "Solicitação registrada no sistema.",
-          fromStudent: { id: "s1", name: "Discente Luiza", institution: "UFPB", level: "SUPERIOR" },
-          toStudent: { id: "s9", name: "Discente Marcos", institution: "UFPB", level: "SUPERIOR" },
+          fromStudent: {
+            id: "s1",
+            name: "Discente Luiza",
+            institution: "UFPB",
+            level: "SUPERIOR",
+          },
+          toStudent: {
+            id: "s9",
+            name: "Discente Marcos",
+            institution: "UFPB",
+            level: "SUPERIOR",
+          },
         },
       ],
     },
@@ -165,8 +211,18 @@ export default function StudentReplacements() {
       projectId: "p1",
       projectTitle: "Detecção de presença com TinyML",
       advisor: "Profa. Ana Souza",
-      currentStudent: { id: "s2", name: "Discente João", institution: "UFPB", level: "SUPERIOR" },
-      newStudent: { id: "s3", name: "Discente Maria", institution: "UFPB", level: "SUPERIOR" },
+      currentStudent: {
+        id: "s2",
+        name: "Discente João",
+        institution: "UFPB",
+        level: "SUPERIOR",
+      },
+      newStudent: {
+        id: "s3",
+        name: "Discente Maria",
+        institution: "UFPB",
+        level: "SUPERIOR",
+      },
       reason: "Substituição por desempenho acadêmico.",
       createdAt: "2026-01-10T11:10:00Z",
       updatedAt: "2026-01-12T09:02:00Z",
@@ -177,80 +233,217 @@ export default function StudentReplacements() {
           by: "Coordenador do projeto",
           action: "REQUESTED",
           note: "Solicitação registrada no sistema.",
-          fromStudent: { id: "s2", name: "Discente João", institution: "UFPB", level: "SUPERIOR" },
-          toStudent: { id: "s3", name: "Discente Maria", institution: "UFPB", level: "SUPERIOR" },
+          fromStudent: {
+            id: "s2",
+            name: "Discente João",
+            institution: "UFPB",
+            level: "SUPERIOR",
+          },
+          toStudent: {
+            id: "s3",
+            name: "Discente Maria",
+            institution: "UFPB",
+            level: "SUPERIOR",
+          },
         },
-        { id: "h4", at: "2026-01-12T09:02:00Z", by: "Sistema", action: "EDITED", note: "Registro atualizado." },
+        {
+          id: "h4",
+          at: "2026-01-12T09:02:00Z",
+          by: "Sistema",
+          action: "EDITED",
+          note: "Registro atualizado.",
+        },
+      ],
+    },
+    {
+      id: "r3",
+      callId: "call_2025_03",
+      projectId: "p8",
+      projectTitle: "Modelagem preditiva para indicadores acadêmicos",
+      advisor: "Prof. Carlos Lima",
+      currentStudent: {
+        id: "s7",
+        name: "Discente Helena",
+        institution: "UFPB",
+        level: "SUPERIOR",
+      },
+      newStudent: {
+        id: "s8",
+        name: "Discente Pedro",
+        institution: "EXTERNA",
+        level: "SUPERIOR",
+      },
+      reason: "Readequação do vínculo discente.",
+      createdAt: "2025-08-04T14:10:00Z",
+      updatedAt: "2025-08-07T09:25:00Z",
+      history: [
+        {
+          id: "h9",
+          at: "2025-08-04T14:10:00Z",
+          by: "Coordenador do projeto",
+          action: "REQUESTED",
+          note: "Solicitação registrada no sistema.",
+        },
       ],
     },
   ])
 
   const [q, setQ] = useState("")
-  // sem filtro por status
-  // const [status, setStatus] = useState<"ALL" | ReplacementStatus>("ALL")
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+
+  const [useProjeto, setUseProjeto] = useState(false)
+  const [projeto, setProjeto] = useState("")
+
+  const [useOrientador, setUseOrientador] = useState(false)
+  const [orientador, setOrientador] = useState("")
+
+  const [useDiscenteAtual, setUseDiscenteAtual] = useState(false)
+  const [discenteAtual, setDiscenteAtual] = useState("")
+
+  const [useNovoDiscente, setUseNovoDiscente] = useState(false)
+  const [novoDiscente, setNovoDiscente] = useState("")
+
+  const [useAno, setUseAno] = useState(false)
+  const [ano, setAno] = useState("")
 
   const [openId, setOpenId] = useState<string | null>(null)
 
+  function clearAll() {
+    setQ("")
+    setAdvancedOpen(false)
+
+    setUseProjeto(false)
+    setProjeto("")
+
+    setUseOrientador(false)
+    setOrientador("")
+
+    setUseDiscenteAtual(false)
+    setDiscenteAtual("")
+
+    setUseNovoDiscente(false)
+    setNovoDiscente("")
+
+    setUseAno(false)
+    setAno("")
+  }
+
   const list = useMemo(() => {
     const nq = q.trim().toLowerCase()
+
     return requests
       .filter((r) => r.callId === selectedCallId)
-      // sem filtro por status
-      // .filter((r) => (status === "ALL" ? true : r.status === status))
       .filter((r) => {
         if (!nq) return true
+
         return (
           r.projectTitle.toLowerCase().includes(nq) ||
           r.advisor.toLowerCase().includes(nq) ||
           r.currentStudent.name.toLowerCase().includes(nq) ||
-          r.newStudent.name.toLowerCase().includes(nq)
+          r.newStudent.name.toLowerCase().includes(nq) ||
+          r.projectId.toLowerCase().includes(nq)
         )
       })
-      .sort((a, b) => ((a.updatedAt ?? a.createdAt) < (b.updatedAt ?? b.createdAt) ? 1 : -1))
-  }, [requests, selectedCallId, q])
+      .filter((r) => {
+        if (useProjeto && projeto.trim()) {
+          if (!r.projectTitle.toLowerCase().includes(projeto.trim().toLowerCase()))
+            return false
+        }
 
-  const openReq = useMemo(() => list.find((r) => r.id === openId) ?? null, [list, openId])
+        if (useOrientador && orientador.trim()) {
+          if (!r.advisor.toLowerCase().includes(orientador.trim().toLowerCase()))
+            return false
+        }
+
+        if (useDiscenteAtual && discenteAtual.trim()) {
+          if (
+            !r.currentStudent.name
+              .toLowerCase()
+              .includes(discenteAtual.trim().toLowerCase())
+          )
+            return false
+        }
+
+        if (useNovoDiscente && novoDiscente.trim()) {
+          if (
+            !r.newStudent.name
+              .toLowerCase()
+              .includes(novoDiscente.trim().toLowerCase())
+          )
+            return false
+        }
+
+        if (useAno && ano.trim()) {
+          const requestYear = new Date(r.createdAt).getFullYear().toString()
+          if (requestYear !== ano.trim()) return false
+        }
+
+        return true
+      })
+      .sort((a, b) =>
+        (a.updatedAt ?? a.createdAt) < (b.updatedAt ?? b.createdAt) ? 1 : -1
+      )
+  }, [
+    requests,
+    selectedCallId,
+    q,
+    useProjeto,
+    projeto,
+    useOrientador,
+    orientador,
+    useDiscenteAtual,
+    discenteAtual,
+    useNovoDiscente,
+    novoDiscente,
+    useAno,
+    ano,
+  ])
+
+  const openReq = useMemo(
+    () => list.find((r) => r.id === openId) ?? null,
+    [list, openId]
+  )
 
   const stats = useMemo(() => {
     const all = requests.filter((r) => r.callId === selectedCallId)
     return {
       total: all.length,
-      // removido: pending/approved/rejected
     }
   }, [requests, selectedCallId])
 
-  function exportData() {
-    alert("Exportar (placeholder).")
-  }
-
   return (
-    <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6 px-6 py-6">
       <header className="space-y-1">
-        <h1 className="text-xl font-bold text-primary">Substituições de Discentes</h1>
+        <h1 className="text-xl font-bold text-primary">
+          Substituições de Discentes
+        </h1>
         <p className="text-sm text-neutral">
-          Página de visualização: acompanhe as trocas (discente antigo → discente novo) e o histórico registrado.
+          Página de visualização: acompanhe as trocas (discente antigo →
+          discente novo) e o histórico registrado.
         </p>
       </header>
 
-      {/* Contexto */}
-      <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-4">
+      <section className="space-y-4 rounded-xl border border-neutral-light bg-white p-5">
         <div className="flex items-center gap-2">
           <BookOpen size={18} />
           <h2 className="text-sm font-semibold text-primary">Contexto</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-          <label className="md:col-span-8 text-sm">
-            <span className="block text-xs text-neutral mb-1">Edital</span>
+        <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+          <label className="text-sm md:col-span-8">
+            <span className="mb-1 block text-xs text-neutral">Edital</span>
             <div className="relative">
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none" />
+              <ChevronDown
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral"
+              />
               <select
                 value={selectedCallId}
                 onChange={(e) => {
                   setSelectedCallId(e.target.value)
                   setOpenId(null)
                 }}
-                className="w-full appearance-none border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full appearance-none rounded-lg border border-neutral-light bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
               >
                 {calls
                   .slice()
@@ -267,68 +460,188 @@ export default function StudentReplacements() {
           <div className="md:col-span-4">
             <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4">
               <p className="text-xs text-neutral">Total</p>
-              <p className="text-xl font-bold text-primary mt-1">{stats.total}</p>
+              <p className="mt-1 text-xl font-bold text-primary">
+                {stats.total}
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* LISTA + DETALHES */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* LISTA */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <Section
-            title="Solicitações"
-            icon={<Users size={18} />}
-          >
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
-              <div className="relative w-full md:max-w-md">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral" />
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  className="w-full border border-neutral-light rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="Buscar por projeto, discente, orientador..."
-                />
+          <Section title="Solicitações" icon={<Users size={18} />}>
+            <div className="mb-4 overflow-hidden rounded-2xl border border-neutral-light bg-white shadow-card">
+              <div className="flex flex-col gap-3 border-b border-neutral-light p-4 md:flex-row md:items-center md:gap-4 md:p-5">
+                <div className="relative flex-1">
+                  <Search
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral/60"
+                  />
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Buscar por projeto, orientador, discente ou código…"
+                    className="w-full rounded-xl border border-neutral-light py-2 pl-8 pr-3 text-[13px] leading-5 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAdvancedOpen((v) => !v)}
+                    className="inline-flex items-center gap-2 rounded-xl border border-neutral-light px-3 py-2 text-[13px] font-semibold text-primary hover:bg-neutral-light/50"
+                  >
+                    <SlidersHorizontal size={15} />
+                    Busca avançada
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={clearAll}
+                    className="inline-flex items-center gap-2 rounded-xl border border-neutral-light px-3 py-2 text-[13px] font-semibold text-neutral hover:bg-neutral-light/50"
+                  >
+                    <X size={15} />
+                    Limpar
+                  </button>
+                </div>
               </div>
+
+              {advancedOpen && (
+                <div className="space-y-4 p-4 md:p-5">
+                  <div className="text-xs text-neutral/70">
+                    Marque a caixa à esquerda para{" "}
+                    <span className="font-semibold">ativar</span> cada filtro.
+                  </div>
+
+                  <div className="grid gap-3">
+                    <Row
+                      checked={useProjeto}
+                      onCheck={setUseProjeto}
+                      label="Projeto:"
+                      field={
+                        <input
+                          className="w-full max-w-3xl rounded-sm border border-border px-2 py-1.5 text-[13px]"
+                          value={projeto}
+                          onChange={(e) => setProjeto(e.target.value)}
+                          placeholder="Título do projeto…"
+                        />
+                      }
+                    />
+
+                    <Row
+                      checked={useOrientador}
+                      onCheck={setUseOrientador}
+                      label="Orientador:"
+                      field={
+                        <input
+                          className="w-full max-w-2xl rounded-sm border border-border px-2 py-1.5 text-[13px]"
+                          value={orientador}
+                          onChange={(e) => setOrientador(e.target.value)}
+                          placeholder="Nome do orientador…"
+                        />
+                      }
+                    />
+
+                    <Row
+                      checked={useDiscenteAtual}
+                      onCheck={setUseDiscenteAtual}
+                      label="Discente atual:"
+                      field={
+                        <input
+                          className="w-full max-w-2xl rounded-sm border border-border px-2 py-1.5 text-[13px]"
+                          value={discenteAtual}
+                          onChange={(e) => setDiscenteAtual(e.target.value)}
+                          placeholder="Nome do discente atual…"
+                        />
+                      }
+                    />
+
+                    <Row
+                      checked={useNovoDiscente}
+                      onCheck={setUseNovoDiscente}
+                      label="Novo discente:"
+                      field={
+                        <input
+                          className="w-full max-w-2xl rounded-sm border border-border px-2 py-1.5 text-[13px]"
+                          value={novoDiscente}
+                          onChange={(e) => setNovoDiscente(e.target.value)}
+                          placeholder="Nome do novo discente…"
+                        />
+                      }
+                    />
+
+                    <Row
+                      checked={useAno}
+                      onCheck={setUseAno}
+                      label="Ano:"
+                      field={
+                        <input
+                          className="w-24 rounded-sm border border-border px-2 py-1.5 text-[13px]"
+                          value={ano}
+                          onChange={(e) => setAno(e.target.value)}
+                          placeholder="Ex.: 2026"
+                        />
+                      }
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
               {list.map((r) => {
                 const active = r.id === openId
+
                 return (
                   <button
                     key={r.id}
-                    onClick={() => setOpenId((prev) => (prev === r.id ? null : r.id))}
-                    className={`w-full text-left rounded-xl border p-4 transition-colors ${
-                      active ? "border-primary bg-primary/5" : "border-neutral-light bg-white hover:bg-neutral-50"
+                    onClick={() =>
+                      setOpenId((prev) => (prev === r.id ? null : r.id))
+                    }
+                    className={`w-full rounded-xl border p-4 text-left transition-colors ${
+                      active
+                        ? "border-primary bg-primary/5"
+                        : "border-neutral-light bg-white hover:bg-neutral-50"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-primary truncate">{r.projectTitle}</p>
+                        <p className="truncate text-sm font-semibold text-primary">
+                          {r.projectTitle}
+                        </p>
 
-                        <p className="text-xs text-neutral mt-1">
-                          Orientador: <span className="font-semibold text-primary">{r.advisor}</span>
+                        <p className="mt-1 text-xs text-neutral">
+                          Orientador:{" "}
+                          <span className="font-semibold text-primary">
+                            {r.advisor}
+                          </span>
                         </p>
 
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                           <span className="inline-flex items-center gap-2 text-xs text-neutral">
                             <User size={14} /> {r.currentStudent.name}
                           </span>
-                          <ArrowRightLeft size={14} className="text-neutral" />
+                          <ArrowRightLeft
+                            size={14}
+                            className="text-neutral"
+                          />
                           <span className="inline-flex items-center gap-2 text-xs text-neutral">
                             <User size={14} /> {r.newStudent.name}
                           </span>
                         </div>
 
-                        <p className="text-xs text-neutral mt-2 line-clamp-2">{r.reason}</p>
+                        <p className="mt-2 line-clamp-2 text-xs text-neutral">
+                          {r.reason}
+                        </p>
                       </div>
 
-                      <div className="shrink-0 flex flex-col items-end gap-2">
+                      <div className="flex shrink-0 flex-col items-end gap-2">
                         {statusChip()}
                         <span className="text-[11px] text-neutral">
-                          {new Date(r.updatedAt ?? r.createdAt).toLocaleString()}
+                          {new Date(
+                            r.updatedAt ?? r.createdAt
+                          ).toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -337,7 +650,7 @@ export default function StudentReplacements() {
               })}
 
               {list.length === 0 && (
-                <div className="rounded-xl border border-neutral-light bg-neutral-50 p-6 text-sm text-neutral text-center">
+                <div className="rounded-xl border border-neutral-light bg-neutral-50 p-6 text-center text-sm text-neutral">
                   Nenhuma solicitação encontrada para este edital.
                 </div>
               )}
@@ -345,14 +658,10 @@ export default function StudentReplacements() {
           </Section>
         </div>
 
-        {/* DETALHES */}
         <div className="lg:col-span-5">
-          <Section
-            title="Detalhes & Histórico"
-            icon={<History size={18} />}
-          >
+          <Section title="Detalhes & Histórico" icon={<History size={18} />}>
             {!openReq ? (
-              <div className="rounded-xl border border-neutral-light bg-neutral-50 p-6 text-sm text-neutral text-center">
+              <div className="rounded-xl border border-neutral-light bg-neutral-50 p-6 text-center text-sm text-neutral">
                 Pressione em uma solicitação para ver o histórico do projeto.
               </div>
             ) : (
@@ -360,9 +669,14 @@ export default function StudentReplacements() {
                 <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-primary">{openReq.projectTitle}</p>
-                      <p className="text-xs text-neutral mt-1">
-                        Orientador: <span className="font-semibold text-primary">{openReq.advisor}</span>
+                      <p className="text-sm font-semibold text-primary">
+                        {openReq.projectTitle}
+                      </p>
+                      <p className="mt-1 text-xs text-neutral">
+                        Orientador:{" "}
+                        <span className="font-semibold text-primary">
+                          {openReq.advisor}
+                        </span>
                       </p>
                     </div>
                     <div className="shrink-0">{statusChip()}</div>
@@ -370,25 +684,33 @@ export default function StudentReplacements() {
 
                   <div className="mt-3 grid grid-cols-1 gap-2">
                     <div className="rounded-lg border border-neutral-light bg-white p-3">
-                      <p className="text-xs text-neutral mb-1">Discente atual (antes)</p>
-                      <p className="text-sm font-semibold text-primary">{formatStudent(openReq.currentStudent)}</p>
+                      <p className="mb-1 text-xs text-neutral">
+                        Discente atual (antes)
+                      </p>
+                      <p className="text-sm font-semibold text-primary">
+                        {formatStudent(openReq.currentStudent)}
+                      </p>
                     </div>
 
                     <div className="rounded-lg border border-neutral-light bg-white p-3">
-                      <p className="text-xs text-neutral mb-1">Novo discente (indicado)</p>
-                      <p className="text-sm font-semibold text-primary">{formatStudent(openReq.newStudent)}</p>
+                      <p className="mb-1 text-xs text-neutral">
+                        Novo discente (indicado)
+                      </p>
+                      <p className="text-sm font-semibold text-primary">
+                        {formatStudent(openReq.newStudent)}
+                      </p>
                     </div>
                   </div>
 
-                  <p className="text-xs text-neutral mt-3">
+                  <p className="mt-3 text-xs text-neutral">
                     Motivo: <span className="text-neutral">{openReq.reason}</span>
                   </p>
                 </div>
 
-                {/* removido bloco de aprovar/rejeitar */}
-
-                <div className="rounded-xl border border-neutral-light bg-white p-4 space-y-4">
-                  <p className="text-sm font-semibold text-primary">Linha do tempo</p>
+                <div className="space-y-4 rounded-xl border border-neutral-light bg-white p-4">
+                  <p className="text-sm font-semibold text-primary">
+                    Linha do tempo
+                  </p>
 
                   <div className="space-y-4">
                     {openReq.history
@@ -396,13 +718,16 @@ export default function StudentReplacements() {
                       .sort((a, b) => (a.at < b.at ? 1 : -1))
                       .map((h) => {
                         const when = new Date(h.at).toLocaleString()
-
-                        // ✅ ícone/título neutros
                         const icon = <Eye size={18} className="text-neutral" />
+                        const title =
+                          h.action === "REQUESTED"
+                            ? "Substituição registrada"
+                            : "Registro atualizado"
 
-                        const title = h.action === "REQUESTED" ? "Substituição registrada" : "Registro atualizado"
-
-                        const subtitle = h.fromStudent && h.toStudent ? `${h.fromStudent.name} → ${h.toStudent.name}` : h.note
+                        const subtitle =
+                          h.fromStudent && h.toStudent
+                            ? `${h.fromStudent.name} → ${h.toStudent.name}`
+                            : h.note
 
                         return (
                           <TimelineItem
@@ -415,8 +740,6 @@ export default function StudentReplacements() {
                         )
                       })}
                   </div>
-
-                  {/* Em produção, o histórico deve ser imutável (append-only), com IDs de usuário e trilha de auditoria. */}
                 </div>
               </div>
             )}

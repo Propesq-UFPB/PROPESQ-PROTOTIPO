@@ -455,7 +455,7 @@ export default function Projects() {
   return (
     <div className="min-h-screen bg-neutral-light">
       <Helmet>
-        <title>Projetos (ADM) • PROPESQ</title>
+        <title>Projetos - antigo • PROPESQ</title>
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-6 py-10 space-y-10">

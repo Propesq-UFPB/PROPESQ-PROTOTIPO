@@ -56,6 +56,32 @@ function isActive(pathname: string, to: string, end?: boolean) {
       pathname.startsWith("/adm/projetos")
     )
   }
+
+  if (to === "/coordenador/projetos") {
+    return (
+      pathname === "/coordenador/projetos" ||
+      pathname.startsWith("/coordenador/projetos/")
+    )
+  }
+  if (to === "/coordenador/avaliacoes") {
+    return (
+      pathname === "/coordenador/avaliacoes" ||
+      pathname.startsWith("/coordenador/avaliacoes/")
+    )
+  }
+  if (to === "/coordenador/indicacoes") {
+    return (
+      pathname === "/coordenador/indicacoes" ||
+      pathname.startsWith("/coordenador/indicacoes/")
+    )
+  }
+  if (to === "/coordenador/relatorios") {
+    return (
+      pathname === "/coordenador/relatorios" ||
+      pathname.startsWith("/coordenador/relatorios/")
+    )
+  }
+
   if (to === "/discente/projetos") {
     return (
       pathname === "/discente/projetos" ||
@@ -112,6 +138,16 @@ function themeFromPath(pathname: string): ThemeTokens {
   if (pathname.startsWith("/adm/monitoring")) return { ...base, page: "#D97706", pageSoft: "#FFEDD5" }
   if (pathname.startsWith("/adm/calls")) return { ...base, page: "#DB2777", pageSoft: "#FCE7F3" }
   if (pathname.startsWith("/adm/settings")) return { ...base, page: "#334155", pageSoft: "#E2E8F0" }
+
+  if (pathname.startsWith("/coordenador/projetos"))
+    return { ...base, page: "#059669", pageSoft: "#D1FAE5" }
+  if (pathname.startsWith("/coordenador/avaliacoes"))
+    return { ...base, page: "#7C3AED", pageSoft: "#EDE9FE" }
+  if (pathname.startsWith("/coordenador/indicacoes"))
+    return { ...base, page: "#0EA5E9", pageSoft: "#E0F2FE" }
+  if (pathname.startsWith("/coordenador/relatorios"))
+    return { ...base, page: "#D97706", pageSoft: "#FFEDD5" }
+
   if (pathname.startsWith("/discente/projetos") || pathname === "/discente/vinculo")
     return { ...base, page: "#059669", pageSoft: "#D1FAE5" }
   if (pathname.startsWith("/discente/editais")) return { ...base, page: "#DB2777", pageSoft: "#FCE7F3" }
@@ -382,6 +418,32 @@ export default function AppHeader() {
     ],
   }
 
+  const coordinatorPrimary: NavItem[] = [
+    { to: "/coordenador/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
+    { to: "/coordenador/avaliacoes", label: "Avaliações", icon: <FileSignature size={16} /> },
+    { to: "/coordenador/indicacoes", label: "Indicações", icon: <Users size={16} /> },
+    { to: "/coordenador/relatorios", label: "Relatórios", icon: <FileText size={16} /> },
+  ]
+
+  const coordinatorSecondaryByPrimary: Record<string, NavItem[]> = {
+    "/coordenador/projetos": [
+      { to: "/coordenador/projetos", label: "Meus Projetos", icon: <FolderKanban size={16} />, end: true },
+      { to: "/coordenador/projetos/novo", label: "Cadastrar", icon: <Plus size={16} />, end: true },
+      { to: "/coordenador/projetos/1", label: "Visualizar", icon: <Eye size={16} />, end: true },
+    ],
+    "/coordenador/avaliacoes": [
+      { to: "/coordenador/avaliacoes", label: "Fila de Avaliações", icon: <FileSignature size={16} />, end: true },
+      { to: "/coordenador/avaliacoes/1", label: "Detalhar Avaliação", icon: <ClipboardList size={16} />, end: true },
+    ],
+    "/coordenador/indicacoes": [
+      { to: "/coordenador/indicacoes", label: "Indicar Discentes", icon: <Users size={16} />, end: true },
+    ],
+    "/coordenador/relatorios": [
+      { to: "/coordenador/relatorios", label: "Relatórios Recebidos", icon: <FileText size={16} />, end: true },
+      { to: "/coordenador/relatorios/1/revisao", label: "Emitir Parecer", icon: <FileSignature size={16} />, end: true },
+    ],
+  }
+
   const studentPrimary: NavItem[] = [
     { to: "/discente/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
     { to: "/discente/editais", label: "Editais", icon: <Megaphone size={16} /> },
@@ -442,26 +504,34 @@ export default function AppHeader() {
     () => pickActivePrimary(location.pathname, adminPrimary, "/dashboard"),
     [location.pathname]
   )
+  const coordinatorActivePrimary = useMemo(
+    () => pickActivePrimary(location.pathname, coordinatorPrimary, "/coordenador/projetos"),
+    [location.pathname]
+  )
   const studentActivePrimary = useMemo(
     () => pickActivePrimary(location.pathname, studentPrimary, "/discente/projetos"),
     [location.pathname]
   )
 
   const adminSecondary = adminSecondaryByPrimary[adminActivePrimary] ?? []
+  const coordinatorSecondary = coordinatorSecondaryByPrimary[coordinatorActivePrimary] ?? []
   const studentSecondary = studentSecondaryByPrimary[studentActivePrimary] ?? []
 
   const primaryMenu =
     role === "ADMINISTRADOR" ? adminPrimary
+    : role === "COORDENADOR" ? coordinatorPrimary
     : role === "DISCENTE" ? studentPrimary
     : fallbackNonAdminMenu
 
   const activeSecondary =
     role === "ADMINISTRADOR" ? adminSecondary
+    : role === "COORDENADOR" ? coordinatorSecondary
     : role === "DISCENTE" ? studentSecondary
     : []
 
   const homeLink =
     role === "ADMINISTRADOR" ? "/dashboard"
+    : role === "COORDENADOR" ? "/coordenador/projetos"
     : role === "DISCENTE" ? "/discente/projetos"
     : "/projetos"
 
