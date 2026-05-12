@@ -138,6 +138,7 @@ import AdminAnalytics from "./pages/AdminAnalytics"
 import Settings from "./pages/Settings"
 import NotFound from "./pages/NotFound"
 
+
 /* ================= SISTEMA PRINCIPAL ================= */
 
 const Protected: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -152,6 +153,16 @@ const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <main className="p-4 md:p-6">{children}</main>
   </div>
 )
+
+// Componente auxiliar
+const RoleRedirect: React.FC = () => {
+  const { user } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role === "ADMINISTRADOR") return <Navigate to="/dashboard" replace />
+  if (user.role === "DISCENTE")      return <Navigate to="/discente/projetos" replace />
+  if (user.role === "COORDENADOR")   return <Navigate to="/coordenador/projetos" replace />
+  return <Navigate to="/login" replace />
+}
 
 /* ================= PUBLISHER  ================= */
 
@@ -194,6 +205,7 @@ export default function App() {
           <Route path="/publications/iniciados" element={<AwardedWorks />} />
           <Route path="/quem-somos" element={<Who />} />
         </Route>
+
 
         {/* 🔐 LOGIN (Sistema principal) */}
         <Route path="/login" element={<Login />} />
@@ -305,20 +317,6 @@ export default function App() {
 
 
 
-
-        <Route path="/projetos" element={<Protected><Shell><Projects /></Shell></Protected>} />
-        <Route path="/meus-projetos" element={<Protected><Shell><MyProjects /></Shell></Protected>} />
-        <Route path="/novo-projeto" element={<Protected><Shell><ProjectForm /></Shell></Protected>} />
-        <Route path="/planos" element={<Protected><Shell><Plans /></Shell></Protected>} />
-        <Route path="/novo-plano" element={<Protected><Shell><PlanForm /></Shell></Protected>} />
-        <Route path="/avaliacoes" element={<Protected><Shell><Evaluations /></Shell></Protected>} />
-        <Route path="/avaliacoes/:id" element={<Protected><Shell><EvaluationDetail /></Shell></Protected>} />
-        <Route path="/acompanhamento" element={<Protected><Shell><Monitoring /></Shell></Protected>} />
-        <Route path="/relatorios" element={<Protected><Shell><Reports /></Shell></Protected>} />
-        <Route path="/certificados" element={<Protected><Shell><Certificates /></Shell></Protected>} />
-        <Route path="/certificados/:id" element={<Protected><Shell><CertificateView /></Shell></Protected>} />
-        <Route path="/painel-gerencial" element={<Protected><Shell><AdminAnalytics /></Shell></Protected>} />
-        <Route path="/configuracoes" element={<Protected><Shell><Settings /></Shell></Protected>} />
 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
