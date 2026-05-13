@@ -602,7 +602,7 @@ export default function AppHeader() {
       { to: "/discente/perfil", label: "Meu Perfil", icon: <User size={16} />, end: true },
       { to: "/discente/perfil/editar", label: "Editar Perfil", icon: <Pencil size={16} />, end: true },
       { to: "/discente/perfil/dados-bancarios", label: "Dados Bancários", icon: <Wallet size={16} />, end: true },
-      { to: "/discente/perfil/documentos", label: "Documentos", icon: <Folder size={16} />, end: true },
+      // { to: "/discente/perfil/documentos", label: "Documentos", icon: <Folder size={16} />, end: true },
     ],
   }
 
@@ -615,63 +615,23 @@ export default function AppHeader() {
 
   const coordinatorSecondaryByPrimary: Record<string, NavItem[]> = {
     "/coordenador/projetos": [
-      {
-        to: "/coordenador/projetos",
-        label: "Lista de Projetos",
-        icon: <FolderKanban size={16} />,
-        end: true,
-      },
-      {
-        to: "/coordenador/projetos/novo",
-        label: "Novo Projeto",
-        icon: <Plus size={16} />,
-        end: true,
-      },
-      {
-        to: "/coordenador/projetos/1",
-        label: "Visualizar Projeto",
-        icon: <Eye size={16} />,
-        end: true,
-      },
+      {to: "/coordenador/projetos", label: "Lista de Projetos", icon: <FolderKanban size={16} />, end: true,},
+      {to: "/coordenador/projetos/novo", label: "Novo Projeto", icon: <Plus size={16} />, end: true,},
+      //{to: "/coordenador/projetos/1", label: "Visualizar Projeto", icon: <Eye size={16} />, end: true,},
     ],
 
     "/coordenador/avaliacoes": [
-      {
-        to: "/coordenador/avaliacoes",
-        label: "Lista de Avaliações",
-        icon: <ClipboardList size={16} />,
-        end: true,
-      },
-      {
-        to: "/coordenador/avaliacoes/1",
-        label: "Detalhe da Avaliação",
-        icon: <Eye size={16} />,
-        end: true,
-      },
+      {to: "/coordenador/avaliacoes", label: "Lista de Avaliações", icon: <ClipboardList size={16} />, end: true,},
+      //{to: "/coordenador/avaliacoes/1", label: "Detalhe da Avaliação", icon: <Eye size={16} />, end: true,},
     ],
 
     "/coordenador/indicacoes": [
-      {
-        to: "/coordenador/indicacoes",
-        label: "Indicações",
-        icon: <Users size={16} />,
-        end: true,
-      },
+      {to: "/coordenador/indicacoes", label: "Indicações", icon: <Users size={16} />,end: true,},
     ],
 
     "/coordenador/relatorios": [
-      {
-        to: "/coordenador/relatorios",
-        label: "Lista de Relatórios",
-        icon: <FileText size={16} />,
-        end: true,
-      },
-      {
-        to: "/coordenador/relatorios/1/revisao",
-        label: "Revisar Relatório",
-        icon: <FileSignature size={16} />,
-        end: true,
-      },
+      {to: "/coordenador/relatorios", label: "Lista de Relatórios", icon: <FileText size={16} />,end: true,},
+      //{to: "/coordenador/relatorios/1/revisao",label: "Revisar Relatório",icon: <FileSignature size={16} />,end: true,},
     ],
   }
 
@@ -780,12 +740,7 @@ export default function AppHeader() {
           </nav>
 
           <div className="flex items-center justify-end gap-3">
-            <button
-              className="hidden rounded-full p-2 hover:bg-[color:var(--page-soft)] md:flex"
-              aria-label="Notificações"
-            >
-              <Bell size={18} />
-            </button>
+
 
             <button
               onClick={logout}

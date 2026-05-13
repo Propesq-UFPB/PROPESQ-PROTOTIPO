@@ -3,13 +3,10 @@ import { Link } from "react-router-dom"
 import {
   AlertCircle,
   ArrowUpRight,
-  CalendarDays,
   CheckCircle2,
   ClipboardList,
   Eye,
   Filter,
-  FolderKanban,
-  GraduationCap,
   Info,
   Notebook,
   Search,
@@ -40,6 +37,12 @@ type Student = {
   email: string
 }
 
+type BankData = {
+  bankName: string
+  agency: string
+  account: string
+}
+
 type IndicationPlan = {
   id: number
   projectId: number
@@ -55,7 +58,7 @@ type IndicationPlan = {
   approvedAt: string
   indicatedStudent: Student | null
   indicationType: "Bolsista" | "Voluntário" | null
-  justification: string
+  bankData: BankData | null
 }
 
 const students: Student[] = [
@@ -113,8 +116,11 @@ const initialPlans: IndicationPlan[] = [
     approvedAt: "10/05/2026",
     indicatedStudent: students[0],
     indicationType: "Bolsista",
-    justification:
-      "Discente possui experiência prévia em desenvolvimento front-end e interesse em acessibilidade digital.",
+    bankData: {
+      bankName: "Banco do Brasil",
+      agency: "1234-5",
+      account: "98765-4",
+    },
   },
   {
     id: 2,
@@ -131,7 +137,7 @@ const initialPlans: IndicationPlan[] = [
     approvedAt: "10/05/2026",
     indicatedStudent: null,
     indicationType: null,
-    justification: "",
+    bankData: null,
   },
   {
     id: 3,
@@ -148,8 +154,11 @@ const initialPlans: IndicationPlan[] = [
     approvedAt: "09/05/2026",
     indicatedStudent: students[1],
     indicationType: "Bolsista",
-    justification:
-      "Discente apresenta domínio de Python, Power BI e interesse em indicadores acadêmicos.",
+    bankData: {
+      bankName: "Caixa Econômica Federal",
+      agency: "0021",
+      account: "45678-9",
+    },
   },
   {
     id: 4,
@@ -166,8 +175,11 @@ const initialPlans: IndicationPlan[] = [
     approvedAt: "30/04/2026",
     indicatedStudent: students[2],
     indicationType: "Bolsista",
-    justification:
-      "Discente indicada inicialmente, mas a indicação foi recusada por inconsistência documental.",
+    bankData: {
+      bankName: "Banco do Brasil",
+      agency: "3344-1",
+      account: "10203-6",
+    },
   },
   {
     id: 5,
@@ -184,8 +196,11 @@ const initialPlans: IndicationPlan[] = [
     approvedAt: "28/04/2026",
     indicatedStudent: students[3],
     indicationType: "Voluntário",
-    justification:
-      "Discente possui interesse em processamento de sinais e disponibilidade para atuação voluntária.",
+    bankData: {
+      bankName: "Nubank",
+      agency: "0001",
+      account: "778899-0",
+    },
   },
 ]
 
@@ -211,9 +226,6 @@ const yearOptions = ["Todos", "2026", "2025"]
 
 const inputClassName =
   "w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
-
-const textareaClassName =
-  "min-h-[96px] w-full resize-y rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm leading-6 text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
 
 const labelClassName = "mb-1.5 block text-sm font-medium text-primary"
 
@@ -271,9 +283,12 @@ export default function CoordinatorIndications() {
   const [selectedYear, setSelectedYear] = useState("Todos")
 
   const [activePlanId, setActivePlanId] = useState<number | null>(null)
-  const [selectedStudentId, setSelectedStudentId] = useState("")
+  const [studentName, setStudentName] = useState("")
+  const [studentRegistration, setStudentRegistration] = useState("")
   const [selectedIndicationType, setSelectedIndicationType] = useState<"Bolsista" | "Voluntário">("Bolsista")
-  const [justification, setJustification] = useState("")
+  const [bankName, setBankName] = useState("")
+  const [bankAgency, setBankAgency] = useState("")
+  const [bankAccount, setBankAccount] = useState("")
   const [lastAction, setLastAction] = useState<"saved" | "removed" | "invalid" | null>(null)
 
   const filteredPlans = useMemo(() => {
@@ -287,7 +302,10 @@ export default function CoordinatorIndications() {
         plan.area.toLowerCase().includes(normalizedSearch) ||
         plan.edital.toLowerCase().includes(normalizedSearch) ||
         plan.indicatedStudent?.name.toLowerCase().includes(normalizedSearch) ||
-        plan.indicatedStudent?.registration.toLowerCase().includes(normalizedSearch)
+        plan.indicatedStudent?.registration.toLowerCase().includes(normalizedSearch) ||
+        plan.bankData?.bankName.toLowerCase().includes(normalizedSearch) ||
+        plan.bankData?.agency.toLowerCase().includes(normalizedSearch) ||
+        plan.bankData?.account.toLowerCase().includes(normalizedSearch)
 
       const matchesEdital = selectedEdital === "Todos" || plan.edital === selectedEdital
       const matchesStatus = selectedStatus === "Todos" || plan.status === selectedStatus
@@ -335,31 +353,60 @@ export default function CoordinatorIndications() {
 
   function openIndicationForm(plan: IndicationPlan) {
     setActivePlanId(plan.id)
-    setSelectedStudentId(plan.indicatedStudent ? String(plan.indicatedStudent.id) : "")
+    setStudentName(plan.indicatedStudent?.name ?? "")
+    setStudentRegistration(plan.indicatedStudent?.registration ?? "")
     setSelectedIndicationType(plan.indicationType ?? (plan.modality === "Voluntário" ? "Voluntário" : "Bolsista"))
-    setJustification(plan.justification)
+    setBankName(plan.bankData?.bankName ?? "")
+    setBankAgency(plan.bankData?.agency ?? "")
+    setBankAccount(plan.bankData?.account ?? "")
     setLastAction(null)
   }
 
   function closeIndicationForm() {
     setActivePlanId(null)
-    setSelectedStudentId("")
+    setStudentName("")
+    setStudentRegistration("")
     setSelectedIndicationType("Bolsista")
-    setJustification("")
+    setBankName("")
+    setBankAgency("")
+    setBankAccount("")
   }
 
   function saveIndication() {
-    if (!activePlan || !selectedStudentId || justification.trim().length === 0) {
+    const hasRequiredFields =
+      activePlan &&
+      studentName.trim().length > 0 &&
+      studentRegistration.trim().length > 0 &&
+      bankName.trim().length > 0 &&
+      bankAgency.trim().length > 0 &&
+      bankAccount.trim().length > 0
+
+    if (!hasRequiredFields || !activePlan) {
       setLastAction("invalid")
       return
     }
 
-    const selectedStudent = students.find((student) => student.id === Number(selectedStudentId))
+    const existingStudent = students.find(
+      (student) =>
+        student.registration === studentRegistration.trim() ||
+        student.name.toLowerCase() === studentName.trim().toLowerCase()
+    )
 
-    if (!selectedStudent) {
-      setLastAction("invalid")
-      return
-    }
+    const selectedStudent: Student = existingStudent
+      ? {
+          ...existingStudent,
+          name: studentName.trim(),
+          registration: studentRegistration.trim(),
+        }
+      : {
+          id: Date.now(),
+          name: studentName.trim(),
+          registration: studentRegistration.trim(),
+          course: "Não informado",
+          semester: "Não informado",
+          cra: "Não informado",
+          email: "Não informado",
+        }
 
     setPlans((current) =>
       current.map((plan) =>
@@ -368,7 +415,11 @@ export default function CoordinatorIndications() {
               ...plan,
               indicatedStudent: selectedStudent,
               indicationType: selectedIndicationType,
-              justification,
+              bankData: {
+                bankName: bankName.trim(),
+                agency: bankAgency.trim(),
+                account: bankAccount.trim(),
+              },
               status:
                 plan.status === "Indicação aprovada"
                   ? "Indicação aprovada"
@@ -390,7 +441,7 @@ export default function CoordinatorIndications() {
               ...plan,
               indicatedStudent: null,
               indicationType: null,
-              justification: "",
+              bankData: null,
               status: "Pendente de indicação",
             }
           : plan
@@ -537,7 +588,7 @@ export default function CoordinatorIndications() {
                   Indicação registrada no protótipo
                 </p>
                 <p className="mt-1 text-sm leading-6 text-emerald-700">
-                  Em uma versão integrada, a indicação seria salva e encaminhada para validação.
+                  Em uma versão integrada, a indicação e os dados bancários seriam salvos e encaminhados para validação.
                 </p>
               </div>
             </div>
@@ -569,7 +620,7 @@ export default function CoordinatorIndications() {
                   Existem campos obrigatórios pendentes
                 </p>
                 <p className="mt-1 text-sm leading-6 text-amber-700">
-                  Selecione um discente e informe a justificativa da indicação antes de confirmar.
+                  Informe o nome, a matrícula do discente e os dados bancários antes de confirmar.
                 </p>
               </div>
             </div>
@@ -785,35 +836,38 @@ export default function CoordinatorIndications() {
                             {plan.indicatedStudent ? (
                               <div className="mt-3 rounded-xl border border-neutral/20 bg-white p-4">
                                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                                  <div>
-                                    <p className="text-sm font-semibold text-primary">
-                                      {plan.indicatedStudent.name}
-                                    </p>
+                                  <div className="w-full">
+                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                      <MiniInfo label="Nome" value={plan.indicatedStudent.name} />
+                                      <MiniInfo label="Matrícula" value={plan.indicatedStudent.registration} />
+                                    </div>
 
-                                    <p className="mt-1 text-xs leading-5 text-neutral">
-                                      Matrícula {plan.indicatedStudent.registration} • {plan.indicatedStudent.course}
-                                    </p>
-
-                                    <p className="mt-1 text-xs leading-5 text-neutral">
-                                      {plan.indicatedStudent.semester} • CRA {plan.indicatedStudent.cra}
+                                    <p className="mt-3 text-xs leading-5 text-neutral">
+                                      {plan.indicatedStudent.course} • {plan.indicatedStudent.semester} • CRA{" "}
+                                      {plan.indicatedStudent.cra}
                                     </p>
                                   </div>
 
                                   {plan.indicationType && (
-                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
                                       <UserCheck size={14} />
                                       {plan.indicationType}
                                     </span>
                                   )}
                                 </div>
 
-                                {plan.justification && (
-                                  <p className="mt-3 text-sm leading-6 text-neutral">
-                                    <span className="font-medium text-primary">
-                                      Justificativa:
-                                    </span>{" "}
-                                    {plan.justification}
-                                  </p>
+                                {plan.bankData && (
+                                  <div className="mt-4 rounded-xl border border-neutral/20 bg-neutral/5 p-4">
+                                    <p className="text-sm font-semibold text-primary">
+                                      Dados bancários
+                                    </p>
+
+                                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+                                      <MiniInfo label="Banco" value={plan.bankData.bankName} />
+                                      <MiniInfo label="Agência" value={plan.bankData.agency} />
+                                      <MiniInfo label="Conta" value={plan.bankData.account} />
+                                    </div>
+                                  </div>
                                 )}
                               </div>
                             ) : (
@@ -899,7 +953,7 @@ export default function CoordinatorIndications() {
 
                   <p className="mt-1 text-sm leading-6 text-neutral">
                     {activePlan
-                      ? "Escolha o discente e informe a justificativa da indicação."
+                      ? "Informe o discente, o tipo de indicação e os dados bancários."
                       : "Clique em “Indicar discente” em um plano aprovado para abrir o formulário."}
                   </p>
                 </div>
@@ -923,24 +977,30 @@ export default function CoordinatorIndications() {
 
                   <div>
                     <label className={labelClassName}>
-                      Discente <span className="text-red-500">*</span>
+                      Nome do discente <span className="text-red-500">*</span>
                     </label>
 
-                    <select
-                      value={selectedStudentId}
-                      onChange={(event) => setSelectedStudentId(event.target.value)}
+                    <input
+                      type="text"
+                      value={studentName}
+                      onChange={(event) => setStudentName(event.target.value)}
+                      placeholder="Informe o nome completo do discente"
                       className={inputClassName}
-                    >
-                      <option value="">
-                        Selecione o discente
-                      </option>
+                    />
+                  </div>
 
-                      {students.map((student) => (
-                        <option key={student.id} value={student.id}>
-                          {student.name} — {student.registration}
-                        </option>
-                      ))}
-                    </select>
+                  <div>
+                    <label className={labelClassName}>
+                      Matrícula do discente <span className="text-red-500">*</span>
+                    </label>
+
+                    <input
+                      type="text"
+                      value={studentRegistration}
+                      onChange={(event) => setStudentRegistration(event.target.value)}
+                      placeholder="Informe a matrícula"
+                      className={inputClassName}
+                    />
                   </div>
 
                   <div>
@@ -964,21 +1024,61 @@ export default function CoordinatorIndications() {
                     </select>
                   </div>
 
-                  {selectedStudentId && (
-                    <SelectedStudentCard student={students.find((student) => student.id === Number(selectedStudentId))} />
+                  {(studentName || studentRegistration) && (
+                    <SelectedStudentCard
+                      name={studentName}
+                      registration={studentRegistration}
+                    />
                   )}
 
-                  <div>
-                    <label className={labelClassName}>
-                      Justificativa da indicação <span className="text-red-500">*</span>
-                    </label>
+                  <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
+                    <p className="text-sm font-semibold text-primary">
+                      Dados bancários
+                    </p>
 
-                    <textarea
-                      value={justification}
-                      onChange={(event) => setJustification(event.target.value)}
-                      placeholder="Explique por que o discente foi indicado para este plano de trabalho."
-                      className={textareaClassName}
-                    />
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <label className={labelClassName}>
+                          Nome do banco <span className="text-red-500">*</span>
+                        </label>
+
+                        <input
+                          type="text"
+                          value={bankName}
+                          onChange={(event) => setBankName(event.target.value)}
+                          placeholder="Ex.: Banco do Brasil"
+                          className={inputClassName}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={labelClassName}>
+                          Agência <span className="text-red-500">*</span>
+                        </label>
+
+                        <input
+                          type="text"
+                          value={bankAgency}
+                          onChange={(event) => setBankAgency(event.target.value)}
+                          placeholder="Ex.: 1234-5"
+                          className={inputClassName}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={labelClassName}>
+                          Conta <span className="text-red-500">*</span>
+                        </label>
+
+                        <input
+                          type="text"
+                          value={bankAccount}
+                          onChange={(event) => setBankAccount(event.target.value)}
+                          placeholder="Ex.: 98765-4"
+                          className={inputClassName}
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -1003,75 +1103,11 @@ export default function CoordinatorIndications() {
               ) : (
                 <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
                   <p className="text-sm leading-6 text-neutral">
-                    A indicação só deve ser realizada para planos de trabalho aprovados. Após a confirmação, o registro
-                    seguirá para validação no fluxo do edital.
+                    A indicação só deve ser realizada para planos de trabalho aprovados. Selecione um plano para
+                    preencher os dados do discente e os dados bancários.
                   </p>
                 </div>
               )}
-            </section>
-
-            {/* ORIENTAÇÃO */}
-            <section className="rounded-2xl border border-blue-200 bg-blue-50 p-6">
-              <div className="flex gap-3">
-                <Info size={18} className="mt-0.5 shrink-0 text-blue-700" />
-
-                <div>
-                  <p className="text-sm font-semibold text-blue-800">
-                    Regra do fluxo
-                  </p>
-
-                  <p className="mt-1 text-sm leading-6 text-blue-700">
-                    A indicação deve ocorrer apenas após a aprovação do projeto e do plano de trabalho. Em seguida, a
-                    indicação pode ficar aguardando validação documental ou confirmação administrativa.
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            {/* ATALHOS */}
-            <section className="rounded-2xl border border-neutral/30 bg-white p-6">
-              <h2 className="text-base font-semibold text-primary">
-                Atalhos
-              </h2>
-
-              <p className="mt-1 text-sm leading-6 text-neutral">
-                Acesse áreas relacionadas ao fluxo do coordenador.
-              </p>
-
-              <div className="mt-5 space-y-2">
-                <Link
-                  to="/coordenador/projetos"
-                  className="flex items-center justify-between rounded-xl border border-neutral/20 bg-white px-4 py-3 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <FolderKanban size={16} />
-                    Projetos
-                  </span>
-                  <ArrowUpRight size={15} />
-                </Link>
-
-                <Link
-                  to="/coordenador/avaliacoes"
-                  className="flex items-center justify-between rounded-xl border border-neutral/20 bg-white px-4 py-3 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <ClipboardList size={16} />
-                    Avaliações
-                  </span>
-                  <ArrowUpRight size={15} />
-                </Link>
-
-                <Link
-                  to="/coordenador/relatorios"
-                  className="flex items-center justify-between rounded-xl border border-neutral/20 bg-white px-4 py-3 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <GraduationCap size={16} />
-                    Relatórios
-                  </span>
-                  <ArrowUpRight size={15} />
-                </Link>
-              </div>
             </section>
           </aside>
         </section>
@@ -1094,11 +1130,13 @@ function MiniInfo({ label, value }: { label: string; value: string }) {
   )
 }
 
-function SelectedStudentCard({ student }: { student?: Student }) {
-  if (!student) {
-    return null
-  }
-
+function SelectedStudentCard({
+  name,
+  registration,
+}: {
+  name: string
+  registration: string
+}) {
   return (
     <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
       <div className="flex items-start gap-3">
@@ -1106,22 +1144,15 @@ function SelectedStudentCard({ student }: { student?: Student }) {
           <UserRound size={18} />
         </div>
 
-        <div>
+        <div className="w-full">
           <p className="text-sm font-semibold text-primary">
-            {student.name}
+            Dados do discente
           </p>
 
-          <p className="mt-1 text-xs leading-5 text-neutral">
-            Matrícula {student.registration}
-          </p>
-
-          <p className="mt-1 text-xs leading-5 text-neutral">
-            {student.course} • {student.semester}
-          </p>
-
-          <p className="mt-1 text-xs leading-5 text-neutral">
-            CRA {student.cra} • {student.email}
-          </p>
+          <div className="mt-3 grid grid-cols-1 gap-3">
+            <MiniInfo label="Nome" value={name || "Não informado"} />
+            <MiniInfo label="Matrícula" value={registration || "Não informado"} />
+          </div>
         </div>
       </div>
     </div>

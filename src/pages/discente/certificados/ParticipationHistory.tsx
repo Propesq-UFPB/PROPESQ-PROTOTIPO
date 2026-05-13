@@ -1,7 +1,6 @@
 import React from "react"
 import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
-import Card from "@/components/Card"
 import {
   Award,
   FileText,
@@ -85,8 +84,7 @@ const PARTICIPATIONS: ParticipationItem[] = [
     tipo: "ENIC",
     status: "CONCLUIDA",
     planoTrabalhoId: "3",
-    planoTrabalhoTitulo:
-      "Ambiente Web para Apoio à Submissão ENIC",
+    planoTrabalhoTitulo: "Ambiente Web para Apoio à Submissão ENIC",
     declaracaoId: "decl_003",
     referencia: "ENIC 2025",
     periodo: "20/08/2025",
@@ -118,8 +116,7 @@ const PARTICIPATIONS: ParticipationItem[] = [
     tipo: "EXTENSAO",
     status: "INDEFERIDA",
     planoTrabalhoId: "5",
-    planoTrabalhoTitulo:
-      "Repositório Digital para Produção Discente",
+    planoTrabalhoTitulo: "Repositório Digital para Produção Discente",
     referencia: "PROBEX 2024",
     periodo: "10/08/2024 a 15/10/2024",
     resumo:
@@ -202,24 +199,22 @@ export default function ParticipationDeclaration() {
         <title>Declaração de Participação • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        {/* HEADER */}
-        <header className="rounded-2xl border border-neutral/20 bg-white px-6 py-6">
+      <div className="mx-auto w-full max-w-7xl px-6 py-6">
+        <div className="space-y-6">
+          {/* HEADER */}
+          <header className="w-full rounded-2xl border border-neutral/30 bg-white px-6 py-6">
             <h1 className="text-2xl font-bold text-primary">
               Declaração de Participação
             </h1>
+
             <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
               Consulte suas declarações de participação emitidas a partir dos
               planos de trabalho vinculados ao seu perfil acadêmico.
             </p>
-        </header>
+          </header>
 
-        {/* LISTA */}
-        <section>
-          <Card
-            title={undefined}
-            className="bg-white border border-neutral/30 rounded-2xl p-8"
-          >
+          {/* LISTA */}
+          <section className="w-full rounded-2xl border border-neutral/30 bg-white px-6 py-6">
             {PARTICIPATIONS.length === 0 ? (
               <div className="rounded-2xl border border-neutral/20 bg-neutral/5 px-4 py-8 text-center">
                 <div className="text-base font-semibold text-primary">
@@ -236,7 +231,7 @@ export default function ParticipationDeclaration() {
                 {PARTICIPATIONS.map((item) => (
                   <article
                     key={item.id}
-                    className="rounded-2xl border border-neutral/20 p-5"
+                    className="rounded-2xl border border-neutral/20 bg-white p-5"
                   >
                     <div className="flex flex-col gap-4">
                       {/* TOPO */}
@@ -280,12 +275,12 @@ export default function ParticipationDeclaration() {
                             )}
                           </div>
 
-                          <p className="text-sm text-neutral leading-6">
+                          <p className="text-sm leading-6 text-neutral">
                             {item.resumo}
                           </p>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row xl:flex-col gap-2 xl:min-w-[220px]">
+                        <div className="flex flex-col gap-2 sm:flex-row xl:min-w-[220px] xl:flex-col">
                           {item.planoTrabalhoId && (
                             <Link
                               to={`/discente/planos-disponiveis/${item.planoTrabalhoId}`}
@@ -293,7 +288,7 @@ export default function ParticipationDeclaration() {
                                 inline-flex items-center justify-center gap-2
                                 rounded-xl border border-primary
                                 px-4 py-3 text-sm font-medium text-primary
-                                hover:bg-primary/5 transition
+                                transition hover:bg-primary/5
                               "
                             >
                               <Eye size={16} />
@@ -308,7 +303,7 @@ export default function ParticipationDeclaration() {
                               inline-flex items-center justify-center gap-2
                               rounded-xl bg-primary px-4 py-3
                               text-sm font-semibold text-white
-                              hover:opacity-90 transition
+                              transition hover:opacity-90
                               disabled:opacity-50
                             "
                           >
@@ -319,7 +314,7 @@ export default function ParticipationDeclaration() {
                       </div>
 
                       {/* META */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
+                      <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 xl:grid-cols-4">
                         <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
                           <div className="flex items-center gap-2 text-neutral">
                             <ClipboardList size={15} />
@@ -371,7 +366,7 @@ export default function ParticipationDeclaration() {
                           <div className="flex items-start gap-2">
                             <AlertTriangle
                               size={16}
-                              className="mt-0.5 text-warning shrink-0"
+                              className="mt-0.5 shrink-0 text-warning"
                             />
 
                             <div>
@@ -388,8 +383,8 @@ export default function ParticipationDeclaration() {
                 ))}
               </div>
             )}
-          </Card>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,5 @@
 import React from "react"
 import { Helmet } from "react-helmet"
-import Card from "@/components/Card"
 import {
   Award,
   BadgeCheck,
@@ -79,8 +78,7 @@ const CERTIFICATES: StudentCertificate[] = [
     referencia: "ENIC 2025",
     periodo: "20/08/2025",
     emitidoEm: "30/08/2025",
-    resumo:
-      "Certificado de apresentação de trabalho acadêmico no ENIC 2025.",
+    resumo: "Certificado de apresentação de trabalho acadêmico no ENIC 2025.",
     possuiPendencia: false,
   },
 ]
@@ -156,23 +154,20 @@ export default function CertificatesList() {
         <title>Certificados • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        {/* HEADER */}
-       <header className="rounded-2xl border border-neutral/20 bg-white px-6 py-6">
-          <h1 className="text-2xl font-bold text-primary">
-            Certificados
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
-            Consulte certificados emitidos, documentos em processamento e pendências relacionadas à sua participação acadêmica.
-          </p>
-       </header>
+      <div className="mx-auto w-full max-w-7xl px-6 py-6">
+        <div className="space-y-6">
+          {/* HEADER */}
+          <header className="w-full rounded-2xl border border-neutral/30 bg-white px-6 py-6">
+            <h1 className="text-2xl font-bold text-primary">Certificados</h1>
 
-        {/* LISTA */}
-        <section>
-          <Card
-            title={undefined}
-            className="bg-white border border-neutral/30 rounded-2xl p-8"
-          >
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
+              Consulte certificados emitidos, documentos em processamento e
+              pendências relacionadas à sua participação acadêmica.
+            </p>
+          </header>
+
+          {/* LISTA */}
+          <section className="w-full rounded-2xl border border-neutral/30 bg-white px-6 py-6">
             {CERTIFICATES.length === 0 ? (
               <div className="rounded-2xl border border-neutral/20 bg-neutral/5 px-4 py-8 text-center">
                 <div className="text-base font-semibold text-primary">
@@ -180,7 +175,8 @@ export default function CertificatesList() {
                 </div>
 
                 <p className="mt-1 text-sm text-neutral">
-                  Quando houver certificados vinculados ao seu perfil, eles aparecerão nesta página.
+                  Quando houver certificados vinculados ao seu perfil, eles
+                  aparecerão nesta página.
                 </p>
               </div>
             ) : (
@@ -188,7 +184,7 @@ export default function CertificatesList() {
                 {CERTIFICATES.map((item) => (
                   <article
                     key={item.id}
-                    className="rounded-2xl border border-neutral/20 p-5"
+                    className="rounded-2xl border border-neutral/20 bg-white p-5"
                   >
                     <div className="flex flex-col gap-4">
                       {/* TOPO */}
@@ -225,12 +221,12 @@ export default function CertificatesList() {
                             </span>
                           </div>
 
-                          <p className="text-sm text-neutral leading-6">
+                          <p className="text-sm leading-6 text-neutral">
                             {item.resumo}
                           </p>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row xl:flex-col gap-2 xl:min-w-[210px]">
+                        <div className="flex flex-col gap-2 sm:flex-row xl:min-w-[210px] xl:flex-col">
                           <button
                             type="button"
                             disabled={item.status !== "DISPONIVEL"}
@@ -238,7 +234,7 @@ export default function CertificatesList() {
                               inline-flex items-center justify-center gap-2
                               rounded-xl bg-primary px-4 py-3
                               text-sm font-semibold text-white
-                              hover:opacity-90 transition
+                              transition hover:opacity-90
                               disabled:opacity-50
                             "
                           >
@@ -249,7 +245,7 @@ export default function CertificatesList() {
                       </div>
 
                       {/* META */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
+                      <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 xl:grid-cols-4">
                         <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
                           <div className="flex items-center gap-2 text-neutral">
                             <FolderKanban size={15} />
@@ -301,7 +297,7 @@ export default function CertificatesList() {
                           <div className="flex items-start gap-2">
                             <AlertTriangle
                               size={16}
-                              className="mt-0.5 text-warning shrink-0"
+                              className="mt-0.5 shrink-0 text-warning"
                             />
 
                             <div>
@@ -318,8 +314,8 @@ export default function CertificatesList() {
                 ))}
               </div>
             )}
-          </Card>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   )

@@ -8,10 +8,8 @@ import {
   Send,
   FileText,
   FolderKanban,
-  CalendarDays,
   AlertTriangle,
   CheckCircle2,
-  Presentation,
   Upload,
 } from "lucide-react"
 
@@ -145,62 +143,22 @@ function getStatusClasses(status: EnicStatus) {
 function validateForm(data: FormData): FormErrors {
   const errors: FormErrors = {}
 
-  if (!data.titulo.trim()) {
-    errors.titulo = "Informe o título."
-  }
-
-  if (!data.projetoId.trim()) {
-    errors.projetoId = "Selecione um projeto vinculado."
-  }
-
+  if (!data.titulo.trim()) errors.titulo = "Informe o título."
+  if (!data.projetoId.trim()) errors.projetoId = "Selecione um projeto vinculado."
   if (!data.modalidadeApresentacao.trim()) {
-    errors.modalidadeApresentacao =
-      "Selecione a indicação de modalidade."
+    errors.modalidadeApresentacao = "Selecione a indicação de modalidade."
   }
-
-  if (!data.resumo.trim()) {
-    errors.resumo = "Informe o resumo."
-  }
-
-  if (!data.palavrasChave.trim()) {
-    errors.palavrasChave = "Informe as palavras-chave."
-  }
-
-  if (!data.title.trim()) {
-    errors.title = "Informe o title."
-  }
-
-  if (!data.abstract.trim()) {
-    errors.abstract = "Informe o abstract."
-  }
-
-  if (!data.keywords.trim()) {
-    errors.keywords = "Informe as keywords."
-  }
-
-  if (!data.introducao.trim()) {
-    errors.introducao = "Informe a introdução."
-  }
-
-  if (!data.metodologia.trim()) {
-    errors.metodologia = "Informe a metodologia."
-  }
-
-  if (!data.resultados.trim()) {
-    errors.resultados = "Informe os resultados."
-  }
-
-  if (!data.conclusoes.trim()) {
-    errors.conclusoes = "Informe as conclusões."
-  }
-
-  if (!data.referencias.trim()) {
-    errors.referencias = "Informe as referências."
-  }
-
-  if (!data.anexoPdf) {
-    errors.anexoPdf = "Anexe o arquivo em PDF."
-  }
+  if (!data.resumo.trim()) errors.resumo = "Informe o resumo."
+  if (!data.palavrasChave.trim()) errors.palavrasChave = "Informe as palavras-chave."
+  if (!data.title.trim()) errors.title = "Informe o title."
+  if (!data.abstract.trim()) errors.abstract = "Informe o abstract."
+  if (!data.keywords.trim()) errors.keywords = "Informe as keywords."
+  if (!data.introducao.trim()) errors.introducao = "Informe a introdução."
+  if (!data.metodologia.trim()) errors.metodologia = "Informe a metodologia."
+  if (!data.resultados.trim()) errors.resultados = "Informe os resultados."
+  if (!data.conclusoes.trim()) errors.conclusoes = "Informe as conclusões."
+  if (!data.referencias.trim()) errors.referencias = "Informe as referências."
+  if (!data.anexoPdf) errors.anexoPdf = "Anexe o arquivo em PDF."
 
   if (!data.aceiteInformacoes) {
     errors.aceiteInformacoes =
@@ -235,28 +193,6 @@ export default function EnicSubmissionForm() {
   const selectedProject = useMemo(() => {
     return AVAILABLE_PROJECTS.find((project) => project.id === form.projetoId)
   }, [form.projetoId])
-
-  const progress = useMemo(() => {
-    const fields = [
-      form.titulo,
-      form.projetoId,
-      form.modalidadeApresentacao,
-      form.resumo,
-      form.palavrasChave,
-      form.title,
-      form.abstract,
-      form.keywords,
-      form.introducao,
-      form.metodologia,
-      form.resultados,
-      form.conclusoes,
-      form.referencias,
-      form.anexoPdf ? "ok" : "",
-    ]
-
-    const filled = fields.filter((value) => value.trim().length > 0).length
-    return Math.round((filled / fields.length) * 100)
-  }, [form])
 
   function updateField<K extends keyof FormData>(field: K, value: FormData[K]) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -300,529 +236,493 @@ export default function EnicSubmissionForm() {
         <title>Submissão ENIC • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        <header className="flex flex-col gap-3">
+      <div className="mx-auto w-full max-w-7xl px-6 py-6">
+        <div className="space-y-6">
+          {/* BOTÃO VOLTAR */}
           <div className="flex items-center justify-between">
             <Link
               to="/discente/enic/submissions"
-              className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
             >
               <ArrowLeft size={16} />
               Voltar para submissões
             </Link>
           </div>
 
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                    draft.status
-                  )}`}
-                >
-                  <FileText size={14} />
-                  {getStatusLabel(draft.status)}
-                </span>
+          {/* HEADER */}
+          <header className="w-full rounded-2xl border border-neutral/30 bg-white px-6 py-6">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                      draft.status
+                    )}`}
+                  >
+                    <FileText size={14} />
+                    {getStatusLabel(draft.status)}
+                  </span>
 
-                <span className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                  {draft.evento}
-                </span>
-              </div>
+                  <span className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                    {draft.evento}
+                  </span>
+                </div>
 
-              <h1 className="text-2xl font-bold text-primary">
-                {draft.id === "novo" ? "Nova submissão ENIC" : draft.titulo}
-              </h1>
+                <h1 className="text-2xl font-bold text-primary">
+                  {draft.id === "novo" ? "Nova submissão ENIC" : draft.titulo}
+                </h1>
 
-              <p className="text-base text-neutral leading-7 max-w-4xl">
-                Preencha os campos obrigatórios do trabalho e anexe o PDF para realizar a submissão.
-              </p>
-            </div>
-          </div>
-        </header>
-
-        {draft.observacao && (
-          <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4 text-sm text-neutral">
-            <div className="flex items-start gap-2">
-              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
-              <div>
-                <span className="font-semibold text-warning">
-                  Observação da submissão anterior:
-                </span>{" "}
-                {draft.observacao}
+                <p className="max-w-4xl text-sm leading-6 text-neutral">
+                  Preencha os campos obrigatórios do trabalho e anexe o PDF para
+                  realizar a submissão.
+                </p>
               </div>
             </div>
-          </div>
-        )}
+          </header>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <Presentation size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Evento</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {draft.evento}
+          {/* OBSERVAÇÃO */}
+          {draft.observacao && (
+            <div className="w-full rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4 text-sm text-neutral">
+              <div className="flex items-start gap-2">
+                <AlertTriangle
+                  size={16}
+                  className="mt-0.5 shrink-0 text-warning"
+                />
+                <div>
+                  <span className="font-semibold text-warning">
+                    Observação da submissão anterior:
+                  </span>{" "}
+                  {draft.observacao}
                 </div>
               </div>
             </div>
-          </Card>
+          )}
 
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
-            <div className="flex items-start gap-3">
-              <CalendarDays size={20} className="text-primary" />
-              <div>
-                <div className="text-sm text-neutral">Prazo</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {draft.prazo}
-                </div>
+          {/* CONTEÚDO */}
+          <section className="w-full rounded-2xl border border-neutral/30 bg-white p-6">
+            <div className="grid w-full grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,0.9fr)]">
+              <div className="min-w-0">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="rounded-2xl border border-neutral/30 bg-white p-6">
+                    <h2 className="mb-5 text-sm font-semibold text-primary">
+                      Dados da submissão
+                    </h2>
+
+                    <div className="space-y-5">
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Título *
+                        </label>
+                        <input
+                          type="text"
+                          value={form.titulo}
+                          onChange={(e) => updateField("titulo", e.target.value)}
+                          className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Digite o título"
+                        />
+                        {errors.titulo && (
+                          <p className="mt-1 text-xs text-danger">{errors.titulo}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Projeto vinculado *
+                        </label>
+                        <select
+                          value={form.projetoId}
+                          onChange={(e) => updateField("projetoId", e.target.value)}
+                          className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                        >
+                          <option value="">Selecione um projeto</option>
+                          {AVAILABLE_PROJECTS.map((project) => (
+                            <option key={project.id} value={project.id}>
+                              {project.titulo}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.projetoId && (
+                          <p className="mt-1 text-xs text-danger">{errors.projetoId}</p>
+                        )}
+                      </div>
+
+                      {selectedProject && (
+                        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm">
+                          <div className="font-semibold text-primary">
+                            Projeto selecionado
+                          </div>
+
+                          <div className="mt-2 space-y-1 text-neutral">
+                            <p>
+                              <span className="font-medium text-primary">Projeto:</span>{" "}
+                              {selectedProject.titulo}
+                            </p>
+                            <p>
+                              <span className="font-medium text-primary">
+                                Orientador(a):
+                              </span>{" "}
+                              {selectedProject.orientador}
+                            </p>
+                            <p>
+                              <span className="font-medium text-primary">Edital:</span>{" "}
+                              {selectedProject.edital}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Resumo *
+                        </label>
+                        <textarea
+                          value={form.resumo}
+                          onChange={(e) => updateField("resumo", e.target.value)}
+                          rows={5}
+                          className="w-full resize-none rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Digite o resumo"
+                        />
+                        {errors.resumo && (
+                          <p className="mt-1 text-xs text-danger">{errors.resumo}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Palavras-Chave *
+                        </label>
+                        <input
+                          type="text"
+                          value={form.palavrasChave}
+                          onChange={(e) => updateField("palavrasChave", e.target.value)}
+                          className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Ex.: acessibilidade, pesquisa, inovação"
+                        />
+                        {errors.palavrasChave && (
+                          <p className="mt-1 text-xs text-danger">
+                            {errors.palavrasChave}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Title *
+                        </label>
+                        <input
+                          type="text"
+                          value={form.title}
+                          onChange={(e) => updateField("title", e.target.value)}
+                          className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Enter the title in English"
+                        />
+                        {errors.title && (
+                          <p className="mt-1 text-xs text-danger">{errors.title}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Abstract *
+                        </label>
+                        <textarea
+                          value={form.abstract}
+                          onChange={(e) => updateField("abstract", e.target.value)}
+                          rows={5}
+                          className="w-full resize-none rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Enter the abstract in English"
+                        />
+                        {errors.abstract && (
+                          <p className="mt-1 text-xs text-danger">{errors.abstract}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Keywords *
+                        </label>
+                        <input
+                          type="text"
+                          value={form.keywords}
+                          onChange={(e) => updateField("keywords", e.target.value)}
+                          className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Ex.: research, innovation, technology"
+                        />
+                        {errors.keywords && (
+                          <p className="mt-1 text-xs text-danger">{errors.keywords}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Introdução *
+                        </label>
+                        <textarea
+                          value={form.introducao}
+                          onChange={(e) => updateField("introducao", e.target.value)}
+                          rows={5}
+                          className="w-full resize-none rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Descreva a introdução"
+                        />
+                        {errors.introducao && (
+                          <p className="mt-1 text-xs text-danger">{errors.introducao}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Metodologia *
+                        </label>
+                        <textarea
+                          value={form.metodologia}
+                          onChange={(e) => updateField("metodologia", e.target.value)}
+                          rows={5}
+                          className="w-full resize-none rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Descreva a metodologia"
+                        />
+                        {errors.metodologia && (
+                          <p className="mt-1 text-xs text-danger">{errors.metodologia}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Resultados *
+                        </label>
+                        <textarea
+                          value={form.resultados}
+                          onChange={(e) => updateField("resultados", e.target.value)}
+                          rows={5}
+                          className="w-full resize-none rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Descreva os resultados"
+                        />
+                        {errors.resultados && (
+                          <p className="mt-1 text-xs text-danger">{errors.resultados}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Conclusões *
+                        </label>
+                        <textarea
+                          value={form.conclusoes}
+                          onChange={(e) => updateField("conclusoes", e.target.value)}
+                          rows={5}
+                          className="w-full resize-none rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Descreva as conclusões"
+                        />
+                        {errors.conclusoes && (
+                          <p className="mt-1 text-xs text-danger">{errors.conclusoes}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-primary">
+                          Referências *
+                        </label>
+                        <textarea
+                          value={form.referencias}
+                          onChange={(e) => updateField("referencias", e.target.value)}
+                          rows={5}
+                          className="w-full resize-none rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          placeholder="Informe as referências bibliográficas"
+                        />
+                        {errors.referencias && (
+                          <p className="mt-1 text-xs text-danger">{errors.referencias}</p>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                        <div>
+                          <label className="mb-1.5 block text-sm font-medium text-primary">
+                            Anexo PDF *
+                          </label>
+                          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-neutral/30 bg-white px-4 py-3 text-sm text-neutral transition hover:border-primary/40">
+                            <Upload size={16} className="text-primary" />
+                            <span>
+                              {form.anexoPdf
+                                ? form.anexoPdf.name
+                                : "Selecionar arquivo PDF"}
+                            </span>
+                            <input
+                              type="file"
+                              accept="application/pdf"
+                              className="hidden"
+                              onChange={(e) =>
+                                updateField("anexoPdf", e.target.files?.[0] ?? null)
+                              }
+                            />
+                          </label>
+                          {errors.anexoPdf && (
+                            <p className="mt-1 text-xs text-danger">{errors.anexoPdf}</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="mb-1.5 block text-sm font-medium text-primary">
+                            Indicação de modalidade *
+                          </label>
+                          <select
+                            value={form.modalidadeApresentacao}
+                            onChange={(e) =>
+                              updateField("modalidadeApresentacao", e.target.value)
+                            }
+                            className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                          >
+                            <option value="">Selecione</option>
+                            <option value="ORAL">Oral</option>
+                            <option value="POSTER">Pôster</option>
+                          </select>
+                          {errors.modalidadeApresentacao && (
+                            <p className="mt-1 text-xs text-danger">
+                              {errors.modalidadeApresentacao}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="flex items-start gap-3 text-sm text-primary">
+                          <input
+                            type="checkbox"
+                            checked={form.aceiteInformacoes}
+                            onChange={(e) =>
+                              updateField("aceiteInformacoes", e.target.checked)
+                            }
+                            className="mt-0.5 h-4 w-4 rounded border-neutral/40"
+                          />
+                          <span>
+                            Declaro que as informações da submissão são verdadeiras e
+                            atendem às exigências do evento.
+                          </span>
+                        </label>
+                        {errors.aceiteInformacoes && (
+                          <p className="mt-1 text-xs text-danger">
+                            {errors.aceiteInformacoes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {(successMessage || Object.keys(errors).length > 0) && (
+                    <div className="space-y-2">
+                      {successMessage && (
+                        <div
+                          className={`rounded-2xl px-4 py-3 text-sm font-medium ${
+                            successType === "submit"
+                              ? "border border-success/30 bg-success/10 text-success"
+                              : "border border-primary/30 bg-primary/10 text-primary"
+                          }`}
+                        >
+                          {successMessage}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+                    <Link
+                      to="/discente/enic"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/30 px-4 py-3 text-sm font-medium text-neutral transition hover:bg-neutral/5"
+                    >
+                      Cancelar
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={saving || submitting}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary/5 disabled:opacity-60"
+                    >
+                      <Save size={16} />
+                      {saving ? "Salvando..." : "Salvar rascunho"}
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={saving || submitting}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+                    >
+                      <Send size={16} />
+                      {submitting ? "Enviando..." : "Submeter trabalho"}
+                    </button>
+                  </div>
+                </form>
               </div>
-            </div>
-          </Card>
-        </section>
 
-        <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-          <div className="xl:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <Card
-                title={
-                  <h2 className="text-sm font-semibold text-primary">
+              <aside className="min-w-0 space-y-6">
+                <div className="rounded-2xl border border-neutral/30 bg-white p-6">
+                  <h2 className="mb-5 text-sm font-semibold text-primary">
+                    Orientações
+                  </h2>
+
+                  <ul className="space-y-4 text-sm leading-6 text-neutral">
+                    <li>
+                      Verifique se o PDF anexado corresponde à versão final do trabalho.
+                    </li>
+                    <li>
+                      Revise introdução, metodologia, resultados e conclusões antes da
+                      submissão.
+                    </li>
+                    <li>Confirme a modalidade desejada para apresentação.</li>
+                  </ul>
+                </div>
+
+                <div className="rounded-2xl border border-neutral/30 bg-white p-6">
+                  <h2 className="mb-5 text-sm font-semibold text-primary">
                     Dados da submissão
                   </h2>
-                }
-                className="bg-white border border-neutral/30 rounded-2xl p-8"
-              >
-                <div className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Título *
-                    </label>
-                    <input
-                      type="text"
-                      value={form.titulo}
-                      onChange={(e) => updateField("titulo", e.target.value)}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
-                      placeholder="Digite o título"
-                    />
-                    {errors.titulo && (
-                      <p className="mt-1 text-xs text-danger">{errors.titulo}</p>
-                    )}
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Projeto vinculado *
-                    </label>
-                    <select
-                      value={form.projetoId}
-                      onChange={(e) => updateField("projetoId", e.target.value)}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
-                    >
-                      <option value="">Selecione um projeto</option>
-                      {AVAILABLE_PROJECTS.map((project) => (
-                        <option key={project.id} value={project.id}>
-                          {project.titulo}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.projetoId && (
-                      <p className="mt-1 text-xs text-danger">{errors.projetoId}</p>
-                    )}
-                  </div>
-
-                  {selectedProject && (
-                    <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm">
-                      <div className="font-semibold text-primary">
-                        Projeto selecionado
-                      </div>
-                      <div className="mt-2 space-y-1 text-neutral">
-                        <p>
-                          <span className="font-medium text-primary">Projeto:</span>{" "}
-                          {selectedProject.titulo}
-                        </p>
-                        <p>
-                          <span className="font-medium text-primary">Orientador(a):</span>{" "}
-                          {selectedProject.orientador}
-                        </p>
-                        <p>
-                          <span className="font-medium text-primary">Edital:</span>{" "}
-                          {selectedProject.edital}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Resumo *
-                    </label>
-                    <textarea
-                      value={form.resumo}
-                      onChange={(e) => updateField("resumo", e.target.value)}
-                      rows={5}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
-                      placeholder="Digite o resumo"
-                    />
-                    {errors.resumo && (
-                      <p className="mt-1 text-xs text-danger">{errors.resumo}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Palavras-Chave *
-                    </label>
-                    <input
-                      type="text"
-                      value={form.palavrasChave}
-                      onChange={(e) =>
-                        updateField("palavrasChave", e.target.value)
-                      }
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
-                      placeholder="Ex.: acessibilidade, pesquisa, inovação"
-                    />
-                    {errors.palavrasChave && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.palavrasChave}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Title *
-                    </label>
-                    <input
-                      type="text"
-                      value={form.title}
-                      onChange={(e) => updateField("title", e.target.value)}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
-                      placeholder="Enter the title in English"
-                    />
-                    {errors.title && (
-                      <p className="mt-1 text-xs text-danger">{errors.title}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Abstract *
-                    </label>
-                    <textarea
-                      value={form.abstract}
-                      onChange={(e) => updateField("abstract", e.target.value)}
-                      rows={5}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
-                      placeholder="Enter the abstract in English"
-                    />
-                    {errors.abstract && (
-                      <p className="mt-1 text-xs text-danger">{errors.abstract}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Keywords *
-                    </label>
-                    <input
-                      type="text"
-                      value={form.keywords}
-                      onChange={(e) => updateField("keywords", e.target.value)}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
-                      placeholder="Ex.: research, innovation, technology"
-                    />
-                    {errors.keywords && (
-                      <p className="mt-1 text-xs text-danger">{errors.keywords}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Introdução *
-                    </label>
-                    <textarea
-                      value={form.introducao}
-                      onChange={(e) => updateField("introducao", e.target.value)}
-                      rows={5}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
-                      placeholder="Descreva a introdução"
-                    />
-                    {errors.introducao && (
-                      <p className="mt-1 text-xs text-danger">{errors.introducao}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Metodologia *
-                    </label>
-                    <textarea
-                      value={form.metodologia}
-                      onChange={(e) => updateField("metodologia", e.target.value)}
-                      rows={5}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
-                      placeholder="Descreva a metodologia"
-                    />
-                    {errors.metodologia && (
-                      <p className="mt-1 text-xs text-danger">{errors.metodologia}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Resultados *
-                    </label>
-                    <textarea
-                      value={form.resultados}
-                      onChange={(e) => updateField("resultados", e.target.value)}
-                      rows={5}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
-                      placeholder="Descreva os resultados"
-                    />
-                    {errors.resultados && (
-                      <p className="mt-1 text-xs text-danger">{errors.resultados}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Conclusões *
-                    </label>
-                    <textarea
-                      value={form.conclusoes}
-                      onChange={(e) => updateField("conclusoes", e.target.value)}
-                      rows={5}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
-                      placeholder="Descreva as conclusões"
-                    />
-                    {errors.conclusoes && (
-                      <p className="mt-1 text-xs text-danger">{errors.conclusoes}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Referências *
-                    </label>
-                    <textarea
-                      value={form.referencias}
-                      onChange={(e) => updateField("referencias", e.target.value)}
-                      rows={5}
-                      className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary resize-none"
-                      placeholder="Informe as referências bibliográficas"
-                    />
-                    {errors.referencias && (
-                      <p className="mt-1 text-xs text-danger">{errors.referencias}</p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-4 text-sm">
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1.5">
-                        Anexo (PDF) *
-                      </label>
-                      <label className="flex items-center gap-3 rounded-xl border border-dashed border-neutral/30 bg-white px-4 py-3 text-sm text-neutral cursor-pointer hover:border-primary/40 transition">
-                        <Upload size={16} className="text-primary" />
-                        <span>
-                          {form.anexoPdf ? form.anexoPdf.name : "Selecionar arquivo PDF"}
-                        </span>
-                        <input
-                          type="file"
-                          accept="application/pdf"
-                          className="hidden"
-                          onChange={(e) =>
-                            updateField("anexoPdf", e.target.files?.[0] ?? null)
-                          }
-                        />
-                      </label>
-                      {errors.anexoPdf && (
-                        <p className="mt-1 text-xs text-danger">{errors.anexoPdf}</p>
-                      )}
+                      <div className="text-neutral">Evento</div>
+                      <div className="mt-1 font-medium text-primary">{draft.evento}</div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1.5">
-                        Indicação de modalidade *
-                      </label>
-                      <select
-                        value={form.modalidadeApresentacao}
-                        onChange={(e) =>
-                          updateField("modalidadeApresentacao", e.target.value)
-                        }
-                        className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
-                      >
-                        <option value="">Selecione</option>
-                        <option value="ORAL">Oral</option>
-                        <option value="POSTER">Pôster</option>
-                      </select>
-                      {errors.modalidadeApresentacao && (
-                        <p className="mt-1 text-xs text-danger">
-                          {errors.modalidadeApresentacao}
-                        </p>
-                      )}
+                      <div className="text-neutral">Prazo final</div>
+                      <div className="mt-1 font-medium text-primary">{draft.prazo}</div>
+                    </div>
+
+                    <div>
+                      <div className="text-neutral">Status</div>
+                      <div className="mt-1 font-medium text-primary">
+                        {getStatusLabel(draft.status)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-neutral">Edital vinculado</div>
+                      <div className="mt-1 font-medium text-primary">
+                        {selectedProject?.edital || draft.edital}
+                      </div>
                     </div>
                   </div>
-
-                  <div>
-                    <label className="flex items-start gap-3 text-sm text-primary">
-                      <input
-                        type="checkbox"
-                        checked={form.aceiteInformacoes}
-                        onChange={(e) =>
-                          updateField("aceiteInformacoes", e.target.checked)
-                        }
-                        className="mt-0.5 h-4 w-4 rounded border-neutral/40"
-                      />
-                      <span>
-                        Declaro que as informações da submissão são verdadeiras e
-                        atendem às exigências do evento.
-                      </span>
-                    </label>
-                    {errors.aceiteInformacoes && (
-                      <p className="mt-1 text-xs text-danger">
-                        {errors.aceiteInformacoes}
-                      </p>
-                    )}
-                  </div>
                 </div>
-              </Card>
 
-              {(successMessage || Object.keys(errors).length > 0) && (
-                <div className="space-y-2">
-                  {successMessage && (
-                    <div
-                      className={`rounded-2xl px-4 py-3 text-sm font-medium ${
-                        successType === "submit"
-                          ? "border border-success/30 bg-success/10 text-success"
-                          : "border border-primary/30 bg-primary/10 text-primary"
-                      }`}
-                    >
-                      {successMessage}
+                <div className="rounded-2xl border border-neutral/30 bg-white p-6">
+                  <h2 className="mb-5 text-sm font-semibold text-primary">
+                    Recomendações
+                  </h2>
+
+                  <div className="space-y-4 text-sm text-neutral">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 size={16} className="mt-0.5 text-success" />
+                      <span>Salve o rascunho durante o preenchimento.</span>
                     </div>
-                  )}
-                </div>
-              )}
 
-              <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
-                <Link
-                  to="/discente/enic"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/30 px-4 py-3 text-sm font-medium text-neutral hover:bg-neutral/5 transition"
-                >
-                  Cancelar
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={saving || submitting}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary hover:bg-primary/5 transition disabled:opacity-60"
-                >
-                  <Save size={16} />
-                  {saving ? "Salvando..." : "Salvar rascunho"}
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={saving || submitting}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-60"
-                >
-                  <Send size={16} />
-                  {submitting ? "Enviando..." : "Submeter trabalho"}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div className="space-y-5">
-            <Card
-              title={
-                <h2 className="text-sm font-semibold text-primary">
-                  Orientações
-                </h2>
-              }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
-            >
-              <ul className="space-y-3 text-sm text-neutral">
-                <li className="leading-6">
-                  Preencha os campos em português e inglês com consistência.
-                </li>
-                <li className="leading-6">
-                  Verifique se o PDF anexado corresponde à versão final do trabalho.
-                </li>
-                <li className="leading-6">
-                  Revise introdução, metodologia, resultados e conclusões antes da submissão.
-                </li>
-                <li className="leading-6">
-                  Confirme a modalidade desejada para apresentação.
-                </li>
-              </ul>
-            </Card>
-
-            <Card
-              title={
-                <h2 className="text-sm font-semibold text-primary">
-                  Dados da submissão
-                </h2>
-              }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
-            >
-              <div className="space-y-4 text-sm">
-                <div>
-                  <div className="text-neutral">Evento</div>
-                  <div className="mt-1 font-medium text-primary">
-                    {draft.evento}
+                    <div className="flex items-start gap-3">
+                      <FolderKanban size={16} className="mt-0.5 text-primary" />
+                      <span>Garanta aderência do trabalho ao projeto vinculado.</span>
+                    </div>
                   </div>
                 </div>
-
-                <div>
-                  <div className="text-neutral">Prazo final</div>
-                  <div className="mt-1 font-medium text-primary">
-                    {draft.prazo}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-neutral">Status</div>
-                  <div className="mt-1 font-medium text-primary">
-                    {getStatusLabel(draft.status)}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-neutral">Edital vinculado</div>
-                  <div className="mt-1 font-medium text-primary">
-                    {selectedProject?.edital || draft.edital}
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <Card
-              title={
-                <h2 className="text-sm font-semibold text-primary">
-                  Recomendações
-                </h2>
-              }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
-            >
-              <div className="space-y-3 text-sm text-neutral">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 size={16} className="mt-0.5 text-success" />
-                  <span>Salve o rascunho durante o preenchimento.</span>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 size={16} className="mt-0.5 text-success" />
-                  <span>Revise a versão em português e em inglês.</span>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <FolderKanban size={16} className="mt-0.5 text-primary" />
-                  <span>Garanta aderência do trabalho ao projeto vinculado.</span>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </section>
+              </aside>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   )

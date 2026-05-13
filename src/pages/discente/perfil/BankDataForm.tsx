@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
-import Card from "@/components/Card"
 import { ArrowLeft, Landmark, Save } from "lucide-react"
 
 type AccountType = "corrente" | "poupanca" | "pagamento"
@@ -45,11 +44,16 @@ function validateForm(data: FormData): FormErrors {
   const errors: FormErrors = {}
 
   if (!data.banco.trim()) errors.banco = "Informe o banco."
+
   if (!data.agencia.trim()) errors.agencia = "Informe a agência."
-  else if (onlyDigits(data.agencia).length < 3) errors.agencia = "Informe uma agência válida."
+  else if (onlyDigits(data.agencia).length < 3) {
+    errors.agencia = "Informe uma agência válida."
+  }
 
   if (!data.conta.trim()) errors.conta = "Informe o número da conta."
-  else if (onlyDigits(data.conta).length < 3) errors.conta = "Informe uma conta válida."
+  else if (onlyDigits(data.conta).length < 3) {
+    errors.conta = "Informe uma conta válida."
+  }
 
   if (!data.digito.trim()) errors.digito = "Informe o dígito."
   if (!data.tipoConta) errors.tipoConta = "Selecione o tipo de conta."
@@ -102,264 +106,216 @@ export default function BankDataForm() {
         <title>Dados Bancários • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="space-y-6">
+          {/* BOTÃO VOLTAR */}
+          <div className="flex items-center">
+            <Link
+              to="/discente/perfil"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+            >
+              <ArrowLeft size={16} />
+              Voltar para perfil
+            </Link>
+          </div>
 
-        <div className="flex items-center justify-between mb-4">
-          <Link
-            to="/discente/perfil"
-            className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
-          >
-            <ArrowLeft size={16} />
-            Voltar para perfil
-          </Link>
-        </div>
-
-        {/* HEADER */}
-        <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-
-            <h1 className="mt-2 text-2xl font-bold text-primary">
+          {/* HEADER */}
+          <header className="w-full rounded-3xl border border-neutral/20 bg-white px-6 py-6">
+            <h1 className="text-2xl font-bold text-primary">
               Dados Bancários
             </h1>
-
-            <p className="mt-1 text-base text-neutral">
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
               Atualize os dados da conta utilizada para vínculo e pagamento.
             </p>
-          </div>
-      
-        </header>
+          </header>
 
-        {/* AVISO */}
-        <Card
-          title=""
-          className="bg-white border border-neutral/30 rounded-2xl p-6"
-        >
-          <div className="space-y-2 text-sm mt-0">
-            <div className="font-semibold text-primary">
-              Atenção ao preenchimento
-            </div>
-            <p className="text-neutral">
-              Confira cuidadosamente banco, agência, conta e CPF do titular.
-              Dados incorretos podem impedir a homologação bancária ou o
-              processamento de pagamentos.
-            </p>
-          </div>
-        </Card>
-
-        {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <Card
-            title={
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <section className="w-full rounded-3xl border border-neutral/20 bg-white p-6 sm:p-8">
+              <div className="mb-6 flex items-center gap-2 text-sm font-semibold text-primary">
                 <Landmark size={18} />
                 Conta bancária
               </div>
-            }
-            className="bg-white border border-neutral/30 rounded-2xl p-8"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Banco *
-                </label>
-                <input
-                  type="text"
-                  value={form.banco}
-                  onChange={(e) => updateField("banco", e.target.value)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="Ex.: Banco do Brasil, Caixa, Bradesco"
-                />
-                {errors.banco && (
-                  <p className="mt-1 text-xs text-danger">{errors.banco}</p>
-                )}
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Agência *
-                </label>
-                <input
-                  type="text"
-                  value={form.agencia}
-                  onChange={(e) =>
-                    updateField("agencia", onlyDigits(e.target.value).slice(0, 8))
-                  }
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="Digite a agência"
-                />
-                {errors.agencia && (
-                  <p className="mt-1 text-xs text-danger">{errors.agencia}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Tipo de conta *
-                </label>
-                <select
-                  value={form.tipoConta}
-                  onChange={(e) =>
-                    updateField("tipoConta", e.target.value as AccountType)
-                  }
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                >
-                  <option value="">Selecione</option>
-                  <option value="corrente">Conta corrente</option>
-                  <option value="poupanca">Conta poupança</option>
-                  <option value="pagamento">Conta de pagamento</option>
-                </select>
-                {errors.tipoConta && (
-                  <p className="mt-1 text-xs text-danger">{errors.tipoConta}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Número da conta *
-                </label>
-                <input
-                  type="text"
-                  value={form.conta}
-                  onChange={(e) =>
-                    updateField("conta", onlyDigits(e.target.value).slice(0, 12))
-                  }
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="Digite a conta"
-                />
-                {errors.conta && (
-                  <p className="mt-1 text-xs text-danger">{errors.conta}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Dígito *
-                </label>
-                <input
-                  type="text"
-                  value={form.digito}
-                  onChange={(e) =>
-                    updateField("digito", onlyDigits(e.target.value).slice(0, 2))
-                  }
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="Digite o dígito"
-                />
-                {errors.digito && (
-                  <p className="mt-1 text-xs text-danger">{errors.digito}</p>
-                )}
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Nome do titular *
-                </label>
-                <input
-                  type="text"
-                  value={form.titular}
-                  onChange={(e) => updateField("titular", e.target.value)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="Digite o nome do titular da conta"
-                />
-                {errors.titular && (
-                  <p className="mt-1 text-xs text-danger">{errors.titular}</p>
-                )}
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  CPF do titular *
-                </label>
-                <input
-                  type="text"
-                  value={form.cpfTitular}
-                  onChange={(e) =>
-                    updateField("cpfTitular", formatCpf(e.target.value))
-                  }
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="000.000.000-00"
-                />
-                {errors.cpfTitular && (
-                  <p className="mt-1 text-xs text-danger">{errors.cpfTitular}</p>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          {/* ALERTAS */}
-          {(successMessage || !isFormValid) && (
-            <div className="space-y-2">
-              {successMessage && (
-                <div className="rounded-2xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-medium text-success">
-                  {successMessage}
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Banco *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.banco}
+                    onChange={(e) => updateField("banco", e.target.value)}
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="Ex.: Banco do Brasil, Caixa, Bradesco"
+                  />
+                  {errors.banco && (
+                    <p className="mt-1 text-xs text-danger">{errors.banco}</p>
+                  )}
                 </div>
-              )}
 
-              {!isFormValid && !successMessage && (
-                <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning">
-                  Revise os campos obrigatórios antes de salvar.
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Agência *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.agencia}
+                    onChange={(e) =>
+                      updateField(
+                        "agencia",
+                        onlyDigits(e.target.value).slice(0, 8),
+                      )
+                    }
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="Digite a agência"
+                  />
+                  {errors.agencia && (
+                    <p className="mt-1 text-xs text-danger">{errors.agencia}</p>
+                  )}
                 </div>
-              )}
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Tipo de conta *
+                  </label>
+                  <select
+                    value={form.tipoConta}
+                    onChange={(e) =>
+                      updateField("tipoConta", e.target.value as AccountType)
+                    }
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                  >
+                    <option value="">Selecione</option>
+                    <option value="corrente">Conta corrente</option>
+                    <option value="poupanca">Conta poupança</option>
+                    <option value="pagamento">Conta de pagamento</option>
+                  </select>
+                  {errors.tipoConta && (
+                    <p className="mt-1 text-xs text-danger">
+                      {errors.tipoConta}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Número da conta *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.conta}
+                    onChange={(e) =>
+                      updateField(
+                        "conta",
+                        onlyDigits(e.target.value).slice(0, 12),
+                      )
+                    }
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="Digite a conta"
+                  />
+                  {errors.conta && (
+                    <p className="mt-1 text-xs text-danger">{errors.conta}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Dígito *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.digito}
+                    onChange={(e) =>
+                      updateField(
+                        "digito",
+                        onlyDigits(e.target.value).slice(0, 2),
+                      )
+                    }
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="Digite o dígito"
+                  />
+                  {errors.digito && (
+                    <p className="mt-1 text-xs text-danger">{errors.digito}</p>
+                  )}
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Nome do titular *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.titular}
+                    onChange={(e) => updateField("titular", e.target.value)}
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="Digite o nome do titular da conta"
+                  />
+                  {errors.titular && (
+                    <p className="mt-1 text-xs text-danger">{errors.titular}</p>
+                  )}
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    CPF do titular *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.cpfTitular}
+                    onChange={(e) =>
+                      updateField("cpfTitular", formatCpf(e.target.value))
+                    }
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="000.000.000-00"
+                  />
+                  {errors.cpfTitular && (
+                    <p className="mt-1 text-xs text-danger">
+                      {errors.cpfTitular}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* ALERTAS */}
+            {(successMessage || !isFormValid) && (
+              <div className="space-y-2">
+                {successMessage && (
+                  <div className="rounded-2xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-medium text-success">
+                    {successMessage}
+                  </div>
+                )}
+
+                {!isFormValid && !successMessage && (
+                  <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning">
+                    Revise os campos obrigatórios antes de salvar.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* AÇÕES */}
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+              <Link
+                to="/discente/perfil"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/30 px-4 py-3 text-sm font-medium text-neutral transition hover:bg-neutral/5"
+              >
+                Cancelar
+              </Link>
+
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+              >
+                <Save size={16} />
+                {saving ? "Salvando..." : "Salvar dados bancários"}
+              </button>
             </div>
-          )}
-
-          {/* AÇÕES */}
-          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
-            <Link
-              to="/discente/perfil"
-              className="
-                inline-flex items-center justify-center gap-2
-                rounded-xl border border-neutral/30
-                px-4 py-3 text-sm font-medium text-neutral
-                hover:bg-neutral/5 transition
-              "
-            >
-              Cancelar
-            </Link>
-
-            <button
-              type="submit"
-              disabled={saving}
-              className="
-                inline-flex items-center justify-center gap-2
-                rounded-xl bg-primary px-4 py-3
-                text-sm font-semibold text-white
-                hover:opacity-90 transition disabled:opacity-60
-              "
-            >
-              <Save size={16} />
-              {saving ? "Salvando..." : "Salvar dados bancários"}
-            </button>
-          </div>
-        </form>
-      </div>
+          </form>
+        </div>
+      </main>
     </div>
   )
 }

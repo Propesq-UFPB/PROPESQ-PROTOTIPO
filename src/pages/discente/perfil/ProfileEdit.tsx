@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
-import Card from "@/components/Card"
 import { ArrowLeft, Save, UserCircle2 } from "lucide-react"
 
 type FormData = {
@@ -70,6 +69,7 @@ function validateForm(data: FormData): FormErrors {
   if (!data.curso.trim()) errors.curso = "Informe o curso."
   if (!data.centro.trim()) errors.centro = "Informe o centro."
   if (!data.semestre.trim()) errors.semestre = "Informe o semestre."
+
   if (data.lattes.trim() && !/^https?:\/\/.+/i.test(data.lattes)) {
     errors.lattes = "Informe uma URL válida começando com http:// ou https://"
   }
@@ -116,251 +116,224 @@ export default function ProfileEdit() {
         <title>Editar Perfil • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        {/* HEADER */}
-        <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <Link
-                to="/discente/perfil"
-                className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
-              >
-                <ArrowLeft size={16} />
-                Voltar para perfil
-              </Link>
-            </div>
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="space-y-6">
+          {/* BOTÃO VOLTAR */}
+          <div className="flex items-center">
+            <Link
+              to="/discente/perfil"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+            >
+              <ArrowLeft size={16} />
+              Voltar para perfil
+            </Link>
+          </div>
 
-            <h1 className="mt-2 text-2xl font-bold text-primary">
+          {/* CABEÇALHO */}
+          <header className="w-full rounded-3xl border border-neutral/20 bg-white px-6 py-6">
+            <h1 className="text-2xl font-bold text-primary">
               Editar Perfil
             </h1>
-
-            <p className="mt-1 text-base text-neutral">
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
               Atualize seus dados pessoais e acadêmicos.
             </p>
-          </div>
-        </header>
+          </header>
 
-        {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <Card
-            title={
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <section className="w-full rounded-3xl border border-neutral/20 bg-white p-6 sm:p-8">
+              <div className="mb-6 flex items-center gap-2 text-sm font-semibold text-primary">
                 <UserCircle2 size={18} />
                 Dados cadastrais
               </div>
-            }
-            className="bg-white border border-neutral/30 rounded-2xl p-8"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Nome completo *
-                </label>
-                <input
-                  type="text"
-                  value={form.nome}
-                  onChange={(e) => updateField("nome", e.target.value)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="Digite seu nome completo"
-                />
-                {errors.nome && (
-                  <p className="mt-1 text-xs text-danger">{errors.nome}</p>
-                )}
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  E-mail *
-                </label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => updateField("email", e.target.value)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="seuemail@academico.ufpb.br"
-                />
-                {errors.email && (
-                  <p className="mt-1 text-xs text-danger">{errors.email}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Telefone *
-                </label>
-                <input
-                  type="text"
-                  value={form.telefone}
-                  onChange={(e) => updateField("telefone", formatPhone(e.target.value))}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="(83) 99999-9999"
-                />
-                {errors.telefone && (
-                  <p className="mt-1 text-xs text-danger">{errors.telefone}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  CPF *
-                </label>
-                <input
-                  type="text"
-                  value={form.cpf}
-                  onChange={(e) => updateField("cpf", formatCpf(e.target.value))}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="000.000.000-00"
-                />
-                {errors.cpf && (
-                  <p className="mt-1 text-xs text-danger">{errors.cpf}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Matrícula *
-                </label>
-                <input
-                  type="text"
-                  value={form.matricula}
-                  onChange={(e) => updateField("matricula", e.target.value)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="Digite sua matrícula"
-                />
-                {errors.matricula && (
-                  <p className="mt-1 text-xs text-danger">{errors.matricula}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Curso *
-                </label>
-                <input
-                  type="text"
-                  value={form.curso}
-                  onChange={(e) => updateField("curso", e.target.value)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="Digite seu curso"
-                />
-                {errors.curso && (
-                  <p className="mt-1 text-xs text-danger">{errors.curso}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Centro *
-                </label>
-                <input
-                  type="text"
-                  value={form.centro}
-                  onChange={(e) => updateField("centro", e.target.value)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="Digite seu centro"
-                />
-                {errors.centro && (
-                  <p className="mt-1 text-xs text-danger">{errors.centro}</p>
-                )}
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Currículo Lattes
-                </label>
-                <input
-                  type="url"
-                  value={form.lattes}
-                  onChange={(e) => updateField("lattes", e.target.value)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                  placeholder="https://lattes.cnpq.br/..."
-                />
-                {errors.lattes && (
-                  <p className="mt-1 text-xs text-danger">{errors.lattes}</p>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          {/* ALERTAS */}
-          {(successMessage || !isFormValid) && (
-            <div className="space-y-2">
-              {successMessage && (
-                <div className="rounded-2xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-medium text-success">
-                  {successMessage}
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Nome completo *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.nome}
+                    onChange={(e) => updateField("nome", e.target.value)}
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="Digite seu nome completo"
+                  />
+                  {errors.nome && (
+                    <p className="mt-1 text-xs text-danger">{errors.nome}</p>
+                  )}
                 </div>
-              )}
 
-              {!isFormValid && !successMessage && (
-                <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning">
-                  Revise os campos obrigatórios antes de salvar.
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    E-mail *
+                  </label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => updateField("email", e.target.value)}
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="seuemail@academico.ufpb.br"
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-xs text-danger">{errors.email}</p>
+                  )}
                 </div>
-              )}
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Telefone *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.telefone}
+                    onChange={(e) =>
+                      updateField("telefone", formatPhone(e.target.value))
+                    }
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="(83) 99999-9999"
+                  />
+                  {errors.telefone && (
+                    <p className="mt-1 text-xs text-danger">{errors.telefone}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    CPF *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.cpf}
+                    onChange={(e) => updateField("cpf", formatCpf(e.target.value))}
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="000.000.000-00"
+                  />
+                  {errors.cpf && (
+                    <p className="mt-1 text-xs text-danger">{errors.cpf}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Matrícula *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.matricula}
+                    onChange={(e) => updateField("matricula", e.target.value)}
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="Digite sua matrícula"
+                  />
+                  {errors.matricula && (
+                    <p className="mt-1 text-xs text-danger">{errors.matricula}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Curso *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.curso}
+                    onChange={(e) => updateField("curso", e.target.value)}
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="Digite seu curso"
+                  />
+                  {errors.curso && (
+                    <p className="mt-1 text-xs text-danger">{errors.curso}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Centro *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.centro}
+                    onChange={(e) => updateField("centro", e.target.value)}
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="Digite seu centro"
+                  />
+                  {errors.centro && (
+                    <p className="mt-1 text-xs text-danger">{errors.centro}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Semestre *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.semestre}
+                    onChange={(e) => updateField("semestre", e.target.value)}
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="Ex.: 2026.1"
+                  />
+                  {errors.semestre && (
+                    <p className="mt-1 text-xs text-danger">{errors.semestre}</p>
+                  )}
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-sm font-medium text-primary">
+                    Currículo Lattes
+                  </label>
+                  <input
+                    type="url"
+                    value={form.lattes}
+                    onChange={(e) => updateField("lattes", e.target.value)}
+                    className="w-full rounded-xl border border-neutral/30 bg-white px-4 py-3 text-sm text-primary outline-none focus:border-primary"
+                    placeholder="https://lattes.cnpq.br/..."
+                  />
+                  {errors.lattes && (
+                    <p className="mt-1 text-xs text-danger">{errors.lattes}</p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* ALERTAS */}
+            {(successMessage || !isFormValid) && (
+              <div className="space-y-2">
+                {successMessage && (
+                  <div className="rounded-2xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-medium text-success">
+                    {successMessage}
+                  </div>
+                )}
+
+                {!isFormValid && !successMessage && (
+                  <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning">
+                    Revise os campos obrigatórios antes de salvar.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* AÇÕES */}
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+              <Link
+                to="/discente/perfil"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/30 px-4 py-3 text-sm font-medium text-neutral transition hover:bg-neutral/5"
+              >
+                Cancelar
+              </Link>
+
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+              >
+                <Save size={16} />
+                {saving ? "Salvando..." : "Salvar alterações"}
+              </button>
             </div>
-          )}
-
-          {/* AÇÕES */}
-          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
-            <Link
-              to="/discente/perfil"
-              className="
-                inline-flex items-center justify-center gap-2
-                rounded-xl border border-neutral/30
-                px-4 py-3 text-sm font-medium text-neutral
-                hover:bg-neutral/5 transition
-              "
-            >
-              Cancelar
-            </Link>
-
-            <button
-              type="submit"
-              disabled={saving}
-              className="
-                inline-flex items-center justify-center gap-2
-                rounded-xl bg-primary px-4 py-3
-                text-sm font-semibold text-white
-                hover:opacity-90 transition disabled:opacity-60
-              "
-            >
-              <Save size={16} />
-              {saving ? "Salvando..." : "Salvar alterações"}
-            </button>
-          </div>
-        </form>
-      </div>
+          </form>
+        </div>
+      </main>
     </div>
   )
 }

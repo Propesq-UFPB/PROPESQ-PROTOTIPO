@@ -747,10 +747,6 @@ export default function FinalReportForm() {
               className="bg-white border border-neutral/30 rounded-2xl p-8"
             >
               <ul className="space-y-3 text-sm text-neutral">
-                <li className="leading-6">
-                  O relatório já está vinculado ao projeto selecionado na página
-                  anterior.
-                </li>
 
                 <li className="leading-6">
                   Preencha o resumo e o abstract de forma coerente entre si.

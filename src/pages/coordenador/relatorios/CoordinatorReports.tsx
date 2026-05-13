@@ -7,16 +7,13 @@ import {
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
-  Eye,
   FileSignature,
   FileText,
   Filter,
   FolderKanban,
-  GraduationCap,
   Notebook,
   Search,
   Timer,
-  UserRound,
   XCircle,
 } from "lucide-react"
 
@@ -346,7 +343,7 @@ export default function CoordinatorReports() {
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
               Acompanhe os relatórios parciais e finais submetidos pelos discentes vinculados aos seus planos de
-              trabalho, registre pareceres e solicite ajustes quando necessário.
+              trabalho, revise relatórios e solicite ajustes quando necessário.
             </p>
           </div>
 
@@ -373,6 +370,7 @@ export default function CoordinatorReports() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
                   Total vinculado
                 </p>
+
                 <p className="mt-2 text-2xl font-bold text-primary">
                   {summary.total}
                 </p>
@@ -394,6 +392,7 @@ export default function CoordinatorReports() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
                   Submetidos
                 </p>
+
                 <p className="mt-2 text-2xl font-bold text-primary">
                   {summary.submitted}
                 </p>
@@ -413,8 +412,9 @@ export default function CoordinatorReports() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Pendentes de parecer
+                  Pendentes de revisão
                 </p>
+
                 <p className="mt-2 text-2xl font-bold text-primary">
                   {summary.pendingReview}
                 </p>
@@ -436,6 +436,7 @@ export default function CoordinatorReports() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
                   Concluídos
                 </p>
+
                 <p className="mt-2 text-2xl font-bold text-primary">
                   {summary.approved}
                 </p>
@@ -591,7 +592,7 @@ export default function CoordinatorReports() {
               </h2>
 
               <p className="mt-1 text-sm text-neutral">
-                Acompanhe os relatórios submetidos pelos discentes e registre o parecer do coordenador.
+                Acompanhe os relatórios submetidos pelos discentes e revise o relatório do coordenador.
               </p>
             </div>
 
@@ -671,6 +672,15 @@ export default function CoordinatorReports() {
                             <Notebook size={13} />
                             {report.area}
                           </div>
+
+                          <div
+                            className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getTypeClass(
+                              report.type
+                            )}`}
+                          >
+                            <FileText size={13} />
+                            Relatório {report.type}
+                          </div>
                         </div>
                       </td>
 
@@ -699,7 +709,7 @@ export default function CoordinatorReports() {
 
                           {report.reviewedAt && (
                             <p className="text-xs">
-                              Parecer em {report.reviewedAt}
+                              Revisado em {report.reviewedAt}
                             </p>
                           )}
                         </div>
@@ -728,7 +738,7 @@ export default function CoordinatorReports() {
 
                           {report.status !== "Não submetido" ? (
                             <Link
-                              to={`/coordenador/relatorios/${report.id}/parecer`}
+                              to="/coordenador/relatorios/1/revisao"
                               className={
                                 report.status === "Submetido" ||
                                 report.status === "Em análise"
@@ -737,10 +747,7 @@ export default function CoordinatorReports() {
                               }
                             >
                               <FileSignature size={15} />
-                              {report.status === "Submetido" ||
-                              report.status === "Em análise"
-                                ? "Emitir parecer"
-                                : "Ver parecer"}
+                              Revisar relatório
                             </Link>
                           ) : (
                             <button
@@ -784,7 +791,6 @@ export default function CoordinatorReports() {
             </div>
           )}
         </section>
-
       </div>
     </main>
   )

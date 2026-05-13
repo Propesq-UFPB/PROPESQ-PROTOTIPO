@@ -2,7 +2,6 @@ import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import {
   AlertCircle,
-  ArrowUpRight,
   CalendarDays,
   CheckCircle2,
   ClipboardCheck,
@@ -16,6 +15,7 @@ import {
   Notebook,
   Search,
   Timer,
+  UserRound,
   XCircle,
 } from "lucide-react"
 
@@ -38,6 +38,7 @@ type Evaluation = {
   area: string
   ano: string
   proponent: string
+  coordinatorUnit: string
   submittedAt: string
   deadline: string
   status: EvaluationStatus
@@ -46,7 +47,7 @@ type Evaluation = {
   priority: "Normal" | "Alta"
 }
 
-const evaluations: Evaluation[] = [
+const initialEvaluations: Evaluation[] = [
   {
     id: 1,
     projectId: 1,
@@ -57,11 +58,12 @@ const evaluations: Evaluation[] = [
     area: "Ciência da Computação",
     ano: "2026",
     proponent: "Prof. Dr. Carlos Henrique Almeida",
+    coordinatorUnit: "Centro de Informática",
     submittedAt: "03/05/2026",
     deadline: "15/05/2026",
-    status: "Aprovado",
-    score: 9.2,
-    reviewer: "Coordenação de Pesquisa",
+    status: "Pendente",
+    score: null,
+    reviewer: null,
     priority: "Normal",
   },
   {
@@ -74,10 +76,11 @@ const evaluations: Evaluation[] = [
     area: "Interação Humano-Computador",
     ano: "2026",
     proponent: "Prof. Dr. Carlos Henrique Almeida",
+    coordinatorUnit: "Centro de Informática",
     submittedAt: "03/05/2026",
     deadline: "15/05/2026",
-    status: "Aprovado",
-    score: 8.8,
+    status: "Em avaliação",
+    score: null,
     reviewer: "Coordenação de Pesquisa",
     priority: "Normal",
   },
@@ -91,10 +94,29 @@ const evaluations: Evaluation[] = [
     area: "Ciência de Dados",
     ano: "2026",
     proponent: "Profa. Dra. Marina Costa",
+    coordinatorUnit: "Centro de Tecnologia",
     submittedAt: "07/05/2026",
     deadline: "18/05/2026",
-    status: "Em avaliação",
+    status: "Pendente",
     score: null,
+    reviewer: null,
+    priority: "Alta",
+  },
+  {
+    id: 4,
+    projectId: 2,
+    title: "Construção de painel de indicadores acadêmicos",
+    projectTitle: "Análise de Dados Educacionais para Monitoramento de Indicadores Acadêmicos",
+    type: "Plano de trabalho",
+    edital: "PIBITI 2026",
+    area: "Ciência de Dados",
+    ano: "2026",
+    proponent: "Profa. Dra. Marina Costa",
+    coordinatorUnit: "Centro de Tecnologia",
+    submittedAt: "07/05/2026",
+    deadline: "18/05/2026",
+    status: "Aprovado com ajustes",
+    score: 8.1,
     reviewer: "Coordenação de Pesquisa",
     priority: "Alta",
   },
@@ -177,6 +199,8 @@ function getTypeIcon(type: EvaluationType) {
 }
 
 export default function CoordinatorEvaluations() {
+  const [evaluations] = useState<Evaluation[]>(initialEvaluations)
+
   const [search, setSearch] = useState("")
   const [selectedEdital, setSelectedEdital] = useState("Todos")
   const [selectedType, setSelectedType] = useState<EvaluationType | "Todos">("Todos")
@@ -209,7 +233,7 @@ export default function CoordinatorEvaluations() {
 
       return matchesSearch && matchesEdital && matchesType && matchesStatus && matchesYear
     })
-  }, [search, selectedEdital, selectedType, selectedStatus, selectedYear])
+  }, [evaluations, search, selectedEdital, selectedType, selectedStatus, selectedYear])
 
   const summary = useMemo(() => {
     const total = evaluations.length
@@ -222,24 +246,25 @@ export default function CoordinatorEvaluations() {
       (evaluation) => evaluation.status === "Em avaliação"
     ).length
 
-    const approved = evaluations.filter(
+    const concluded = evaluations.filter(
       (evaluation) =>
         evaluation.status === "Aprovado" ||
-        evaluation.status === "Aprovado com ajustes"
+        evaluation.status === "Aprovado com ajustes" ||
+        evaluation.status === "Reprovado"
     ).length
 
-    const rejected = evaluations.filter(
-      (evaluation) => evaluation.status === "Reprovado"
+    const plans = evaluations.filter(
+      (evaluation) => evaluation.type === "Plano de trabalho"
     ).length
 
     return {
       total,
       pending,
       inProgress,
-      approved,
-      rejected,
+      concluded,
+      plans,
     }
-  }, [])
+  }, [evaluations])
 
   function clearFilters() {
     setSearch("")
@@ -252,7 +277,7 @@ export default function CoordinatorEvaluations() {
   return (
     <main className="min-h-screen bg-[#F3F4F6]">
       <div className="mx-auto max-w-7xl px-6 py-8 space-y-6">
-        {/* HEADER DA PÁGINA */}
+        {/* HEADER */}
         <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
@@ -261,12 +286,12 @@ export default function CoordinatorEvaluations() {
             </div>
 
             <h1 className="mt-3 text-2xl font-bold tracking-tight text-primary">
-              Avaliação de projetos e planos
+              Avaliação de projetos e planos de trabalho
             </h1>
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
-              Acompanhe as propostas submetidas, avalie projetos e planos de trabalho, registre pontuação e emita
-              parecer técnico para cada item enviado.
+              Avalie propostas submetidas por outros coordenadores, analise os dados do projeto ou plano de trabalho
+              e emita um parecer técnico em uma página específica de avaliação.
             </p>
           </div>
 
@@ -304,7 +329,7 @@ export default function CoordinatorEvaluations() {
             </div>
 
             <p className="mt-3 text-xs text-neutral">
-              Projetos e planos submetidos
+              Projetos e planos de outros coordenadores
             </p>
           </div>
 
@@ -325,7 +350,7 @@ export default function CoordinatorEvaluations() {
             </div>
 
             <p className="mt-3 text-xs text-neutral">
-              Aguardando início da avaliação
+              Aguardando emissão de parecer
             </p>
           </div>
 
@@ -346,7 +371,7 @@ export default function CoordinatorEvaluations() {
             </div>
 
             <p className="mt-3 text-xs text-neutral">
-              Com análise em andamento
+              Com análise iniciada
             </p>
           </div>
 
@@ -357,7 +382,7 @@ export default function CoordinatorEvaluations() {
                   Concluídas
                 </p>
                 <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.approved + summary.rejected}
+                  {summary.concluded}
                 </p>
               </div>
 
@@ -367,7 +392,7 @@ export default function CoordinatorEvaluations() {
             </div>
 
             <p className="mt-3 text-xs text-neutral">
-              {summary.approved} aprovadas e {summary.rejected} reprovadas
+              {summary.plans} plano(s) de trabalho na fila
             </p>
           </div>
         </section>
@@ -382,7 +407,7 @@ export default function CoordinatorEvaluations() {
               </div>
 
               <p className="mt-1 text-xs text-neutral">
-                Localize avaliações por título, edital, tipo, situação, proponente ou área.
+                Localize avaliações por título, edital, tipo, situação, coordenador proponente ou área.
               </p>
             </div>
 
@@ -411,7 +436,7 @@ export default function CoordinatorEvaluations() {
                   type="text"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Título, proponente, área ou edital..."
+                  placeholder="Título, coordenador, área ou edital..."
                   className="w-full rounded-xl border border-neutral/30 bg-white py-2.5 pl-10 pr-3 text-sm text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
                 />
               </div>
@@ -508,104 +533,26 @@ export default function CoordinatorEvaluations() {
 
         {/* LISTAGEM */}
         <section className="rounded-2xl border border-neutral/30 bg-white">
-          <div className="flex flex-col gap-3 border-b border-neutral/20 p-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-primary">
-                Fila de avaliações
-              </h2>
+          <div className="border-b border-neutral/20 p-6">
+            <h2 className="text-base font-semibold text-primary">
+              Fila de avaliações
+            </h2>
 
-              <p className="mt-1 text-sm text-neutral">
-                Avalie projetos e planos de trabalho submetidos pelos coordenadores.
-              </p>
-            </div>
-
-            <Link
-              to="/coordenador/projetos"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-            >
-              Ver projetos
-              <ArrowUpRight size={16} />
-            </Link>
+            <p className="mt-1 text-sm text-neutral">
+              Clique em avaliar para abrir a página de análise e emissão de parecer.
+            </p>
           </div>
 
           {filteredEvaluations.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[1100px] border-collapse">
-                <thead>
-                  <tr className="border-b border-neutral/20 bg-neutral/5 text-left">
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Item avaliado
-                    </th>
-
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Tipo
-                    </th>
-
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Edital
-                    </th>
-
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Proponente
-                    </th>
-
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Prazo
-                    </th>
-
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Situação
-                    </th>
-
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Nota
-                    </th>
-
-                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Ações
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {filteredEvaluations.map((evaluation) => (
-                    <tr
-                      key={evaluation.id}
-                      className="border-b border-neutral/10 transition last:border-b-0 hover:bg-neutral/5"
-                    >
-                      <td className="px-6 py-5 align-top">
-                        <div className="max-w-md">
-                          <div className="mb-2 flex flex-wrap items-center gap-2">
-                            {evaluation.priority === "Alta" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                                <AlertCircle size={13} />
-                                Prioridade alta
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="font-semibold leading-5 text-primary">
-                            {evaluation.title}
-                          </p>
-
-                          {evaluation.type === "Plano de trabalho" && (
-                            <p className="mt-1 text-xs leading-5 text-neutral">
-                              Projeto vinculado: {evaluation.projectTitle}
-                            </p>
-                          )}
-
-                          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-neutral">
-                            <span className="inline-flex items-center gap-1">
-                              <GraduationCap size={13} />
-                              {evaluation.area}
-                            </span>
-                            <span className="h-1 w-1 rounded-full bg-neutral/40" />
-                            <span>Enviado em {evaluation.submittedAt}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-5 align-top">
+            <div className="divide-y divide-neutral/10">
+              {filteredEvaluations.map((evaluation) => (
+                <article
+                  key={evaluation.id}
+                  className="p-5 transition hover:bg-neutral/5"
+                >
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0">
+                      <div className="mb-3 flex flex-wrap items-center gap-2">
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getTypeClass(
                             evaluation.type
@@ -614,37 +561,7 @@ export default function CoordinatorEvaluations() {
                           {getTypeIcon(evaluation.type)}
                           {evaluation.type}
                         </span>
-                      </td>
 
-                      <td className="px-6 py-5 align-top">
-                        <p className="text-sm font-medium text-primary">
-                          {evaluation.edital}
-                        </p>
-                        <p className="mt-1 text-xs text-neutral">
-                          Ano {evaluation.ano}
-                        </p>
-                      </td>
-
-                      <td className="px-6 py-5 align-top">
-                        <p className="text-sm font-medium text-primary">
-                          {evaluation.proponent}
-                        </p>
-
-                        <p className="mt-1 text-xs text-neutral">
-                          {evaluation.reviewer
-                            ? `Avaliador: ${evaluation.reviewer}`
-                            : "Sem avaliador definido"}
-                        </p>
-                      </td>
-
-                      <td className="px-6 py-5 align-top">
-                        <div className="inline-flex items-center gap-2 text-sm text-neutral">
-                          <CalendarDays size={15} />
-                          {evaluation.deadline}
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-5 align-top">
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClass(
                             evaluation.status
@@ -653,56 +570,76 @@ export default function CoordinatorEvaluations() {
                           {getStatusIcon(evaluation.status)}
                           {evaluation.status}
                         </span>
-                      </td>
 
-                      <td className="px-6 py-5 align-top">
-                        {evaluation.score !== null ? (
-                          <div>
-                            <p className="text-sm font-bold text-primary">
-                              {evaluation.score.toFixed(1)}
-                            </p>
-                            <p className="mt-1 text-xs text-neutral">
-                              pontuação final
-                            </p>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-neutral">
-                            Não atribuída
+                        {evaluation.priority === "Alta" && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                            <AlertCircle size={13} />
+                            Prioridade alta
                           </span>
                         )}
-                      </td>
+                      </div>
 
-                      <td className="px-6 py-5 align-top">
-                        <div className="flex justify-end gap-2">
-                          <Link
-                            to={`/coordenador/projetos/${evaluation.projectId}`}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                          >
-                            <Eye size={15} />
-                            Projeto
-                          </Link>
+                      <h3 className="text-base font-bold leading-6 text-primary">
+                        {evaluation.title}
+                      </h3>
 
-                          <Link
-                            to={`/coordenador/avaliacoes/${evaluation.id}`}
-                            className={
-                              evaluation.status === "Pendente" ||
-                              evaluation.status === "Em avaliação"
-                                ? "inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
-                                : "inline-flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:border-primary/30 hover:bg-primary/10"
-                            }
-                          >
-                            <FileSignature size={15} />
-                            {evaluation.status === "Pendente" ||
-                            evaluation.status === "Em avaliação"
-                              ? "Avaliar"
-                              : "Ver parecer"}
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      {evaluation.type === "Plano de trabalho" && (
+                        <p className="mt-1 text-xs leading-5 text-neutral">
+                          Projeto vinculado: {evaluation.projectTitle}
+                        </p>
+                      )}
+
+                      <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-neutral md:grid-cols-2 xl:grid-cols-4">
+                        <span className="inline-flex items-center gap-1.5">
+                          <UserRound size={14} />
+                          {evaluation.proponent}
+                        </span>
+
+                        <span className="inline-flex items-center gap-1.5">
+                          <GraduationCap size={14} />
+                          {evaluation.area}
+                        </span>
+
+                        <span className="inline-flex items-center gap-1.5">
+                          <CalendarDays size={14} />
+                          Prazo: {evaluation.deadline}
+                        </span>
+
+                        <span className="inline-flex items-center gap-1.5">
+                          <FileText size={14} />
+                          {evaluation.edital} • {evaluation.ano}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                      <Link
+                        to={`/coordenador/avaliacoes/${evaluation.id}`}
+                        className={
+                          evaluation.status === "Pendente" ||
+                          evaluation.status === "Em avaliação"
+                            ? "inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90"
+                            : "inline-flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition hover:border-primary/30"
+                        }
+                      >
+                        <FileSignature size={15} />
+                        {evaluation.status === "Pendente" ||
+                        evaluation.status === "Em avaliação"
+                          ? "Avaliar"
+                          : "Ver parecer"}
+                      </Link>
+
+                      <Link
+                        to={`/coordenador/avaliacoes/${evaluation.id}`}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+                      >
+                        <Eye size={15} />
+                        Visualizar
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
@@ -715,8 +652,7 @@ export default function CoordinatorEvaluations() {
               </h3>
 
               <p className="mt-1 max-w-md text-sm leading-6 text-neutral">
-                Não encontramos avaliações com os filtros selecionados. Tente limpar os filtros ou alterar os critérios
-                de busca.
+                Não encontramos avaliações com os filtros selecionados. Tente limpar os filtros ou alterar os critérios.
               </p>
 
               <button
@@ -728,24 +664,6 @@ export default function CoordinatorEvaluations() {
               </button>
             </div>
           )}
-        </section>
-
-        {/* OBSERVAÇÃO DO FLUXO */}
-        <section className="rounded-2xl border border-blue-200 bg-blue-50 p-6">
-          <div className="flex gap-3">
-            <FileText size={18} className="mt-0.5 shrink-0 text-blue-700" />
-
-            <div>
-              <p className="text-sm font-semibold text-blue-800">
-                Fluxo de avaliação
-              </p>
-
-              <p className="mt-1 text-sm leading-6 text-blue-700">
-                Após a aprovação dos projetos e planos de trabalho, o coordenador poderá realizar a indicação dos
-                discentes aos planos aprovados. Projetos com ajustes devem retornar para edição antes de nova submissão.
-              </p>
-            </div>
-          </div>
         </section>
       </div>
     </main>
