@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react"
+import React, { useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { Helmet } from "react-helmet"
 import Card from "@/components/Card"
@@ -8,28 +8,18 @@ import {
   Send,
   FileText,
   FolderKanban,
-  CalendarDays,
   UserRound,
   AlertTriangle,
   CheckCircle2,
-  ClipboardList,
+  CalendarDays,
+  BadgeCheck,
 } from "lucide-react"
 
 type ReportStatus = "PENDENTE" | "EM_PREENCHIMENTO" | "REJEITADO" | "ENVIADO"
 
-type ProjectOption = {
-  id: string
-  titulo: string
-  edital: string
-  orientador: string
-  periodo: string
-  prazoRelatorio: string
-}
-
 type PartialReportData = {
   id: string
   titulo: string
-  projetoId: string
   projetoTitulo: string
   edital: string
   orientador: string
@@ -40,7 +30,6 @@ type PartialReportData = {
 }
 
 type FormData = {
-  projetoId: string
   atividadesRealizadas: string
   comparacaoPlanoExecutado: string
   outrasAtividades: string
@@ -51,38 +40,10 @@ type FormData = {
 
 type FormErrors = Partial<Record<keyof FormData, string>>
 
-const PROJECTS: ProjectOption[] = [
-  {
-    id: "proj_001",
-    titulo: "Plataforma Digital para Gestão de Pesquisa Acadêmica",
-    edital: "PIBIC 2026",
-    orientador: "Prof. André Silva",
-    periodo: "2026.1",
-    prazoRelatorio: "30/06/2026",
-  },
-  {
-    id: "proj_004",
-    titulo: "Painel Analítico para Indicadores de Iniciação Científica",
-    edital: "PIBIC 2025",
-    orientador: "Prof. Ricardo Lima",
-    periodo: "2025.1",
-    prazoRelatorio: "20/06/2025",
-  },
-  {
-    id: "proj_009",
-    titulo: "Sistema Inteligente para Acompanhamento de Projetos de Extensão",
-    edital: "PIBITI 2026",
-    orientador: "Profa. Mariana Costa",
-    periodo: "2026.1",
-    prazoRelatorio: "10/07/2026",
-  },
-]
-
 const REPORTS: PartialReportData[] = [
   {
-    id: "rel_001",
+    id: "1",
     titulo: "Relatório Parcial PIBIC 2026",
-    projetoId: "proj_001",
     projetoTitulo: "Plataforma Digital para Gestão de Pesquisa Acadêmica",
     edital: "PIBIC 2026",
     orientador: "Prof. André Silva",
@@ -91,9 +52,8 @@ const REPORTS: PartialReportData[] = [
     status: "PENDENTE",
   },
   {
-    id: "rel_007",
+    id: "2",
     titulo: "Relatório Parcial PIBIC 2025",
-    projetoId: "proj_004",
     projetoTitulo: "Painel Analítico para Indicadores de Iniciação Científica",
     edital: "PIBIC 2025",
     orientador: "Prof. Ricardo Lima",
@@ -106,7 +66,6 @@ const REPORTS: PartialReportData[] = [
 ]
 
 const INITIAL_FORM: FormData = {
-  projetoId: "",
   atividadesRealizadas: "",
   comparacaoPlanoExecutado: "",
   outrasAtividades: "",
@@ -148,10 +107,6 @@ function getStatusClasses(status: ReportStatus) {
 function validateForm(data: FormData): FormErrors {
   const errors: FormErrors = {}
 
-  if (!data.projetoId) {
-    errors.projetoId = "Selecione o projeto relacionado ao relatório."
-  }
-
   if (!data.atividadesRealizadas.trim()) {
     errors.atividadesRealizadas = "Informe as atividades realizadas."
   } else if (data.atividadesRealizadas.trim().length < 30) {
@@ -180,7 +135,8 @@ function validateForm(data: FormData): FormErrors {
   if (!data.dificuldadesEncontradas.trim()) {
     errors.dificuldadesEncontradas = "Informe as dificuldades encontradas."
   } else if (data.dificuldadesEncontradas.trim().length < 15) {
-    errors.dificuldadesEncontradas = "Descreva melhor as dificuldades encontradas."
+    errors.dificuldadesEncontradas =
+      "Descreva melhor as dificuldades encontradas."
   }
 
   if (!data.aceiteInformacoes) {
@@ -196,41 +152,15 @@ export default function PartialReportForm() {
 
   const report = REPORTS.find((item) => item.id === id) ?? REPORTS[0]
 
-  const [form, setForm] = useState<FormData>({
-    ...INITIAL_FORM,
-    projetoId: report?.projetoId ?? "",
-  })
-
+  const [form, setForm] = useState<FormData>(INITIAL_FORM)
   const [errors, setErrors] = useState<FormErrors>({})
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [successType, setSuccessType] = useState<"save" | "submit" | "">("")
 
-  const selectedProject = useMemo(() => {
-    return PROJECTS.find((project) => project.id === form.projetoId) ?? null
-  }, [form.projetoId])
-
-  const currentStatus = report?.status ?? "PENDENTE"
-  const currentObservation = report?.observacao ?? ""
-
-  const reportTitle = selectedProject
-    ? `Relatório Parcial — ${selectedProject.edital}`
-    : "Relatório Parcial"
-
-  const progress = useMemo(() => {
-    const fields = [
-      form.projetoId,
-      form.atividadesRealizadas,
-      form.comparacaoPlanoExecutado,
-      form.outrasAtividades,
-      form.resultadosPreliminares,
-      form.dificuldadesEncontradas,
-    ]
-
-    const filled = fields.filter((value) => value.trim().length > 0).length
-    return Math.round((filled / fields.length) * 100)
-  }, [form])
+  const currentStatus = report.status
+  const currentObservation = report.observacao ?? ""
 
   function updateField<K extends keyof FormData>(field: K, value: FormData[K]) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -304,11 +234,14 @@ export default function PartialReportForm() {
                 </span>
               </div>
 
-              <h1 className="text-2xl font-bold text-primary">{reportTitle}</h1>
+              <h1 className="text-2xl font-bold text-primary">
+                {report.titulo}
+              </h1>
 
               <p className="text-base text-neutral leading-7 max-w-4xl">
-                Selecione o projeto e preencha o relatório parcial correspondente
-                às atividades desenvolvidas no período.
+                Preencha o relatório parcial vinculado ao projeto abaixo. O
+                projeto, edital e orientador já estão definidos a partir do
+                relatório selecionado.
               </p>
             </div>
           </div>
@@ -317,7 +250,11 @@ export default function PartialReportForm() {
         {currentObservation && (
           <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4 text-sm text-neutral">
             <div className="flex items-start gap-2">
-              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
+              <AlertTriangle
+                size={16}
+                className="mt-0.5 shrink-0 text-warning"
+              />
+
               <div>
                 <span className="font-semibold text-warning">
                   Observação da avaliação anterior:
@@ -329,25 +266,65 @@ export default function PartialReportForm() {
         )}
 
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
+          <Card
+            title=""
+            className="bg-white border border-neutral/30 rounded-2xl p-6"
+          >
             <div className="flex items-start gap-3">
               <FolderKanban size={20} className="text-primary" />
+
               <div>
-                <div className="text-sm text-neutral">Projeto selecionado</div>
+                <div className="text-sm text-neutral">Projeto vinculado</div>
                 <div className="mt-1 text-sm font-semibold text-primary">
-                  {selectedProject?.titulo ?? "Nenhum projeto selecionado"}
+                  {report.projetoTitulo}
                 </div>
               </div>
             </div>
           </Card>
 
-          <Card title="" className="bg-white border border-neutral/30 rounded-2xl p-6">
+          <Card
+            title=""
+            className="bg-white border border-neutral/30 rounded-2xl p-6"
+          >
+            <div className="flex items-start gap-3">
+              <BadgeCheck size={20} className="text-primary" />
+
+              <div>
+                <div className="text-sm text-neutral">Edital</div>
+                <div className="mt-1 text-sm font-semibold text-primary">
+                  {report.edital}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card
+            title=""
+            className="bg-white border border-neutral/30 rounded-2xl p-6"
+          >
             <div className="flex items-start gap-3">
               <UserRound size={20} className="text-primary" />
+
               <div>
                 <div className="text-sm text-neutral">Orientador(a)</div>
                 <div className="mt-1 text-sm font-semibold text-primary">
-                  {selectedProject?.orientador ?? "—"}
+                  {report.orientador}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card
+            title=""
+            className="bg-white border border-neutral/30 rounded-2xl p-6"
+          >
+            <div className="flex items-start gap-3">
+              <CalendarDays size={20} className="text-primary" />
+
+              <div>
+                <div className="text-sm text-neutral">Prazo</div>
+                <div className="mt-1 text-sm font-semibold text-primary">
+                  {report.prazo}
                 </div>
               </div>
             </div>
@@ -366,75 +343,53 @@ export default function PartialReportForm() {
                 className="bg-white border border-neutral/30 rounded-2xl p-8"
               >
                 <div className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">
-                      Projeto relacionado *
-                    </label>
-                    <select
-                      value={form.projetoId}
-                      onChange={(e) => updateField("projetoId", e.target.value)}
-                      className="
-                        w-full rounded-xl border border-neutral/30 bg-white
-                        px-4 py-3 text-sm text-primary outline-none
-                        focus:border-primary
-                      "
-                    >
-                      <option value="">Selecione um projeto</option>
-                      {PROJECTS.map((project) => (
-                        <option key={project.id} value={project.id}>
-                          {project.titulo}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.projetoId && (
-                      <p className="mt-1 text-xs text-danger">{errors.projetoId}</p>
-                    )}
-                  </div>
-
-                  {selectedProject && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
-                      <div>
-                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
-                          Edital
-                        </div>
-                        <div className="mt-1 text-sm font-semibold text-primary">
-                          {selectedProject.edital}
-                        </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                        Projeto
                       </div>
 
-                      <div>
-                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
-                          Período
-                        </div>
-                        <div className="mt-1 text-sm font-semibold text-primary">
-                          {selectedProject.periodo}
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
-                          Orientador(a)
-                        </div>
-                        <div className="mt-1 text-sm font-semibold text-primary">
-                          {selectedProject.orientador}
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-xs font-medium uppercase tracking-wide text-neutral">
-                          Prazo do relatório
-                        </div>
-                        <div className="mt-1 text-sm font-semibold text-primary">
-                          {selectedProject.prazoRelatorio}
-                        </div>
+                      <div className="mt-1 text-sm font-semibold text-primary">
+                        {report.projetoTitulo}
                       </div>
                     </div>
-                  )}
+
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                        Edital
+                      </div>
+
+                      <div className="mt-1 text-sm font-semibold text-primary">
+                        {report.edital}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                        Período
+                      </div>
+
+                      <div className="mt-1 text-sm font-semibold text-primary">
+                        {report.periodo}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-wide text-neutral">
+                        Orientador(a)
+                      </div>
+
+                      <div className="mt-1 text-sm font-semibold text-primary">
+                        {report.orientador}
+                      </div>
+                    </div>
+                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1.5">
                       Atividades realizadas *
                     </label>
+
                     <textarea
                       value={form.atividadesRealizadas}
                       onChange={(e) =>
@@ -446,8 +401,9 @@ export default function PartialReportForm() {
                         px-4 py-3 text-sm text-primary outline-none
                         focus:border-primary resize-none
                       "
-                      placeholder="Descreva as atividades efetivamente realizadas no projeto selecionado."
+                      placeholder="Descreva as atividades efetivamente realizadas no projeto."
                     />
+
                     {errors.atividadesRealizadas && (
                       <p className="mt-1 text-xs text-danger">
                         {errors.atividadesRealizadas}
@@ -459,6 +415,7 @@ export default function PartialReportForm() {
                     <label className="block text-sm font-medium text-primary mb-1.5">
                       Comparação entre plano original e executado *
                     </label>
+
                     <textarea
                       value={form.comparacaoPlanoExecutado}
                       onChange={(e) =>
@@ -472,6 +429,7 @@ export default function PartialReportForm() {
                       "
                       placeholder="Explique se o plano do projeto foi seguido integralmente ou se houve ajustes."
                     />
+
                     {errors.comparacaoPlanoExecutado && (
                       <p className="mt-1 text-xs text-danger">
                         {errors.comparacaoPlanoExecutado}
@@ -483,6 +441,7 @@ export default function PartialReportForm() {
                     <label className="block text-sm font-medium text-primary mb-1.5">
                       Outras atividades *
                     </label>
+
                     <textarea
                       value={form.outrasAtividades}
                       onChange={(e) =>
@@ -496,6 +455,7 @@ export default function PartialReportForm() {
                       "
                       placeholder="Informe atividades complementares relacionadas ao projeto."
                     />
+
                     {errors.outrasAtividades && (
                       <p className="mt-1 text-xs text-danger">
                         {errors.outrasAtividades}
@@ -507,6 +467,7 @@ export default function PartialReportForm() {
                     <label className="block text-sm font-medium text-primary mb-1.5">
                       Resultados preliminares *
                     </label>
+
                     <textarea
                       value={form.resultadosPreliminares}
                       onChange={(e) =>
@@ -520,9 +481,61 @@ export default function PartialReportForm() {
                       "
                       placeholder="Descreva os resultados preliminares obtidos no projeto."
                     />
+
                     {errors.resultadosPreliminares && (
                       <p className="mt-1 text-xs text-danger">
                         {errors.resultadosPreliminares}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">
+                      Dificuldades encontradas *
+                    </label>
+
+                    <textarea
+                      value={form.dificuldadesEncontradas}
+                      onChange={(e) =>
+                        updateField("dificuldadesEncontradas", e.target.value)
+                      }
+                      rows={5}
+                      className="
+                        w-full rounded-xl border border-neutral/30 bg-white
+                        px-4 py-3 text-sm text-primary outline-none
+                        focus:border-primary resize-none
+                      "
+                      placeholder="Informe dificuldades, limitações ou impedimentos encontrados durante o desenvolvimento das atividades."
+                    />
+
+                    {errors.dificuldadesEncontradas && (
+                      <p className="mt-1 text-xs text-danger">
+                        {errors.dificuldadesEncontradas}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="rounded-2xl border border-neutral/20 bg-neutral/5 px-4 py-4">
+                    <label className="flex items-start gap-3 text-sm text-neutral">
+                      <input
+                        type="checkbox"
+                        checked={form.aceiteInformacoes}
+                        onChange={(e) =>
+                          updateField("aceiteInformacoes", e.target.checked)
+                        }
+                        className="mt-1"
+                      />
+
+                      <span>
+                        Declaro que as informações preenchidas neste relatório
+                        são verdadeiras e correspondem às atividades realizadas
+                        no projeto vinculado.
+                      </span>
+                    </label>
+
+                    {errors.aceiteInformacoes && (
+                      <p className="mt-2 text-xs text-danger">
+                        {errors.aceiteInformacoes}
                       </p>
                     )}
                   </div>
@@ -601,14 +614,20 @@ export default function PartialReportForm() {
             >
               <ul className="space-y-3 text-sm text-neutral">
                 <li className="leading-6">
-                  Selecione primeiro o projeto correto antes de preencher o relatório.
+                  O relatório já está vinculado ao projeto selecionado na página
+                  anterior.
                 </li>
+
                 <li className="leading-6">
-                  Descreva com objetividade o que foi realmente executado no período.
+                  Descreva com objetividade o que foi realmente executado no
+                  período.
                 </li>
+
                 <li className="leading-6">
-                  Diferencie claramente o plano original do que foi adaptado ou alterado.
+                  Diferencie claramente o plano original do que foi adaptado ou
+                  alterado.
                 </li>
+
                 <li className="leading-6">
                   Destaque resultados já obtidos, mesmo que ainda parciais.
                 </li>
@@ -626,34 +645,36 @@ export default function PartialReportForm() {
               <div className="space-y-4 text-sm">
                 <div>
                   <div className="text-neutral">Título</div>
-                  <div className="mt-1 font-medium text-primary">{reportTitle}</div>
+                  <div className="mt-1 font-medium text-primary">
+                    {report.titulo}
+                  </div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Projeto</div>
                   <div className="mt-1 font-medium text-primary">
-                    {selectedProject?.titulo ?? "Não selecionado"}
+                    {report.projetoTitulo}
                   </div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Edital</div>
                   <div className="mt-1 font-medium text-primary">
-                    {selectedProject?.edital ?? "—"}
+                    {report.edital}
                   </div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Período</div>
                   <div className="mt-1 font-medium text-primary">
-                    {selectedProject?.periodo ?? "—"}
+                    {report.periodo}
                   </div>
                 </div>
 
                 <div>
                   <div className="text-neutral">Prazo final</div>
                   <div className="mt-1 font-medium text-primary">
-                    {selectedProject?.prazoRelatorio ?? "—"}
+                    {report.prazo}
                   </div>
                 </div>
               </div>
@@ -680,7 +701,9 @@ export default function PartialReportForm() {
 
                 <div className="flex items-start gap-3">
                   <CheckCircle2 size={16} className="mt-0.5 text-success" />
-                  <span>Garanta coerência entre projeto, atividades e resultados.</span>
+                  <span>
+                    Garanta coerência entre projeto, atividades e resultados.
+                  </span>
                 </div>
               </div>
             </Card>

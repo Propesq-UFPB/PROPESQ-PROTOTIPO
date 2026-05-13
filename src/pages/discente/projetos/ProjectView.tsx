@@ -475,16 +475,18 @@ export default function ProjectView() {
       </Helmet>
 
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-6">
+
+        <div className="flex items-center justify-between mb-4">
+          <Link
+            to="/discente/projetos"
+            className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
+          >
+            <ArrowLeft size={16} />
+            Voltar para meus projetos
+          </Link>
+        </div> 
+
         <header className="overflow-hidden rounded-[28px] border border-neutral/20 bg-white shadow-sm">
-          <div className="border-b border-neutral/15 px-6 py-4">
-            <Link
-              to="/discente/projetos"
-              className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-            >
-              <ArrowLeft size={16} />
-              Voltar para meus projetos
-            </Link>
-          </div>
 
           <div className="grid gap-6 px-6 py-6 xl:grid-cols-[1.6fr_340px]">
             <div className="space-y-4">

@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import React, { useMemo } from "react"
+import { Link, useParams } from "react-router-dom"
 import { Helmet } from "react-helmet"
 import Card from "@/components/Card"
 import {
@@ -10,16 +10,15 @@ import {
   BadgeCheck,
   Clock3,
   UserRound,
-  Eye,
   Pencil,
   AlertTriangle,
   CheckCircle2,
   ClipboardList,
-  Search,
   MessageSquareText,
 } from "lucide-react"
 
 type ReportType = "PARCIAL" | "FINAL"
+
 type ReportStatus =
   | "PENDENTE"
   | "EM_PREENCHIMENTO"
@@ -63,14 +62,12 @@ type ReportDetails = {
   observacoes: string[]
   possuiPendencia: boolean
   pendenciaTexto?: string
-  relatorioUrl: string
-  questionarioUrl?: string
   corpo: ReportBody
 }
 
 const REPORTS: ReportDetails[] = [
   {
-    id: "rel_001",
+    id: "3",
     titulo: "Relatório Parcial PIBIC 2026",
     tipo: "PARCIAL",
     projetoId: "proj_001",
@@ -87,8 +84,7 @@ const REPORTS: ReportDetails[] = [
     cota: "2025-2026 PIBIC-CNPQ-UFPB",
     possuiParecer: true,
     parecerEmitidoEm: "01/04/2026",
-    parecerTexto:
-      "Aluno dedicado.",
+    parecerTexto: "Aluno dedicado.",
     resumo:
       "Acompanhe o relatório submetido, visualize o conteúdo enviado e consulte o parecer emitido para este registro.",
     observacoes: [
@@ -96,8 +92,6 @@ const REPORTS: ReportDetails[] = [
       "Relatórios rejeitados ou em preenchimento podem ser editados.",
     ],
     possuiPendencia: false,
-    relatorioUrl: "/discente/relatorios/parcial/rel_001",
-    questionarioUrl: "/discente/relatorios/parcial/rel_001/questionario",
     corpo: {
       atividadesRealizadas:
         "Durante o período avaliado, foram realizadas atividades voltadas ao levantamento de requisitos, à definição da estrutura funcional da plataforma e ao desenvolvimento inicial da interface web do sistema proposto para a PROPESQ. O trabalho iniciou-se com uma série de reuniões de alinhamento com a equipe e com vinculadas à PROPESQ. Também foram realizados encontros de acompanhamento das atividades do projeto, nos quais foram discutidos o escopo do sistema, os perfis de usuários contemplados, as funcionalidades prioritárias e a organização dos módulos da plataforma. No âmbito técnico, foram desenvolvidas atividades de pesquisa, análise e prototipação da interface, incluindo a definição de componentes visuais, organização das telas, estruturação da navegação entre páginas e estudo de soluções adequadas para visualização de informações e indicadores. Além disso, foi iniciada a implementação frontend da plataforma, com foco na construção de páginas e componentes compatíveis com os requisitos levantados ao longo das discussões realizadas. Por fim, o progresso das atividades foi validado em reuniões de apresentação e feedback.",
@@ -110,7 +104,7 @@ const REPORTS: ReportDetails[] = [
     },
   },
   {
-    id: "rel_002",
+    id: "2",
     titulo: "Relatório Final PIBIC 2026",
     tipo: "FINAL",
     projetoId: "proj_001",
@@ -123,7 +117,7 @@ const REPORTS: ReportDetails[] = [
     status: "EM_ANALISE",
     atualizadoEm: "15/12/2026",
     dataEnvio: "15/12/2026 18:14",
-    discente: "202ggg1188 - MARIANA DA SILVA MARTINS",
+    discente: "20220071188 - MARIANA DA SILVA MARTINS",
     cota: "2025-2026 PIBIC-CNPQ-UFPB",
     possuiParecer: false,
     resumo:
@@ -134,8 +128,6 @@ const REPORTS: ReportDetails[] = [
       "Enquanto estiver em análise, o envio permanece somente para consulta.",
     ],
     possuiPendencia: false,
-    relatorioUrl: "/discente/relatorios/final/rel_002",
-    questionarioUrl: "/discente/relatorios/final/rel_002/questionario",
     corpo: {
       resultadosFinais:
         "Ao final da execução, foi consolidada a estrutura principal da interface do sistema, com organização modular das telas, definição de navegação entre páginas e implementação de componentes reutilizáveis para exibição de dados acadêmicos. Também foram amadurecidos os fluxos de uso do discente e da administração, permitindo melhor acompanhamento dos projetos, relatórios e vínculos institucionais.",
@@ -150,7 +142,7 @@ const REPORTS: ReportDetails[] = [
     },
   },
   {
-    id: "rel_003",
+    id: "1",
     titulo: "Relatório Final PIBIC 2025",
     tipo: "FINAL",
     projetoId: "proj_004",
@@ -178,8 +170,6 @@ const REPORTS: ReportDetails[] = [
     possuiPendencia: true,
     pendenciaTexto:
       "O relatório precisa ser ajustado conforme observações do avaliador e reenviado dentro do prazo complementar.",
-    relatorioUrl: "/discente/relatorios/final/rel_003",
-    questionarioUrl: "/discente/relatorios/final/rel_003/questionario",
     corpo: {
       resultadosFinais:
         "Foram consolidados os principais componentes analíticos do painel, com definição de indicadores, visualizações e estrutura de acompanhamento para apoio à gestão.",
@@ -259,6 +249,14 @@ function getStatusClasses(status: ReportStatus) {
   }
 }
 
+function getEditPath(report: ReportDetails) {
+  if (report.tipo === "PARCIAL") {
+    return `/discente/relatorios/${report.id}/parcial`
+  }
+
+  return `/discente/relatorios/${report.id}/final`
+}
+
 function buildSections(report: ReportDetails) {
   if (report.tipo === "PARCIAL") {
     return [
@@ -320,10 +318,12 @@ function InfoCard({
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
           {icon}
         </div>
+
         <div>
           <div className="text-xs font-medium uppercase tracking-wide text-neutral">
             {label}
           </div>
+
           <div className="mt-1 text-sm font-semibold leading-6 text-primary">
             {value}
           </div>
@@ -334,19 +334,16 @@ function InfoCard({
 }
 
 export default function ReportView() {
-  const [selectedReportId, setSelectedReportId] = useState<string>(REPORTS[0].id)
+  const { id } = useParams()
 
-  const report = useMemo(
-    () => REPORTS.find((item) => item.id === selectedReportId) ?? REPORTS[0],
-    [selectedReportId]
-  )
+  const report = REPORTS.find((item) => item.id === id) ?? REPORTS[0]
 
   const sections = useMemo(() => buildSections(report), [report])
 
   return (
     <div className="min-h-screen bg-neutral-light">
       <Helmet>
-        <title>Relatórios • PROPESQ</title>
+        <title>Consultar Relatório • PROPESQ</title>
       </Helmet>
 
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
@@ -365,7 +362,7 @@ export default function ReportView() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 <FileText size={14} />
-                Relatórios do discente
+                Relatório vinculado
               </span>
 
               <span
@@ -390,6 +387,7 @@ export default function ReportView() {
               <h1 className="text-2xl font-bold text-primary sm:text-3xl">
                 {report.titulo}
               </h1>
+
               <p className="mt-2 max-w-3xl text-sm leading-7 text-neutral sm:text-base">
                 Consulte o conteúdo enviado, acompanhe o status do relatório e
                 visualize o parecer quando disponível.
@@ -401,6 +399,7 @@ export default function ReportView() {
                 <div className="text-xs font-medium uppercase tracking-wide text-neutral">
                   Projeto
                 </div>
+
                 <div className="mt-1 text-sm font-semibold leading-6 text-primary">
                   {report.projetoTitulo}
                 </div>
@@ -410,6 +409,7 @@ export default function ReportView() {
                 <div className="text-xs font-medium uppercase tracking-wide text-neutral">
                   Orientador
                 </div>
+
                 <div className="mt-1 text-sm font-semibold leading-6 text-primary">
                   {report.orientador}
                 </div>
@@ -419,6 +419,7 @@ export default function ReportView() {
                 <div className="text-xs font-medium uppercase tracking-wide text-neutral">
                   Enviado em
                 </div>
+
                 <div className="mt-1 text-sm font-semibold leading-6 text-primary">
                   {report.dataEnvio || "-"}
                 </div>
@@ -428,6 +429,7 @@ export default function ReportView() {
                 <div className="text-xs font-medium uppercase tracking-wide text-neutral">
                   Parecer
                 </div>
+
                 <div className="mt-1 text-sm font-semibold leading-6 text-primary">
                   {report.possuiParecer ? "Disponível" : "Aguardando emissão"}
                 </div>
@@ -439,7 +441,11 @@ export default function ReportView() {
         {report.possuiPendencia && report.pendenciaTexto && (
           <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle size={18} className="mt-0.5 shrink-0 text-warning" />
+              <AlertTriangle
+                size={18}
+                className="mt-0.5 shrink-0 text-warning"
+              />
+
               <div className="text-sm leading-6 text-neutral">
                 <span className="font-semibold text-warning">
                   Pendência identificada:
@@ -450,56 +456,25 @@ export default function ReportView() {
           </div>
         )}
 
-        <Card
-          title={
-            <div className="flex flex-col gap-1">
-              <h2 className="text-sm font-semibold text-primary">
-                Seleção de relatório
-              </h2>
-              <p className="text-sm text-neutral">
-                Escolha qual relatório deseja consultar.
-              </p>
-            </div>
-          }
-          className="rounded-3xl border border-neutral/20 bg-white p-6"
-        >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto_auto]">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-primary">
-                Relatório
-              </label>
-              <select
-                value={selectedReportId}
-                onChange={(e) => setSelectedReportId(e.target.value)}
-                className="w-full rounded-xl border border-neutral/20 bg-white px-4 py-3 text-sm text-primary outline-none transition focus:border-primary"
-              >
-                {REPORTS.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.titulo} • {getTypeLabel(item.tipo)} •{" "}
-                    {getStatusLabel(item.status)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </Card>
-
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <InfoCard
             icon={<FolderKanban size={18} />}
             label="Projeto"
             value={<span className="line-clamp-3">{report.projetoTitulo}</span>}
           />
+
           <InfoCard
             icon={<UserRound size={18} />}
             label="Orientador"
             value={report.orientador}
           />
+
           <InfoCard
             icon={<CalendarDays size={18} />}
             label="Data de envio"
             value={report.dataEnvio || "-"}
           />
+
           <InfoCard
             icon={<Clock3 size={18} />}
             label="Última atualização"
@@ -520,6 +495,7 @@ export default function ReportView() {
               <div className="grid grid-cols-1 gap-5 text-sm md:grid-cols-2">
                 <div className="md:col-span-2">
                   <div className="text-neutral">Título do relatório</div>
+
                   <div className="mt-1 font-semibold text-primary">
                     {report.titulo}
                   </div>
@@ -527,6 +503,7 @@ export default function ReportView() {
 
                 <div>
                   <div className="text-neutral">Tipo</div>
+
                   <div className="mt-1 font-medium text-primary">
                     {getTypeLabel(report.tipo)}
                   </div>
@@ -534,6 +511,7 @@ export default function ReportView() {
 
                 <div>
                   <div className="text-neutral">Status</div>
+
                   <div className="mt-1">
                     <span
                       className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${getStatusClasses(
@@ -547,6 +525,7 @@ export default function ReportView() {
 
                 <div>
                   <div className="text-neutral">Edital</div>
+
                   <div className="mt-1 font-medium text-primary">
                     {report.edital}
                   </div>
@@ -554,6 +533,7 @@ export default function ReportView() {
 
                 <div>
                   <div className="text-neutral">Período</div>
+
                   <div className="mt-1 font-medium text-primary">
                     {report.periodo}
                   </div>
@@ -561,11 +541,15 @@ export default function ReportView() {
 
                 <div className="md:col-span-2">
                   <div className="text-neutral">Resumo</div>
-                  <p className="mt-1 leading-6 text-primary">{report.resumo}</p>
+
+                  <p className="mt-1 leading-6 text-primary">
+                    {report.resumo}
+                  </p>
                 </div>
 
                 <div>
                   <div className="text-neutral">Discente</div>
+
                   <div className="mt-1 font-medium text-primary">
                     {report.discente}
                   </div>
@@ -573,6 +557,7 @@ export default function ReportView() {
 
                 <div>
                   <div className="text-neutral">Cota</div>
+
                   <div className="mt-1 font-medium text-primary">
                     {report.cota}
                   </div>
@@ -597,6 +582,7 @@ export default function ReportView() {
                     <h3 className="text-sm font-semibold text-primary">
                       {section.title}
                     </h3>
+
                     <p className="mt-3 whitespace-pre-line text-sm leading-7 text-neutral text-justify">
                       {section.content}
                     </p>
@@ -697,6 +683,7 @@ export default function ReportView() {
                     ) : (
                       <ClipboardList size={16} className="mt-0.5 text-primary" />
                     )}
+
                     <span className="leading-6">{item}</span>
                   </li>
                 ))}
@@ -716,7 +703,7 @@ export default function ReportView() {
                 className="rounded-3xl border border-neutral/20 bg-white p-6"
               >
                 <Link
-                  to={report.relatorioUrl}
+                  to={getEditPath(report)}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary hover:bg-primary/5 transition"
                 >
                   <Pencil size={16} />

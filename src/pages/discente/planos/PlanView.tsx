@@ -633,7 +633,7 @@ export default function PlanView() {
                 </Link>
 
                 <Link
-                  to="/discente/planos"
+                  to="/discente/planos-disponiveis"
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/30 px-4 py-3 text-sm font-medium text-neutral transition hover:bg-neutral/5"
                 >
                   <ArrowLeft size={16} />

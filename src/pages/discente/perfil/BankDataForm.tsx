@@ -103,18 +103,20 @@ export default function BankDataForm() {
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
+
+        <div className="flex items-center justify-between mb-4">
+          <Link
+            to="/discente/perfil"
+            className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
+          >
+            <ArrowLeft size={16} />
+            Voltar para perfil
+          </Link>
+        </div>
+
         {/* HEADER */}
         <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <Link
-                to="/discente/perfil"
-                className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
-              >
-                <ArrowLeft size={16} />
-                Voltar para perfil
-              </Link>
-            </div>
 
             <h1 className="mt-2 text-2xl font-bold text-primary">
               Dados Bancários
@@ -124,6 +126,7 @@ export default function BankDataForm() {
               Atualize os dados da conta utilizada para vínculo e pagamento.
             </p>
           </div>
+      
         </header>
 
         {/* AVISO */}

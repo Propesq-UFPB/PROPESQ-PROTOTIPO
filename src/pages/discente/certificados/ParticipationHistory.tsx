@@ -1,20 +1,18 @@
-import React, { useMemo, useState } from "react"
+import React from "react"
 import { Link } from "react-router-dom"
 import { Helmet } from "react-helmet"
 import Card from "@/components/Card"
 import {
-  Search,
-  Filter,
-  History,
   Award,
-  FolderKanban,
+  FileText,
   CalendarDays,
   BadgeCheck,
   Eye,
   Clock3,
   CheckCircle2,
   AlertTriangle,
-  FileText,
+  ClipboardList,
+  Download,
 } from "lucide-react"
 
 type ParticipationType =
@@ -35,14 +33,14 @@ type ParticipationItem = {
   titulo: string
   tipo: ParticipationType
   status: ParticipationStatus
-  projetoId?: string
-  projetoTitulo?: string
-  certificadoId?: string
+  planoTrabalhoId?: string
+  planoTrabalhoTitulo?: string
+  declaracaoId?: string
   referencia: string
   periodo: string
   cargaHoraria?: string
   resumo: string
-  possuiCertificado: boolean
+  possuiDeclaracao: boolean
   possuiPendencia: boolean
   pendenciaTexto?: string
 }
@@ -50,86 +48,88 @@ type ParticipationItem = {
 const PARTICIPATIONS: ParticipationItem[] = [
   {
     id: "part_001",
-    titulo: "Participação em Projeto de Pesquisa PIBIC 2026",
+    titulo: "Declaração de Participação em Plano de Trabalho PIBIC 2026",
     tipo: "PESQUISA",
     status: "EM_ANDAMENTO",
-    projetoId: "proj_001",
-    projetoTitulo: "Plataforma Digital para Gestão de Pesquisa Acadêmica",
+    planoTrabalhoId: "1",
+    planoTrabalhoTitulo:
+      "Plataforma Digital para Gestão de Pesquisa Acadêmica",
     referencia: "PIBIC 2026",
     periodo: "01/05/2026 a 31/12/2026",
     cargaHoraria: "20h semanais",
     resumo:
-      "Atuação discente em projeto de pesquisa voltado ao desenvolvimento de plataforma acadêmica institucional.",
-    possuiCertificado: false,
+      "Participação discente vinculada ao plano de trabalho de iniciação científica. A declaração será disponibilizada após validação institucional.",
+    possuiDeclaracao: false,
     possuiPendencia: false,
   },
   {
     id: "part_002",
-    titulo: "Atuação como Bolsista de Iniciação Científica",
+    titulo: "Declaração de Participação como Bolsista",
     tipo: "BOLSISTA",
     status: "CONCLUIDA",
-    projetoId: "proj_001",
-    projetoTitulo: "Plataforma Digital para Gestão de Pesquisa Acadêmica",
-    certificadoId: "cert_002",
+    planoTrabalhoId: "1",
+    planoTrabalhoTitulo:
+      "Plataforma Digital para Gestão de Pesquisa Acadêmica",
+    declaracaoId: "decl_002",
     referencia: "PIBIC 2026",
     periodo: "01/05/2026 a 31/12/2026",
     cargaHoraria: "20h semanais",
     resumo:
-      "Participação formal como bolsista em projeto de iniciação científica com certificado emitido.",
-    possuiCertificado: true,
+      "Declaração emitida para participação como bolsista em plano de trabalho de iniciação científica.",
+    possuiDeclaracao: true,
     possuiPendencia: false,
   },
   {
     id: "part_003",
-    titulo: "Apresentação de Trabalho no ENIC 2025",
+    titulo: "Declaração de Participação em Apresentação no ENIC",
     tipo: "ENIC",
     status: "CONCLUIDA",
-    projetoId: "proj_003",
-    projetoTitulo: "Ambiente Web para Apoio à Submissão ENIC",
-    certificadoId: "cert_003",
+    planoTrabalhoId: "3",
+    planoTrabalhoTitulo:
+      "Ambiente Web para Apoio à Submissão ENIC",
+    declaracaoId: "decl_003",
     referencia: "ENIC 2025",
     periodo: "20/08/2025",
     resumo:
-      "Participação em evento acadêmico com apresentação de trabalho vinculado ao projeto.",
-    possuiCertificado: true,
+      "Declaração referente à participação em apresentação de trabalho vinculada ao plano de trabalho.",
+    possuiDeclaracao: true,
     possuiPendencia: false,
   },
   {
     id: "part_004",
-    titulo: "Participação voluntária em projeto PIBITI 2026",
+    titulo: "Declaração de Participação Voluntária",
     tipo: "VOLUNTARIO",
     status: "PENDENTE_REGISTRO",
-    projetoId: "proj_002",
-    projetoTitulo: "IA Aplicada à Classificação de Produção Científica",
+    planoTrabalhoId: "2",
+    planoTrabalhoTitulo:
+      "IA Aplicada à Classificação de Produção Científica",
     referencia: "PIBITI 2026",
     periodo: "10/05/2026 a 30/11/2026",
     resumo:
-      "Atuação voluntária vinculada ao projeto de IA, aguardando consolidação institucional do registro.",
-    possuiCertificado: false,
+      "Participação voluntária vinculada ao plano de trabalho, aguardando consolidação institucional do registro.",
+    possuiDeclaracao: false,
     possuiPendencia: true,
     pendenciaTexto:
-      "O histórico depende da conclusão e validação definitiva do vínculo acadêmico.",
+      "A emissão da declaração depende da conclusão e validação definitiva do vínculo no plano de trabalho.",
   },
   {
     id: "part_005",
-    titulo: "Participação em Projeto de Extensão PROBEX 2024",
+    titulo: "Declaração de Participação em Plano de Trabalho PROBEX 2024",
     tipo: "EXTENSAO",
     status: "INDEFERIDA",
-    projetoId: "proj_005",
-    projetoTitulo: "Repositório Digital para Produção Discente",
+    planoTrabalhoId: "5",
+    planoTrabalhoTitulo:
+      "Repositório Digital para Produção Discente",
     referencia: "PROBEX 2024",
     periodo: "10/08/2024 a 15/10/2024",
     resumo:
-      "Registro de participação em projeto de extensão com inconsistência no encerramento do vínculo.",
-    possuiCertificado: false,
+      "Solicitação de declaração não aprovada por inconsistência no encerramento do vínculo ao plano de trabalho.",
+    possuiDeclaracao: false,
     possuiPendencia: true,
     pendenciaTexto:
-      "A participação precisa ser regularizada para futura certificação e consolidação no histórico.",
+      "A participação precisa ser regularizada no plano de trabalho para futura emissão da declaração.",
   },
 ]
-
-type TypeFilter = "TODOS" | ParticipationType
-type StatusFilter = "TODOS" | ParticipationStatus
 
 function getTypeLabel(type: ParticipationType) {
   switch (type) {
@@ -195,157 +195,45 @@ function getStatusClasses(status: ParticipationStatus) {
   }
 }
 
-export default function ParticipationHistory() {
-  const [search, setSearch] = useState("")
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>("TODOS")
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("TODOS")
-
-  const stats = useMemo(() => {
-    return {
-      total: PARTICIPATIONS.length,
-      concluidas: PARTICIPATIONS.filter((item) => item.status === "CONCLUIDA").length,
-      andamento: PARTICIPATIONS.filter((item) => item.status === "EM_ANDAMENTO").length,
-      comCertificado: PARTICIPATIONS.filter((item) => item.possuiCertificado).length,
-      pendencias: PARTICIPATIONS.filter((item) => item.possuiPendencia).length,
-    }
-  }, [])
-
-  const filteredParticipations = useMemo(() => {
-    const term = search.trim().toLowerCase()
-    const [year, setYear] = useState<string>("todos")
-
-    return PARTICIPATIONS.filter((item) => {
-      const matchesSearch =
-        !term ||
-        item.titulo.toLowerCase().includes(term) ||
-        item.referencia.toLowerCase().includes(term) ||
-        item.projetoTitulo?.toLowerCase().includes(term) ||
-        item.resumo.toLowerCase().includes(term)
-
-      const matchesType =
-        typeFilter === "TODOS" || item.tipo === typeFilter
-
-      const matchesStatus =
-        statusFilter === "TODOS" || item.status === statusFilter
-
-      return matchesSearch && matchesType && matchesStatus
-    })
-  }, [search, typeFilter, statusFilter])
-
+export default function ParticipationDeclaration() {
   return (
     <div className="min-h-screen bg-neutral-light">
       <Helmet>
-        <title>Histórico de Participações • PROPESQ</title>
+        <title>Declaração de Participação • PROPESQ</title>
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
         {/* HEADER */}
-        <header>
-          <h1 className="text-2xl font-bold text-primary">
-            Histórico de Participações
-          </h1>
-          <p className="mt-1 text-base text-neutral">
-            Consulte seu histórico acadêmico de participações em projetos, eventos e atividades vinculadas à PROPESQ.
-          </p>
+        <header className="rounded-2xl border border-neutral/20 bg-white px-6 py-6">
+            <h1 className="text-2xl font-bold text-primary">
+              Declaração de Participação
+            </h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
+              Consulte suas declarações de participação emitidas a partir dos
+              planos de trabalho vinculados ao seu perfil acadêmico.
+            </p>
         </header>
-
-        {/* FILTROS */}
-        <section>
-          <Card
-            title={
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                <Filter size={16} />
-                Busca e filtros
-              </div>
-            }
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Buscar participação
-                </label>
-
-                <div className="relative">
-                  <Search
-                    size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral"
-                  />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Título, referência, projeto..."
-                    className="
-                      w-full rounded-xl border border-neutral/30 bg-white
-                      pl-10 pr-4 py-3 text-sm text-primary outline-none
-                      focus:border-primary
-                    "
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Tipo
-                </label>
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                >
-                  <option value="TODOS">Todos</option>
-                  <option value="PESQUISA">Pesquisa</option>
-                  <option value="EXTENSAO">Extensão</option>
-                  <option value="ENIC">ENIC</option>
-                  <option value="BOLSISTA">Bolsista</option>
-                  <option value="VOLUNTARIO">Voluntário</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">
-                  Status
-                </label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                  className="
-                    w-full rounded-xl border border-neutral/30 bg-white
-                    px-4 py-3 text-sm text-primary outline-none
-                    focus:border-primary
-                  "
-                >
-                  <option value="TODOS">Todos</option>
-                  <option value="CONCLUIDA">Concluída</option>
-                  <option value="EM_ANDAMENTO">Em andamento</option>
-                  <option value="PENDENTE_REGISTRO">Pendente de registro</option>
-                  <option value="INDEFERIDA">Indeferida</option>
-                </select>
-              </div>
-            </div>
-          </Card>
-        </section>
 
         {/* LISTA */}
         <section>
-          <Card title={undefined} className="bg-white border border-neutral/30 rounded-2xl p-8">
-            {filteredParticipations.length === 0 ? (
+          <Card
+            title={undefined}
+            className="bg-white border border-neutral/30 rounded-2xl p-8"
+          >
+            {PARTICIPATIONS.length === 0 ? (
               <div className="rounded-2xl border border-neutral/20 bg-neutral/5 px-4 py-8 text-center">
                 <div className="text-base font-semibold text-primary">
-                  Nenhum registro encontrado
+                  Nenhuma declaração encontrada
                 </div>
+
                 <p className="mt-1 text-sm text-neutral">
-                  Ajuste os filtros para visualizar outros resultados.
+                  Quando houver declarações vinculadas aos seus planos de
+                  trabalho, elas aparecerão nesta página.
                 </p>
               </div>
             ) : (
               <div className="space-y-5">
-                {filteredParticipations.map((item) => (
+                {PARTICIPATIONS.map((item) => (
                   <article
                     key={item.id}
                     className="rounded-2xl border border-neutral/20 p-5"
@@ -364,7 +252,7 @@ export default function ParticipationHistory() {
                                 item.tipo
                               )}`}
                             >
-                              <History size={14} />
+                              <ClipboardList size={14} />
                               {getTypeLabel(item.tipo)}
                             </span>
 
@@ -380,13 +268,14 @@ export default function ParticipationHistory() {
                               ) : (
                                 <Clock3 size={14} />
                               )}
+
                               {getStatusLabel(item.status)}
                             </span>
 
-                            {item.possuiCertificado && (
+                            {item.possuiDeclaracao && (
                               <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
                                 <Award size={14} />
-                                Certificado disponível
+                                Declaração disponível
                               </span>
                             )}
                           </div>
@@ -397,9 +286,9 @@ export default function ParticipationHistory() {
                         </div>
 
                         <div className="flex flex-col sm:flex-row xl:flex-col gap-2 xl:min-w-[220px]">
-                          {item.projetoId && (
+                          {item.planoTrabalhoId && (
                             <Link
-                              to={`/discente/projetos/${item.projetoId}`}
+                              to={`/discente/planos-disponiveis/${item.planoTrabalhoId}`}
                               className="
                                 inline-flex items-center justify-center gap-2
                                 rounded-xl border border-primary
@@ -408,24 +297,24 @@ export default function ParticipationHistory() {
                               "
                             >
                               <Eye size={16} />
-                              Ver projeto
+                              Ver plano de trabalho
                             </Link>
                           )}
 
-                          {item.certificadoId && (
-                            <Link
-                              to={`/discente/certificados/${item.certificadoId}`}
-                              className="
-                                inline-flex items-center justify-center gap-2
-                                rounded-xl bg-primary px-4 py-3
-                                text-sm font-semibold text-white
-                                hover:opacity-90 transition
-                              "
-                            >
-                              <Award size={16} />
-                              Ver certificado
-                            </Link>
-                          )}
+                          <button
+                            type="button"
+                            disabled={!item.possuiDeclaracao}
+                            className="
+                              inline-flex items-center justify-center gap-2
+                              rounded-xl bg-primary px-4 py-3
+                              text-sm font-semibold text-white
+                              hover:opacity-90 transition
+                              disabled:opacity-50
+                            "
+                          >
+                            <Download size={16} />
+                            Baixar declaração
+                          </button>
                         </div>
                       </div>
 
@@ -433,11 +322,12 @@ export default function ParticipationHistory() {
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
                         <div className="rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3">
                           <div className="flex items-center gap-2 text-neutral">
-                            <FolderKanban size={15} />
-                            Projeto / atividade
+                            <ClipboardList size={15} />
+                            Plano de trabalho
                           </div>
+
                           <div className="mt-1 font-medium text-primary">
-                            {item.projetoTitulo || "-"}
+                            {item.planoTrabalhoTitulo || "-"}
                           </div>
                         </div>
 
@@ -446,6 +336,7 @@ export default function ParticipationHistory() {
                             <BadgeCheck size={15} />
                             Referência
                           </div>
+
                           <div className="mt-1 font-medium text-primary">
                             {item.referencia}
                           </div>
@@ -456,6 +347,7 @@ export default function ParticipationHistory() {
                             <CalendarDays size={15} />
                             Período
                           </div>
+
                           <div className="mt-1 font-medium text-primary">
                             {item.periodo}
                           </div>
@@ -466,6 +358,7 @@ export default function ParticipationHistory() {
                             <FileText size={15} />
                             Carga horária
                           </div>
+
                           <div className="mt-1 font-medium text-primary">
                             {item.cargaHoraria || "-"}
                           </div>
@@ -480,6 +373,7 @@ export default function ParticipationHistory() {
                               size={16}
                               className="mt-0.5 text-warning shrink-0"
                             />
+
                             <div>
                               <span className="font-semibold text-warning">
                                 Pendência identificada:

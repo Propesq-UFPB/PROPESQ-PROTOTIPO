@@ -39,7 +39,7 @@ type AvailablePlan = {
 const PLANS: AvailablePlan[] = [
   {
     id: "plan_001",
-    titulo: "Plano de Trabalho em Ciência de Dados Aplicada",
+    titulo: "Desenvolvimento da Interface Web e Dashboards Interativos",
     projetoId: "proj_001",
     projetoTitulo: "Plataforma Digital para Gestão de Pesquisa Acadêmica",
     orientador: "Prof. André Silva",
@@ -148,7 +148,7 @@ export default function AvailablePlans() {
           </p>
         </header>
 
-        <section className="rounded-2xl border border-neutral/30 bg-white p-6 md:p-8">
+        <section className="rounded-2xl border border-neutral/20 bg-white p-6 md:p-8">
           {PLANS.length === 0 ? (
             <div className="rounded-2xl border border-neutral/20 bg-neutral/5 px-4 py-8 text-center">
               <div className="text-base font-semibold text-primary">
@@ -202,7 +202,7 @@ export default function AvailablePlans() {
                       </div>
 
                       <Link
-                        to={`/discente/planos/${item.id}`}
+                        to={`/discente/planos-disponiveis/${item.id}`}
                         className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary/5 xl:min-w-[180px]"
                       >
                         <Eye size={16} />

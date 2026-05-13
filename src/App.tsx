@@ -79,7 +79,7 @@ import NoticeApplicationResult from "./pages/discente/editais/ApplicationResult"
 
 import DisProjects from "./pages/discente/projetos/MyProjects"
 import DisProjectView from "./pages/discente/projetos/ProjectView"
-import DisProjectHistory from "./pages/discente/projetos/ProjectHistory"
+import DisProjectConsult from "./pages/discente/projetos/ConsultProject"
 import BondStatus from "./pages/discente/perfil/BondStatus"
 
 import ReportsList from "./pages/discente/relatorios/ReportsList"
@@ -92,6 +92,7 @@ import EnicSubmissionForm from "./pages/discente/enic/EnicSubmissionForm"
 // import EnicSubmissionStatus from "./pages/discente/enic/EnicSubmissionStatus"
 import EnicSubmissionView from "./pages/discente/enic/EnicSubmissionView"
 import EnicSubmissionsList from "./pages/discente/enic/EnicSubmissionsList"
+import TemplateModel from "./pages/discente/enic/TemplateModel"
 
 // import NotificationsCenter from "./pages/discente/notificacoes/NotificationsCenter"
 // import MessageThread from "./pages/discente/notificacoes/MessageThread"
@@ -122,20 +123,6 @@ import CoordinatorReports from "./pages/coordenador/relatorios/CoordinatorReport
 import CoordinatorReportReview from "./pages/coordenador/relatorios/CoordinatorReportReview"
 
 
-
-import Projects from "./pages/Projects"
-import MyProjects from "./pages/MyProjects"
-import ProjectForm from "./pages/ProjectForm"
-import Plans from "./pages/Plans"
-import PlanForm from "./pages/PlanForm"
-import Evaluations from "./pages/Evaluations"
-import EvaluationDetail from "./pages/EvaluationDetail"
-import Monitoring from "./pages/Monitoring"
-import Reports from "./pages/Reports"
-import Certificates from "./pages/Certificates"
-import CertificateView from "./pages/CertificateView"
-import AdminAnalytics from "./pages/AdminAnalytics"
-import Settings from "./pages/Settings"
 import NotFound from "./pages/NotFound"
 
 
@@ -273,8 +260,8 @@ export default function App() {
         <Route path="/discente/editais/:id/resultado" element={<Protected><Shell><NoticeApplicationResult /></Shell></Protected>} />
 
         <Route path="/discente/projetos" element={<Protected><Shell><DisProjects /></Shell></Protected>} />
+        <Route path="/discente/projetos/consultar" element={<Protected><Shell><DisProjectConsult /></Shell></Protected>} />
         <Route path="/discente/projetos/:id" element={<Protected><Shell><DisProjectView /></Shell></Protected>} />
-        <Route path="/discente/projetos/:id/historico" element={<Protected><Shell><DisProjectHistory /></Shell></Protected>} />
         <Route path="/discente/vinculo" element={<Protected><Shell><BondStatus /></Shell></Protected>} />
 
         <Route path="/discente/relatorios" element={<Protected><Shell><ReportsList /></Shell></Protected>} />
@@ -282,11 +269,12 @@ export default function App() {
         <Route path="/discente/relatorios/:id/final" element={<Protected><Shell><FinalReportForm /></Shell></Protected>} />
         <Route path="/discente/relatorios/:id/visualizar" element={<Protected><Shell><ReportView /></Shell></Protected>} />
         {/*<Route path="/discente/relatorios/:id/status" element={<Protected><Shell><ReportStatus /></Shell></Protected>} />*/}
-
+        
         <Route path="/discente/enic/inscricao" element={<Protected><Shell><EnicSubmissionForm /></Shell></Protected>} />
         {/*<Route path="/discente/enic/status" element={<Protected><Shell><EnicSubmissionStatus /></Shell></Protected>} />*/}
         <Route path="/discente/enic/visualizar/:id" element={<Protected><Shell><EnicSubmissionView /></Shell></Protected>} />
         <Route path="/discente/enic/submissions" element={<Protected><Shell><EnicSubmissionsList /></Shell></Protected>} />
+        <Route path="/discente/enic/modelo" element={<Protected><Shell><TemplateModel /></Shell></Protected>} />
 
         {/* <Route path="/discente/notificacoes" element={<Protected><Shell><NotificationsCenter /></Shell></Protected>} />*/}
         {/* <Route path="/discente/notificacoes/inbox" element={<Protected><Shell><MessagesInbox /></Shell></Protected>} />*/}

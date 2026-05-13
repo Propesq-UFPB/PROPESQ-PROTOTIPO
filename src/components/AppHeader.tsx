@@ -32,6 +32,7 @@ import {
   Wallet,
   History,
   Folder,
+  Search,
 } from "lucide-react"
 
 import LogoImg from "@/utils/img/logo_propesq.png"
@@ -190,7 +191,7 @@ function themeFromPath(pathname: string): ThemeTokens {
     return { ...base, page: "#DC2626", pageSoft: "#FEE2E2" }
 
   if (pathname.startsWith("/discente/certificados") || pathname === "/discente/historico-participacao")
-    return { ...base, page: "#CA8A04", pageSoft: "#FEF9C3" }
+    return { ...base, page: "#DB2777", pageSoft: "#FCE7F3" }
 
   if (pathname.startsWith("/discente/perfil"))
     return { ...base, page: "#2563EB", pageSoft: "#DBEAFE" }
@@ -557,7 +558,7 @@ export default function AppHeader() {
 
   const studentPrimary: NavItem[] = [
     { to: "/discente/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
-    { to: "/discente/editais", label: "Editais", icon: <Megaphone size={16} /> },
+    // { to: "/discente/editais", label: "Editais", icon: <Megaphone size={16} /> },
     { to: "/discente/planos-disponiveis", label: "Planos", icon: <Notebook size={16} /> },
     { to: "/discente/relatorios", label: "Relatórios", icon: <FileText size={16} /> },
     { to: "/discente/enic/submissions", label: "ENIC", icon: <Award size={16} /> },
@@ -567,33 +568,35 @@ export default function AppHeader() {
 
   const studentSecondaryByPrimary: Record<string, NavItem[]> = {
     "/discente/projetos": [
-      { to: "/discente/projetos", label: "Meus Projetos", icon: <FolderKanban size={16} />, end: true },
+      {to: "/discente/projetos", label: "Meus Projetos", icon: <FolderKanban size={16} />, end: true,},
+      {to: "/discente/projetos/consultar",label: "Consultar Projetos", icon: <Search size={16} />,end: true,},
     ],
-    "/discente/editais": [
-      { to: "/discente/editais", label: "Lista de Editais", icon: <Megaphone size={16} />, end: true },
+    //"/discente/editais": [
+      //{ to: "/discente/editais", label: "Lista de Editais", icon: <Megaphone size={16} />, end: true },
       // { to: "/discente/editais/1", label: "Visualizar Edital", icon: <Eye size={16} />, end: true },
-      { to: "/discente/editais/1/inscricao", label: "Inscrição", icon: <Pencil size={16} />, end: true },
+      //{ to: "/discente/editais/1/inscricao", label: "Inscrição", icon: <Pencil size={16} />, end: true },
       // { to: "/discente/editais/1/status", label: "Status da Inscrição", icon: <Workflow size={16} />, end: true },
-      { to: "/discente/editais/1/resultado", label: "Resultado", icon: <Award size={16} />, end: true },
-    ],
+      //{ to: "/discente/editais/1/resultado", label: "Resultado", icon: <Award size={16} />, end: true },
+    //],
     "/discente/planos-disponiveis": [
       { to: "/discente/planos-disponiveis", label: "Planos Disponíveis", icon: <Notebook size={16} />, end: true },
-      { to: "/discente/planos-disponiveis/1", label: "Visualizar Plano", icon: <Eye size={16} />, end: true },
+      //{ to: "/discente/planos-disponiveis/1", label: "Visualizar Plano", icon: <Eye size={16} />, end: true },
     ],
     "/discente/relatorios": [
       { to: "/discente/relatorios", label: "Lista de Relatórios", icon: <FileText size={16} />, end: true },
-      { to: "/discente/relatorios/1/parcial", label: "Relatório Parcial", icon: <Pencil size={16} />, end: true },
-      { to: "/discente/relatorios/1/final", label: "Relatório Final", icon: <FileSignature size={16} />, end: true },
-      { to: "/discente/relatorios/1/visualizar", label: "Consultar", icon: <Eye size={16} />, end: true },
+      //{ to: "/discente/relatorios/1/parcial", label: "Relatório Parcial", icon: <Pencil size={16} />, end: true },
+      //{ to: "/discente/relatorios/1/final", label: "Relatório Final", icon: <FileSignature size={16} />, end: true },
+      //{ to: "/discente/relatorios/1/visualizar", label: "Consultar", icon: <Eye size={16} />, end: true },
     ],
     "/discente/enic/submissions": [
       { to: "/discente/enic/submissions", label: "Submissões", icon: <ClipboardList size={16} />, end: true },
       { to: "/discente/enic/inscricao", label: "Nova Submissão", icon: <Plus size={16} />, end: true },
-      { to: "/discente/enic/visualizar/1", label: "Consultar", icon: <Eye size={16} />, end: true },
+      //{ to: "/discente/enic/visualizar/1", label: "Consultar", icon: <Eye size={16} />, end: true },
+      { to: "/discente/enic/modelo", label: "Modelo de Submissão", icon: <FileText size={16} />, end: true },
     ],
     "/discente/certificados": [
       { to: "/discente/certificados", label: "Lista de Certificados", icon: <FileBadge size={16} />, end: true },
-      { to: "/discente/historico-participacao", label: "Histórico de Participação", icon: <History size={16} />, end: true },
+      { to: "/discente/historico-participacao", label: "Declaração de Participação", icon: <History size={16} />, end: true },
     ],
     "/discente/perfil": [
       { to: "/discente/perfil", label: "Meu Perfil", icon: <User size={16} />, end: true },
