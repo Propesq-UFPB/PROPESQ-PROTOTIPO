@@ -1,4 +1,4 @@
-import { PROJECT_STATUS } from '@/utils/constants'
+export const PROJECT_STATUS = ['Em análise', 'Aprovado', 'Rascunho'] as const
 
 export const projetos = [
   {
@@ -73,4 +73,4 @@ export const certificados = [
   },
 ]
 
-export type ProjetoStatus = typeof PROJECT_STATUS[number]
+export type ProjetoStatus = (typeof PROJECT_STATUS)[number]
