@@ -20,10 +20,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
 
-  const login = async (email: string, _password: string, role: Role) => {
+  const login = (email: string, _password: string, role: Role) => {
     const name = email.split('@')[0]
     setUser({ name, email, role })
-    let response = fetch()
   }
   const logout = () => setUser(null)
 

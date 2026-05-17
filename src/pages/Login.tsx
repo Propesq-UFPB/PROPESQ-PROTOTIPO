@@ -25,7 +25,7 @@ export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   
-  // NOVOS ESTADOS PARA A INTEGRAÇÃO
+  // Novos estados para integração
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -33,7 +33,7 @@ export default function Login() {
     setRole(initialRole)
   }, [initialRole])
 
-  // FUNÇÃO ADAPTADA PARA CONSUMIR A API
+  // Função adaptada para consumir o serviço do backend que irá rodar localmente na VM disponibilizada
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -45,7 +45,7 @@ export default function Login() {
       // Pega a URL do backend da variável de ambiente
       const apiUrl = import.meta.env.VITE_API_URL
 
-      // Faz a requisição para a rota que descobrimos nos logs
+      // Faz a requisição para a rota de login
       const response = await fetch(`${apiUrl}/authentications/sessions`, {
         method: 'POST',
         headers: {
@@ -54,7 +54,7 @@ export default function Login() {
         body: JSON.stringify({
           email,
           password,
-          // Se o backend precisar da role para autenticar, descomente a linha abaixo:
+          // Se o backend precisar da role para autenticar, descomentar a linha abaixo:
           // role 
         }),
       })
@@ -64,10 +64,10 @@ export default function Login() {
         throw new Error("E-mail ou senha incorretos.")
       }
 
-      // Converte a resposta do NestJS para JSON (geralmente contém o Token JWT)
+      // Converte a resposta do NestJS de JSON para um objeto typescript
       const data = await response.json()
 
-      // Salva o token (adapte "data.token" para o nome exato que o seu backend retorna)
+      // Salva o token
       if (data.token) {
         localStorage.setItem("token", data.token)
       }
@@ -143,7 +143,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* MENSAGEM DE ERRO (NOVO) */}
+          {/* MENSAGEM DE ERRO */}
           {error && (
             <div className="mb-4 p-2.5 bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg text-center font-medium">
               {error}
@@ -271,7 +271,6 @@ export default function Login() {
                 flex items-center justify-center gap-2
               "
             >
-              {/* Muda o texto dinamicamente se estiver carregando */}
               {loading ? (
                 <>
                   <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
