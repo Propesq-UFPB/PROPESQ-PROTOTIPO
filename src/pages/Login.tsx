@@ -24,24 +24,76 @@ export default function Login() {
   const [role, setRole] = useState<Role>(initialRole)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  
+  // NOVOS ESTADOS PARA A INTEGRAÇÃO
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   useEffect(() => {
     setRole(initialRole)
   }, [initialRole])
 
-  const onSubmit = (e: React.FormEvent) => {
+  // FUNÇÃO ADAPTADA PARA CONSUMIR A API
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    localStorage.setItem("role", role)
-    login(email || "usuario@ufpb.br", password, role)
+    
+    // Limpa erros anteriores e inicia o loading
+    setError("")
+    setLoading(true)
 
-    if (role === "ADMINISTRADOR") {
-      navigate("/dashboard")
-    } else if (role === "DISCENTE") {
-      navigate("/discente/dashboard")
-    } else if (role === "COORDENADOR") {
-      navigate("/coordenador/projetos")
-    } else {
-      navigate("/projetos")
+    try {
+      // Pega a URL do backend da variável de ambiente
+      const apiUrl = import.meta.env.VITE_API_URL
+
+      // Faz a requisição para a rota que descobrimos nos logs
+      const response = await fetch(`${apiUrl}/authentications/sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          // Se o backend precisar da role para autenticar, descomente a linha abaixo:
+          // role 
+        }),
+      })
+
+      if (!response.ok) {
+        // Se o status HTTP não for 200-299, lança um erro
+        throw new Error("E-mail ou senha incorretos.")
+      }
+
+      // Converte a resposta do NestJS para JSON (geralmente contém o Token JWT)
+      const data = await response.json()
+
+      // Salva o token (adapte "data.token" para o nome exato que o seu backend retorna)
+      if (data.token) {
+        localStorage.setItem("token", data.token)
+      }
+      
+      localStorage.setItem("role", role)
+      
+      // Passa os dados para o contexto
+      login(email || "usuario@ufpb.br", password, role)
+
+      // Navegação baseada na Role
+      if (role === "ADMINISTRADOR") {
+        navigate("/dashboard")
+      } else if (role === "DISCENTE") {
+        navigate("/discente/dashboard")
+      } else if (role === "COORDENADOR") {
+        navigate("/coordenador/projetos")
+      } else {
+        navigate("/projetos")
+      }
+
+    } catch (err: any) {
+      console.error("Erro no login:", err)
+      setError(err.message || "Falha ao conectar com o servidor.")
+    } finally {
+      // Finaliza o estado de carregamento independentemente de dar certo ou errado
+      setLoading(false)
     }
   }
 
@@ -91,6 +143,13 @@ export default function Login() {
             </div>
           </div>
 
+          {/* MENSAGEM DE ERRO (NOVO) */}
+          {error && (
+            <div className="mb-4 p-2.5 bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg text-center font-medium">
+              {error}
+            </div>
+          )}
+
           {/* INPUTS */}
           <div className="space-y-4">
             <div>
@@ -103,6 +162,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
                 className="
                   w-full
                   rounded-lg
@@ -114,6 +174,8 @@ export default function Login() {
                   focus:ring-2
                   focus:ring-primary-lighter/40
                   focus:border-primary
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
                 "
               />
             </div>
@@ -128,6 +190,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
                 className="
                   w-full
                   rounded-lg
@@ -139,6 +202,8 @@ export default function Login() {
                   focus:ring-2
                   focus:ring-primary-lighter/40
                   focus:border-primary
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
                 "
               />
             </div>
@@ -159,12 +224,15 @@ export default function Login() {
                     key={r}
                     type="button"
                     onClick={() => setRole(r)}
+                    disabled={loading}
                     className={`
                       px-3 py-1.5
                       rounded-full
                       text-[10px] font-semibold
                       border
                       transition-all duration-200
+                      disabled:opacity-50
+                      disabled:cursor-not-allowed
 
                       ${
                         active
@@ -184,6 +252,7 @@ export default function Login() {
           <div className="mt-7 space-y-2">
             <button
               type="submit"
+              disabled={loading}
               className="
                 w-full
                 rounded-lg
@@ -197,14 +266,29 @@ export default function Login() {
 
                 hover:bg-primary-light
                 hover:shadow-md
+                disabled:opacity-70
+                disabled:cursor-wait
+                flex items-center justify-center gap-2
               "
             >
-              Entrar
+              {/* Muda o texto dinamicamente se estiver carregando */}
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Conectando...
+                </>
+              ) : (
+                "Entrar"
+              )}
             </button>
 
             <button
               type="button"
               onClick={() => navigate("/")}
+              disabled={loading}
               className="
                 w-full
                 rounded-lg
@@ -216,6 +300,8 @@ export default function Login() {
 
                 transition-colors duration-200
                 hover:bg-neutral-light
+                disabled:opacity-50
+                disabled:cursor-not-allowed
               "
             >
               Voltar para a página inicial
