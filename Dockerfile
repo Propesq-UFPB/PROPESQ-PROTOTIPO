@@ -1,20 +1,16 @@
-# Usa uma imagem do Node (o log anterior mostrou que você estava no Node 24)
-FROM node:24-alpine
+FROM oven/bun:1-alpine
 
-# Define o diretório de trabalho dentro do container
 WORKDIR /usr/src/app
 
-# Copia os arquivos de dependência primeiro (boa prática para cache)
-COPY package*.json ./
+# Cache dependencies
+COPY bun.lock* bun.lockb* package.json ./
+RUN bun install
 
-# Instala as dependências
-RUN npm install
-
-# Copia o resto do código
+# Copy source code
 COPY . .
 
-# Expõe a porta que o seu compose está pedindo (3100)
+# Expose Vite / dev server port
 EXPOSE 3100
 
-# Comando para iniciar o frontend
-CMD ["npm", "run", "dev"]
+# Development server (hot reload)
+CMD ["bun", "run", "dev"]
