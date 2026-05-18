@@ -46,6 +46,8 @@ export default function Login() {
       const apiUrl = import.meta.env.VITE_API_URL
 
       // Faz a requisição para a rota de login
+      // Se necessário testar o dashboard basta comentar:
+      /*  */
       const response = await fetch(`${apiUrl}/authentications/sessions`, {
         method: 'POST',
         headers: {
@@ -63,15 +65,16 @@ export default function Login() {
         // Se o status HTTP não for 200-299, lança um erro
         throw new Error("E-mail ou senha incorretos.")
       }
-
+      /* */
       // Converte a resposta do NestJS de JSON para um objeto typescript
       const data = await response.json()
-
+      // Descomentar linha abaixo para teses sem backend
+      // const data = { token: "token-para-teste"}
       // Salva o token
       if (data.token) {
         localStorage.setItem("token", data.token)
       }
-      
+
       localStorage.setItem("role", role)
       
       // Passa os dados para o contexto
