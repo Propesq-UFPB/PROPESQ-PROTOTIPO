@@ -117,7 +117,8 @@ import CoordinatorProjectView from "./pages/coordenador/projetos/CoordinatorProj
 import CoordinatorEvaluations from "./pages/coordenador/avaliacoes/CoordinatorEvaluations"
 import CoordinatorEvaluationDetail from "./pages/coordenador/avaliacoes/CoordinatorEvaluationDetail"
 
-import CoordinatorIndications from "./pages/coordenador/indicacoes/CoordinatorIndications"
+import CoordinatorProjectWorkPlanForm from "./pages/coordenador/planos/CoordinatorProjectWorkPlanForm"
+import CoordinatorIndications from "./pages/coordenador/planos/CoordinatorIndications"
 
 import CoordinatorReports from "./pages/coordenador/relatorios/CoordinatorReports"
 import CoordinatorReportReview from "./pages/coordenador/relatorios/CoordinatorReportReview"
@@ -294,17 +295,16 @@ export default function App() {
         <Route path="/coordenador/projetos" element={<Protected><Shell><CoordinatorProjects /></Shell></Protected>} />
         <Route path="/coordenador/projetos/novo" element={<Protected><Shell><CoordinatorProjectForm /></Shell></Protected>} />
         <Route path="/coordenador/projetos/:id" element={<Protected><Shell><CoordinatorProjectView /></Shell></Protected>} />
+    
 
         <Route path="/coordenador/avaliacoes" element={<Protected><Shell><CoordinatorEvaluations /></Shell></Protected>} />
         <Route path="/coordenador/avaliacoes/:id" element={<Protected><Shell><CoordinatorEvaluationDetail /></Shell></Protected>} />
 
-        <Route path="/coordenador/indicacoes" element={<Protected><Shell><CoordinatorIndications /></Shell></Protected>} />
+        <Route path="/coordenador/planos/indicacoes" element={<Protected><Shell><CoordinatorIndications /></Shell></Protected>} />
+        <Route path="/coordenador/planos/novo" element={<Protected><Shell><CoordinatorProjectWorkPlanForm /></Shell></Protected>}/>
 
         <Route path="/coordenador/relatorios" element={<Protected><Shell><CoordinatorReports /></Shell></Protected>} />
         <Route path="/coordenador/relatorios/:id/revisao" element={<Protected><Shell><CoordinatorReportReview /></Shell></Protected>} />
-
-
-
 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />

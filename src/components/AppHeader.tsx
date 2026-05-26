@@ -97,11 +97,24 @@ function isActive(pathname: string, to: string, end?: boolean) {
   if (to === "/dashboard")
     return pathname === "/dashboard" || pathname.startsWith("/dashboard/")
 
-  /* Coordenador */
+ /* Coordenador */
+
+  if (to === "/coordenador/planos/indicacoes") {
+    return (
+      pathname === "/coordenador/planos/indicacoes" ||
+      pathname.startsWith("/coordenador/planos/indicacoes/") ||
+      pathname === "/coordenador/planos/novo" ||
+      pathname.startsWith("/coordenador/planos/novo/")
+    )
+  }
+
   if (to === "/coordenador/projetos") {
     return (
       pathname === "/coordenador/projetos" ||
-      pathname.startsWith("/coordenador/projetos/")
+      (
+        pathname.startsWith("/coordenador/projetos/") &&
+        !pathname.startsWith("/coordenador/planos/indicacoes/")
+      )
     )
   }
 
@@ -200,6 +213,16 @@ function themeFromPath(pathname: string): ThemeTokens {
     return { ...base, page: "#334155", pageSoft: "#E2E8F0" }
 
   /* Coordenador */
+  if (
+    pathname.startsWith("/coordenador/planos/indicacoes")
+  )
+    return { ...base, page: "#0EA5E9", pageSoft: "#E0F2FE" }
+
+  if (
+    pathname.startsWith("/coordenador/planos/novo")
+  )
+    return { ...base, page: "#0EA5E9", pageSoft: "#E0F2FE" }
+
   if (pathname.startsWith("/coordenador/projetos"))
     return { ...base, page: "#059669", pageSoft: "#D1FAE5" }
 
@@ -509,10 +532,10 @@ export default function AppHeader() {
   const adminPrimary: NavItem[] = [
     { to: "/dashboard", label: "Dashboard", icon: <Home size={16} /> },
     { to: "/adm/admprojetos", label: "Projetos", icon: <FolderKanban size={16} /> },
-    { to: "/adm/avaliacao", label: "Avaliação", icon: <FileSignature size={16} /> },
-    { to: "/adm/monitoring", label: "Acompanhamento", icon: <BadgeCheck size={16} /> },
-    { to: "/adm/calls", label: "Editais", icon: <LineChart size={16} /> },
-    { to: "/adm/settings", label: "Configurações", icon: <Settings size={16} /> },
+    { to: "/adm/avaliacao/classificacao", label: "Avaliação",      icon: <FileSignature size={16} /> },
+    { to: "/adm/monitoring/replacements", label: "Acompanhamento", icon: <BadgeCheck size={16} /> },
+    { to: "/adm/calls/CreateCall",        label: "Editais",         icon: <LineChart size={16} /> },
+    { to: "/adm/settings/scholarships",   label: "Configurações",   icon: <Settings size={16} /> },
   ]
 
   const adminSecondaryByPrimary: Record<string, NavItem[]> = {
@@ -521,24 +544,24 @@ export default function AppHeader() {
       { to: "/adm/admprojetos", label: "Projetos", icon: <FolderKanban size={16} /> },
     ],
     "/adm/admprojetos": [
-      { to: "/adm/admprojetos", label: "Visão Geral", icon: <Eye size={16} />, end: true },
+      { to: "/adm/admprojetos", label: "Buscar Projetos", icon: <Eye size={16} />, end: true },
       { to: "/adm/projetos/novo", label: "Cadastrar", icon: <Plus size={16} />, end: true },
       { to: "/adm/projetos/status", label: "Alterar Situação", icon: <Workflow size={16} />, end: true },
       { to: "/adm/projetos/comunicacao", label: "Comunicação", icon: <Megaphone size={16} />, end: true },
     ],
-    "/adm/avaliacao": [
+    "/adm/avaliacao/classificacao": [
       // { to: "/adm/avaliacao", label: "Overview", icon: <FileSignature size={16} />, end: true },
       { to: "/adm/avaliacao/classificacao", label: "Classificação", icon: <GraduationCap size={16} />, end: true },
       { to: "/adm/avaliacao/pontuacao", label: "Pontuação & IPI", icon: <LineChart size={16} />, end: true },
       { to: "/adm/avaliacao/avaliadores", label: "Avaliadores", icon: <Users size={16} />, end: true },
     ],
-    "/adm/monitoring": [
+    "/adm/monitoring/replacements": [
       // { to: "/adm/monitoring", label: "Overview", icon: <BadgeCheck size={16} />, end: true },
       { to: "/adm/monitoring/replacements", label: "Substituições", icon: <Users size={16} />, end: true },
       { to: "/adm/monitoring/report-validation", label: "Validação Relatórios", icon: <FileText size={16} />, end: true },
       { to: "/adm/monitoring/AdmCertificates", label: "Certificados", icon: <Award size={16} />, end: true },
     ],
-    "/adm/calls": [
+    "/adm/calls/CreateCall": [
       //{ to: "/adm/calls", label: "Overview", icon: <FolderKanban size={16} />, end: true },
       { to: "/adm/calls/CreateCall", label: "Criar Edital", icon: <Notebook size={16} />, end: true },
       { to: "/adm/calls/Manage", label: "Alterar/Remover", icon: <Pencil size={16} />, end: true },
@@ -546,7 +569,7 @@ export default function AppHeader() {
       { to: "/adm/calls/CallWorkflow", label: "Workflow", icon: <LineChart size={16} />, end: true },
       { to: "/adm/calls/quotas", label: "Cotas", icon: <ShieldCheck size={16} />, end: true },
     ],
-    "/adm/settings": [
+    "/adm/settings/scholarships": [
       //{ to: "/adm/settings", label: "Overview", icon: <Settings size={16} />, end: true },
       { to: "/adm/settings/scholarships", label: "Bolsas", icon: <ShieldCheck size={16} />, end: true },
       { to: "/adm/settings/academic-units", label: "Unidades", icon: <Building2 size={16} />, end: true },
@@ -609,7 +632,7 @@ export default function AppHeader() {
   const coordinatorPrimary: NavItem[] = [
     { to: "/coordenador/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
     { to: "/coordenador/avaliacoes", label: "Avaliações", icon: <FileSignature size={16} /> },
-    { to: "/coordenador/indicacoes", label: "Indicações", icon: <Users size={16} /> },
+    { to: "/coordenador/planos/indicacoes", label: "Planos", icon: <Notebook size={16} /> },
     { to: "/coordenador/relatorios", label: "Relatórios", icon: <FileText size={16} /> },
   ]
 
@@ -625,8 +648,9 @@ export default function AppHeader() {
       //{to: "/coordenador/avaliacoes/1", label: "Detalhe da Avaliação", icon: <Eye size={16} />, end: true,},
     ],
 
-    "/coordenador/indicacoes": [
-      {to: "/coordenador/indicacoes", label: "Indicações", icon: <Users size={16} />,end: true,},
+    "/coordenador/planos/indicacoes": [
+      { to: "/coordenador/planos/indicacoes", label: "Indicações para Plano de Trabalho", icon: <Users size={16} />, end: true },
+      { to: "/coordenador/planos/novo", label: "Adicionar Plano de Trabalho", icon: <Notebook size={16} />, end: true },
     ],
 
     "/coordenador/relatorios": [

@@ -85,7 +85,7 @@ export default function Login() {
       if (role === "ADMINISTRADOR") {
         navigate("/dashboard")
       } else if (role === "DISCENTE") {
-        navigate("/discente/dashboard")
+        navigate("/discente/projetos")
       } else if (role === "COORDENADOR") {
         navigate("/coordenador/projetos")
       } else {
