@@ -205,46 +205,29 @@ export default function PartialReportForm() {
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        <header className="flex flex-col gap-3">
-          {/* VOLTAR */}
-          <div>
-            <Link
-              to="/discente/relatorios"
-              className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
-            >
-              <ArrowLeft size={16} />
-              Voltar para relatórios
-            </Link>
-          </div>
 
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                    currentStatus
-                  )}`}
-                >
-                  <FileText size={14} />
-                  {getStatusLabel(currentStatus)}
-                </span>
+        {/* VOLTAR */}
+        <div>
+          <Link
+            to="/discente/relatorios"
+            className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral hover:border-primary/30 hover:text-primary transition"
+          >
+            <ArrowLeft size={16} />
+            Voltar para relatórios
+          </Link>
+        </div>
 
-                <span className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                  Relatório Parcial
-                </span>
-              </div>
+        {/* HEADER */}
+        <header className="rounded-2xl border border-neutral/20 bg-white px-6 py-6">
+          <h1 className="text-2xl font-bold text-primary">
+            {report.titulo}
+          </h1>
 
-              <h1 className="text-2xl font-bold text-primary">
-                {report.titulo}
-              </h1>
-
-              <p className="text-base text-neutral leading-7 max-w-4xl">
-                Preencha o relatório parcial vinculado ao projeto abaixo. O
+          <p className="mt-2 text-sm text-neutral">
+            Preencha o relatório parcial vinculado ao projeto abaixo. O
                 projeto, edital e orientador já estão definidos a partir do
                 relatório selecionado.
-              </p>
-            </div>
-          </div>
+          </p>
         </header>
 
         {currentObservation && (
@@ -264,72 +247,6 @@ export default function PartialReportForm() {
             </div>
           </div>
         )}
-
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <Card
-            title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
-          >
-            <div className="flex items-start gap-3">
-              <FolderKanban size={20} className="text-primary" />
-
-              <div>
-                <div className="text-sm text-neutral">Projeto vinculado</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.projetoTitulo}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
-          >
-            <div className="flex items-start gap-3">
-              <BadgeCheck size={20} className="text-primary" />
-
-              <div>
-                <div className="text-sm text-neutral">Edital</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.edital}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
-          >
-            <div className="flex items-start gap-3">
-              <UserRound size={20} className="text-primary" />
-
-              <div>
-                <div className="text-sm text-neutral">Orientador(a)</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.orientador}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
-          >
-            <div className="flex items-start gap-3">
-              <CalendarDays size={20} className="text-primary" />
-
-              <div>
-                <div className="text-sm text-neutral">Prazo</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.prazo}
-                </div>
-              </div>
-            </div>
-          </Card>
-        </section>
 
         <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           <div className="xl:col-span-2">
@@ -604,32 +521,6 @@ export default function PartialReportForm() {
           </div>
 
           <div className="space-y-5">
-            <Card
-              title={
-                <h2 className="text-sm font-semibold text-primary">
-                  Orientações
-                </h2>
-              }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
-            >
-              <ul className="space-y-3 text-sm text-neutral">
-
-                <li className="leading-6">
-                  Descreva com objetividade o que foi realmente executado no
-                  período.
-                </li>
-
-                <li className="leading-6">
-                  Diferencie claramente o plano original do que foi adaptado ou
-                  alterado.
-                </li>
-
-                <li className="leading-6">
-                  Destaque resultados já obtidos, mesmo que ainda parciais.
-                </li>
-              </ul>
-            </Card>
-
             <Card
               title={
                 <h2 className="text-sm font-semibold text-primary">

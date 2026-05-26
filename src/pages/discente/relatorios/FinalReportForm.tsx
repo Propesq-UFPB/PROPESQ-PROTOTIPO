@@ -258,8 +258,9 @@ export default function FinalReportForm() {
         <title>Relatório Final • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
-        <header className="flex flex-col gap-3">
+        <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
+  
+          {/* VOLTAR */}
           <div>
             <Link
               to="/discente/relatorios"
@@ -269,36 +270,19 @@ export default function FinalReportForm() {
               Voltar para relatórios
             </Link>
           </div>
-
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                    currentStatus
-                  )}`}
-                >
-                  <FileText size={14} />
-                  {getStatusLabel(currentStatus)}
-                </span>
-
-                <span className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                  Relatório Final
-                </span>
-              </div>
-
-              <h1 className="text-2xl font-bold text-primary">
-                {report.titulo}
-              </h1>
-
-              <p className="text-base text-neutral leading-7 max-w-4xl">
-                Preencha o relatório final vinculado ao projeto abaixo. O
+  
+          {/* HEADER */}
+          <header className="rounded-2xl border border-neutral/20 bg-white px-6 py-6">
+            <h1 className="text-2xl font-bold text-primary">
+              {report.titulo}
+            </h1>
+  
+            <p className="mt-2 text-sm text-neutral">
+              Preencha o relatório final vinculado ao projeto abaixo. O
                 projeto, edital e orientador já estão definidos a partir do
                 relatório selecionado.
-              </p>
-            </div>
-          </div>
-        </header>
+            </p>
+          </header>
 
         {currentObservation && (
           <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4 text-sm text-neutral">
@@ -317,72 +301,6 @@ export default function FinalReportForm() {
             </div>
           </div>
         )}
-
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <Card
-            title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
-          >
-            <div className="flex items-start gap-3">
-              <FolderKanban size={20} className="text-primary" />
-
-              <div>
-                <div className="text-sm text-neutral">Projeto vinculado</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.projetoTitulo}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
-          >
-            <div className="flex items-start gap-3">
-              <BadgeCheck size={20} className="text-primary" />
-
-              <div>
-                <div className="text-sm text-neutral">Edital</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.edital}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
-          >
-            <div className="flex items-start gap-3">
-              <UserRound size={20} className="text-primary" />
-
-              <div>
-                <div className="text-sm text-neutral">Orientador(a)</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.orientador}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card
-            title=""
-            className="bg-white border border-neutral/30 rounded-2xl p-6"
-          >
-            <div className="flex items-start gap-3">
-              <CalendarDays size={20} className="text-primary" />
-
-              <div>
-                <div className="text-sm text-neutral">Prazo</div>
-                <div className="mt-1 text-sm font-semibold text-primary">
-                  {report.prazo}
-                </div>
-              </div>
-            </div>
-          </Card>
-        </section>
 
         <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           <div className="xl:col-span-2">
@@ -741,35 +659,6 @@ export default function FinalReportForm() {
             <Card
               title={
                 <h2 className="text-sm font-semibold text-primary">
-                  Orientações
-                </h2>
-              }
-              className="bg-white border border-neutral/30 rounded-2xl p-8"
-            >
-              <ul className="space-y-3 text-sm text-neutral">
-
-                <li className="leading-6">
-                  Preencha o resumo e o abstract de forma coerente entre si.
-                </li>
-
-                <li className="leading-6">
-                  Utilize palavras-chave e keywords objetivas e relacionadas ao
-                  tema.
-                </li>
-
-                <li className="leading-6">
-                  Estruture bem introdução, metodologia, resultados e conclusões.
-                </li>
-
-                <li className="leading-6">
-                  Revise as referências antes do envio final.
-                </li>
-              </ul>
-            </Card>
-
-            <Card
-              title={
-                <h2 className="text-sm font-semibold text-primary">
                   Dados do relatório
                 </h2>
               }
@@ -808,13 +697,6 @@ export default function FinalReportForm() {
                   <div className="text-neutral">Prazo final</div>
                   <div className="mt-1 font-medium text-primary">
                     {report.prazo}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-neutral">Progresso do preenchimento</div>
-                  <div className="mt-1 font-medium text-primary">
-                    {progress}%
                   </div>
                 </div>
               </div>

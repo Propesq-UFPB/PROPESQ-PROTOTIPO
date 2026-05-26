@@ -7,6 +7,7 @@ const perfil = {
   nome: "Mariana Martins",
   email: "mariana@academico.ufpb.br",
   cpf: "123.456.789-00",
+  curriculoLattes: "http://lattes.cnpq.br/1234567890123456",
   matricula: "20230012345",
   curso: "Ciência de Dados e Inteligência Artificial",
   centro: "CI - Centro de Informática",
@@ -18,27 +19,6 @@ const dadosBancarios = {
   agencia: "1234-5",
   conta: "98765-4",
   tipo: "Conta Corrente",
-}
-
-const documentos = [
-  { nome: "RG", status: "Enviado" },
-  { nome: "CPF", status: "Enviado" },
-  { nome: "Comprovante de matrícula", status: "Pendente" },
-  { nome: "Comprovante bancário", status: "Enviado" },
-]
-
-/* ================= HELPERS ================= */
-
-function statusBadge(status: string) {
-  if (status === "Enviado") {
-    return "bg-success/10 text-success border-success/30"
-  }
-
-  if (status === "Pendente") {
-    return "bg-warning/10 text-warning border-warning/30"
-  }
-
-  return "bg-neutral/10 text-neutral border-neutral/30"
 }
 
 /* ================= COMPONENTE ================= */
@@ -57,8 +37,8 @@ export default function ProfileView() {
             <h1 className="text-2xl font-bold text-primary">Meu Perfil</h1>
 
             <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
-              Consulte seus dados pessoais, acadêmicos, bancários e a situação
-              dos documentos vinculados ao seu perfil.
+              Consulte seus dados pessoais, acadêmicos e bancários vinculados ao
+              seu perfil.
             </p>
           </header>
 
@@ -113,6 +93,18 @@ export default function ProfileView() {
                 </div>
 
                 <div className="sm:col-span-2">
+                  <div className="text-neutral">Currículo Lattes</div>
+                  <a
+                    href={perfil.curriculoLattes}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 block break-all font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    {perfil.curriculoLattes}
+                  </a>
+                </div>
+
+                <div className="sm:col-span-2">
                   <div className="text-neutral">Centro</div>
                   <div className="mt-1 font-medium text-primary">
                     {perfil.centro}
@@ -156,39 +148,6 @@ export default function ProfileView() {
                 </div>
               </div>
             </div>
-          </section>
-
-          {/* DOCUMENTOS */}
-          <section className="w-full rounded-2xl border border-neutral/30 bg-white p-6">
-            <h2 className="mb-5 text-sm font-semibold text-primary">
-              Situação dos documentos
-            </h2>
-
-            <ul className="space-y-4">
-              {documentos.map((doc) => (
-                <li
-                  key={doc.nome}
-                  className="
-                    flex items-center justify-between gap-3
-                    border-b border-neutral/20 pb-3 text-sm
-                    last:border-b-0 last:pb-0
-                  "
-                >
-                  <span className="text-neutral">{doc.nome}</span>
-
-                  <span
-                    className={`
-                      inline-flex min-w-[110px] items-center justify-center
-                      rounded-full border px-3 py-1
-                      text-xs font-semibold
-                      ${statusBadge(doc.status)}
-                    `}
-                  >
-                    {doc.status}
-                  </span>
-                </li>
-              ))}
-            </ul>
           </section>
         </div>
       </div>

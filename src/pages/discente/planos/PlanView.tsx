@@ -204,16 +204,23 @@ function SectionTitle({
   subtitle?: string
 }) {
   return (
-    <div className="mb-5 flex items-start gap-3">
+    <div className="mb-5 flex items-center gap-3">
       {icon ? (
-        <div className="mt-0.5 rounded-xl border border-primary/15 bg-primary/5 p-2 text-primary">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-primary/5 text-primary">
           {icon}
         </div>
       ) : null}
 
-      <div>
-        <h2 className="text-base font-semibold text-primary">{title}</h2>
-        {subtitle ? <p className="mt-1 text-sm text-neutral">{subtitle}</p> : null}
+      <div className="min-w-0">
+        <h2 className="m-0 text-base font-semibold leading-none text-primary">
+          {title}
+        </h2>
+
+        {subtitle ? (
+          <p className="mt-1 text-sm leading-5 text-neutral">
+            {subtitle}
+          </p>
+        ) : null}
       </div>
     </div>
   )

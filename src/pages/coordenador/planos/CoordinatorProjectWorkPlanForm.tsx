@@ -544,6 +544,21 @@ export default function CoordinatorProjectWorkPlanForm() {
     setSaved(false)
   }
 
+  function updateCronogramaItem(
+    cronogramaId: string,
+    field: keyof Pick<CronogramaItem, "mes" | "atividade">,
+    value: string
+  ) {
+    setDraft((current) => ({
+      ...current,
+      cronogramaAtividades: current.cronogramaAtividades.map((item) =>
+        item.id === cronogramaId ? { ...item, [field]: value } : item
+      ),
+    }))
+
+    setSaved(false)
+  }
+
   function applyCronogramaTemplate(totalMeses: 6 | 12) {
     const baseActivities = [
       "Revisão bibliográfica e alinhamento metodológico.",
@@ -1092,7 +1107,7 @@ export default function CoordinatorProjectWorkPlanForm() {
                   <Field
                     label="Cronograma de atividades"
                     required
-                    hint="Adicione pelo menos uma atividade. Você pode usar os modelos rápidos e depois editar/remover itens."
+                    hint="Adicione pelo menos uma atividade. Você pode usar os modelos rápidos e editar o mês ou o texto de cada atividade antes de salvar."
                   >
                     <div className="rounded-2xl border border-neutral/20 p-4">
                       <div className="flex flex-wrap gap-2">
@@ -1168,29 +1183,56 @@ export default function CoordinatorProjectWorkPlanForm() {
                             </p>
                           </div>
                         ) : (
-                          draft.cronogramaAtividades.map((item) => (
+                          draft.cronogramaAtividades.map((item, index) => (
                             <div
                               key={item.id}
-                              className="flex flex-col gap-3 rounded-xl border border-neutral/20 bg-white p-3 md:flex-row md:items-start md:justify-between"
+                              className="grid grid-cols-1 gap-3 rounded-xl border border-neutral/20 bg-white p-3 md:grid-cols-[160px_1fr_auto] md:items-start"
                             >
-                              <div>
-                                <p className="text-xs font-bold uppercase text-neutral">
-                                  {item.mes}
-                                </p>
+                              <Field label={`Item ${index + 1}`}>
+                                <select
+                                  value={item.mes}
+                                  onChange={(event) =>
+                                    updateCronogramaItem(
+                                      item.id,
+                                      "mes",
+                                      event.target.value
+                                    )
+                                  }
+                                  className={selectClassName}
+                                >
+                                  {mesesCronograma.map((mes) => (
+                                    <option key={mes} value={mes}>
+                                      {mes}
+                                    </option>
+                                  ))}
+                                </select>
+                              </Field>
 
-                                <p className="mt-1 text-sm leading-6 text-neutral">
-                                  {item.atividade}
-                                </p>
+                              <Field label="Atividade do cronograma">
+                                <textarea
+                                  value={item.atividade}
+                                  onChange={(event) =>
+                                    updateCronogramaItem(
+                                      item.id,
+                                      "atividade",
+                                      event.target.value
+                                    )
+                                  }
+                                  className="min-h-[88px] w-full resize-y rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm leading-6 text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                                  placeholder="Edite o texto sugerido pelo modelo"
+                                />
+                              </Field>
+
+                              <div className="flex md:pt-6">
+                                <button
+                                  type="button"
+                                  onClick={() => removeCronogramaItem(item.id)}
+                                  className="inline-flex w-fit items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                                >
+                                  <Trash2 size={14} />
+                                  Remover
+                                </button>
                               </div>
-
-                              <button
-                                type="button"
-                                onClick={() => removeCronogramaItem(item.id)}
-                                className="inline-flex w-fit items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100"
-                              >
-                                <Trash2 size={14} />
-                                Remover
-                              </button>
                             </div>
                           ))
                         )}

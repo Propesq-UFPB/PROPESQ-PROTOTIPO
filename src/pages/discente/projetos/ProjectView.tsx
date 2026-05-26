@@ -487,109 +487,76 @@ export default function ProjectView() {
         </div> 
 
         <header className="overflow-hidden rounded-[28px] border border-neutral/20 bg-white shadow-sm">
+          <div className="space-y-6 px-6 py-6">
+            {/* STATUS */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getProjectStatusClasses(project.statusProjeto)}`}
+              >
+                <FolderKanban size={14} />
+                {getProjectStatusLabel(project.statusProjeto)}
+              </span>
 
-          <div className="grid gap-6 px-6 py-6 xl:grid-cols-[1.6fr_340px]">
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getProjectStatusClasses(project.statusProjeto)}`}
-                >
-                  <FolderKanban size={14} />
-                  {getProjectStatusLabel(project.statusProjeto)}
-                </span>
+              <span
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getBondStatusClasses(project.statusVinculo)}`}
+              >
+                <BadgeCheck size={14} />
+                {getBondStatusLabel(project.statusVinculo)}
+              </span>
 
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getBondStatusClasses(project.statusVinculo)}`}
-                >
-                  <BadgeCheck size={14} />
-                  {getBondStatusLabel(project.statusVinculo)}
-                </span>
-
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getParticipationClasses(project.participacao)}`}
-                >
-                  <BadgeCheck size={14} />
-                  {project.participacao === "BOLSISTA" ? "Bolsista" : "Voluntário"}
-                </span>
-              </div>
-
-              <div>
-                <p className="mb-2 flex items-center gap-1 text-xs font-mono text-neutral">
-                  <Hash size={12} />
-                  {project.codigo}
-                </p>
-
-                <h1 className="max-w-4xl text-2xl font-bold leading-tight text-primary md:text-[30px]">
-                  {project.titulo}
-                </h1>
-
-                {project.tituloEn && (
-                  <p className="mt-2 max-w-4xl text-sm italic leading-6 text-neutral">
-                    <Globe size={13} className="mr-1 inline" />
-                    {project.tituloEn}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <SummaryMetric
-                  icon={<UserRound size={18} />}
-                  label="Orientador(a)"
-                  value={project.orientador}
-                />
-                <SummaryMetric
-                  icon={<Building2 size={18} />}
-                  label="Unidade"
-                  value={project.unidade}
-                />
-                <SummaryMetric
-                  icon={<CalendarDays size={18} />}
-                  label="Período"
-                  value={`${project.inicio} até ${project.fim}`}
-                />
-                <SummaryMetric
-                  icon={<FileText size={18} />}
-                  label="Tipo / Categoria"
-                  value={`${project.tipo} — ${project.categoria}`}
-                />
-              </div>
+              <span
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getParticipationClasses(project.participacao)}`}
+              >
+                <BadgeCheck size={14} />
+                {project.participacao === "BOLSISTA" ? "Bolsista" : "Voluntário"}
+              </span>
             </div>
 
-            <aside className="flex h-full flex-col gap-4 rounded-3xl border border-primary/10 bg-primary/[0.03] p-5">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral/70">
-                  Plano de trabalho
-                </p>
-                <p className="mt-1 text-sm font-semibold leading-6 text-primary">
-                  {project.planoTitulo}
-                </p>
-              </div>
+            {/* TÍTULO */}
+            <div className="max-w-5xl">
+              <p className="mb-2 flex items-center gap-1 text-xs font-mono text-neutral">
+                <Hash size={12} />
+                {project.codigo}
+              </p>
 
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral/70">
-                  Período acadêmico
+              <h1 className="text-2xl font-bold leading-tight text-primary md:text-[30px]">
+                {project.titulo}
+              </h1>
+
+              {project.tituloEn && (
+                <p className="mt-2 text-sm italic leading-6 text-neutral">
+                  <Globe size={13} className="mr-1 inline" />
+                  {project.tituloEn}
                 </p>
-                <p className="mt-1 text-sm font-semibold text-primary">{project.periodo}</p>
-              </div>
+              )}
+            </div>
 
-              <div className="mt-auto flex flex-col gap-3 pt-2">
-                <Link
-                  to={`/discente/projetos/${project.id}/vinculo`}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-                >
-                  <Link2 size={16} />
-                  Ver vínculo
-                </Link>
+            {/* RESUMO */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <SummaryMetric
+                icon={<UserRound size={18} />}
+                label="Coordenador(a)"
+                value={project.orientador}
+              />
 
-                <Link
-                  to="/discente/historico"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary/5"
-                >
-                  <History size={16} />
-                  Ver histórico
-                </Link>
-              </div>
-            </aside>
+              <SummaryMetric
+                icon={<Building2 size={18} />}
+                label="Unidade"
+                value={project.unidade}
+              />
+
+              <SummaryMetric
+                icon={<CalendarDays size={18} />}
+                label="Período"
+                value={`${project.inicio} até ${project.fim}`}
+              />
+
+              <SummaryMetric
+                icon={<FileText size={18} />}
+                label="Tipo / Categoria"
+                value={`${project.tipo} — ${project.categoria}`}
+              />
+            </div>
           </div>
         </header>
 
@@ -772,56 +739,6 @@ export default function ProjectView() {
               <ScheduleGrid items={project.cronograma} />
             </SectionCard>
 
-            <SectionCard icon={<ClipboardList size={16} />} title="Planos de Trabalho">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
-                  <thead>
-                    <tr className="bg-primary/5">
-                      <th className="border border-neutral/20 px-4 py-3 text-left font-semibold text-primary">
-                        Título
-                      </th>
-                      <th className="border border-neutral/20 px-4 py-3 text-left font-semibold text-primary">
-                        Tipo da Bolsa
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {project.planosDeTrabalho.map((p, i) => (
-                      <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-neutral/5"}>
-                        <td className="border border-neutral/20 px-4 py-3 text-primary">
-                          {p.titulo}
-                        </td>
-                        <td className="border border-neutral/20 px-4 py-3 text-primary">
-                          {p.tipoBolsa}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </SectionCard>
-
-            <SectionCard icon={<CheckCircle2 size={16} />} title="Atividades Previstas">
-              <ul className="space-y-3">
-                {project.atividades.map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-primary">
-                    <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-success" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </SectionCard>
-
-            <SectionCard icon={<ClipboardList size={16} />} title="Observações do Projeto">
-              <ul className="space-y-3">
-                {project.observacoes.map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-neutral">
-                    <ClipboardList size={15} className="mt-0.5 shrink-0 text-primary" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </SectionCard>
           </main>
 
           <aside >

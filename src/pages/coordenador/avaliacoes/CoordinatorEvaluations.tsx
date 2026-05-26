@@ -12,14 +12,10 @@ import {
   Filter,
   FolderKanban,
   GraduationCap,
-  Notebook,
   Search,
   Timer,
-  UserRound,
   XCircle,
 } from "lucide-react"
-
-type EvaluationType = "Projeto" | "Plano de trabalho"
 
 type EvaluationStatus =
   | "Pendente"
@@ -28,17 +24,14 @@ type EvaluationStatus =
   | "Aprovado com ajustes"
   | "Reprovado"
 
-type Evaluation = {
+type EvaluationProject = {
   id: number
   projectId: number
-  title: string
   projectTitle: string
-  type: EvaluationType
+  workPlanTitle: string
   edital: string
   area: string
   ano: string
-  proponent: string
-  coordinatorUnit: string
   submittedAt: string
   deadline: string
   status: EvaluationStatus
@@ -47,18 +40,15 @@ type Evaluation = {
   priority: "Normal" | "Alta"
 }
 
-const initialEvaluations: Evaluation[] = [
+const initialEvaluations: EvaluationProject[] = [
   {
     id: 1,
     projectId: 1,
-    title: "Desenvolvimento de Recursos de Acessibilidade Digital com VLibras",
     projectTitle: "Desenvolvimento de Recursos de Acessibilidade Digital com VLibras",
-    type: "Projeto",
+    workPlanTitle: "Prototipação de interfaces acessíveis para ambientes educacionais",
     edital: "PIBIC 2026",
     area: "Ciência da Computação",
     ano: "2026",
-    proponent: "Prof. Dr. Carlos Henrique Almeida",
-    coordinatorUnit: "Centro de Informática",
     submittedAt: "03/05/2026",
     deadline: "15/05/2026",
     status: "Pendente",
@@ -68,57 +58,48 @@ const initialEvaluations: Evaluation[] = [
   },
   {
     id: 2,
-    projectId: 1,
-    title: "Prototipação de interfaces acessíveis para ambientes educacionais",
-    projectTitle: "Desenvolvimento de Recursos de Acessibilidade Digital com VLibras",
-    type: "Plano de trabalho",
-    edital: "PIBIC 2026",
-    area: "Interação Humano-Computador",
+    projectId: 2,
+    projectTitle: "Análise de Dados Educacionais para Monitoramento de Indicadores Acadêmicos",
+    workPlanTitle: "Construção de painel de indicadores acadêmicos",
+    edital: "PIBITI 2026",
+    area: "Ciência de Dados",
     ano: "2026",
-    proponent: "Prof. Dr. Carlos Henrique Almeida",
-    coordinatorUnit: "Centro de Informática",
-    submittedAt: "03/05/2026",
-    deadline: "15/05/2026",
+    submittedAt: "07/05/2026",
+    deadline: "18/05/2026",
     status: "Em avaliação",
     score: null,
+    reviewer: "Coordenação de Pesquisa",
+    priority: "Alta",
+  },
+  {
+    id: 3,
+    projectId: 3,
+    projectTitle: "Modelos Computacionais para Apoio à Pesquisa Aplicada",
+    workPlanTitle: "Levantamento, tratamento e análise de dados experimentais",
+    edital: "PIBIC 2026",
+    area: "Engenharia de Software",
+    ano: "2026",
+    submittedAt: "09/05/2026",
+    deadline: "20/05/2026",
+    status: "Aprovado com ajustes",
+    score: 8.1,
     reviewer: "Coordenação de Pesquisa",
     priority: "Normal",
   },
   {
-    id: 3,
-    projectId: 2,
-    title: "Análise de Dados Educacionais para Monitoramento de Indicadores Acadêmicos",
-    projectTitle: "Análise de Dados Educacionais para Monitoramento de Indicadores Acadêmicos",
-    type: "Projeto",
-    edital: "PIBITI 2026",
-    area: "Ciência de Dados",
-    ano: "2026",
-    proponent: "Profa. Dra. Marina Costa",
-    coordinatorUnit: "Centro de Tecnologia",
-    submittedAt: "07/05/2026",
-    deadline: "18/05/2026",
-    status: "Pendente",
-    score: null,
-    reviewer: null,
-    priority: "Alta",
-  },
-  {
     id: 4,
-    projectId: 2,
-    title: "Construção de painel de indicadores acadêmicos",
-    projectTitle: "Análise de Dados Educacionais para Monitoramento de Indicadores Acadêmicos",
-    type: "Plano de trabalho",
+    projectId: 4,
+    projectTitle: "Automação de Processos Acadêmicos com Inteligência Artificial",
+    workPlanTitle: "Desenvolvimento de módulo de recomendação para fluxo acadêmico",
     edital: "PIBITI 2026",
-    area: "Ciência de Dados",
+    area: "Inteligência Artificial",
     ano: "2026",
-    proponent: "Profa. Dra. Marina Costa",
-    coordinatorUnit: "Centro de Tecnologia",
-    submittedAt: "07/05/2026",
-    deadline: "18/05/2026",
-    status: "Aprovado com ajustes",
-    score: 8.1,
+    submittedAt: "10/05/2026",
+    deadline: "22/05/2026",
+    status: "Aprovado",
+    score: 9.2,
     reviewer: "Coordenação de Pesquisa",
-    priority: "Alta",
+    priority: "Normal",
   },
 ]
 
@@ -129,12 +110,6 @@ const editalOptions = [
   "PIVIC 2026",
   "PIBIC 2025",
   "PIBITI 2025",
-]
-
-const typeOptions: Array<EvaluationType | "Todos"> = [
-  "Todos",
-  "Projeto",
-  "Plano de trabalho",
 ]
 
 const statusOptions: Array<EvaluationStatus | "Todos"> = [
@@ -182,28 +157,11 @@ function getStatusIcon(status: EvaluationStatus) {
   }
 }
 
-function getTypeClass(type: EvaluationType) {
-  if (type === "Projeto") {
-    return "border-primary/20 bg-primary/5 text-primary"
-  }
-
-  return "border-sky-200 bg-sky-50 text-sky-700"
-}
-
-function getTypeIcon(type: EvaluationType) {
-  if (type === "Projeto") {
-    return <FolderKanban size={14} />
-  }
-
-  return <Notebook size={14} />
-}
-
 export default function CoordinatorEvaluations() {
-  const [evaluations] = useState<Evaluation[]>(initialEvaluations)
+  const [evaluations] = useState<EvaluationProject[]>(initialEvaluations)
 
   const [search, setSearch] = useState("")
   const [selectedEdital, setSelectedEdital] = useState("Todos")
-  const [selectedType, setSelectedType] = useState<EvaluationType | "Todos">("Todos")
   const [selectedStatus, setSelectedStatus] = useState<EvaluationStatus | "Todos">("Todos")
   const [selectedYear, setSelectedYear] = useState("Todos")
 
@@ -213,17 +171,13 @@ export default function CoordinatorEvaluations() {
     return evaluations.filter((evaluation) => {
       const matchesSearch =
         !normalizedSearch ||
-        evaluation.title.toLowerCase().includes(normalizedSearch) ||
         evaluation.projectTitle.toLowerCase().includes(normalizedSearch) ||
-        evaluation.proponent.toLowerCase().includes(normalizedSearch) ||
+        evaluation.workPlanTitle.toLowerCase().includes(normalizedSearch) ||
         evaluation.area.toLowerCase().includes(normalizedSearch) ||
         evaluation.edital.toLowerCase().includes(normalizedSearch)
 
       const matchesEdital =
         selectedEdital === "Todos" || evaluation.edital === selectedEdital
-
-      const matchesType =
-        selectedType === "Todos" || evaluation.type === selectedType
 
       const matchesStatus =
         selectedStatus === "Todos" || evaluation.status === selectedStatus
@@ -231,9 +185,9 @@ export default function CoordinatorEvaluations() {
       const matchesYear =
         selectedYear === "Todos" || evaluation.ano === selectedYear
 
-      return matchesSearch && matchesEdital && matchesType && matchesStatus && matchesYear
+      return matchesSearch && matchesEdital && matchesStatus && matchesYear
     })
-  }, [evaluations, search, selectedEdital, selectedType, selectedStatus, selectedYear])
+  }, [evaluations, search, selectedEdital, selectedStatus, selectedYear])
 
   const summary = useMemo(() => {
     const total = evaluations.length
@@ -253,8 +207,8 @@ export default function CoordinatorEvaluations() {
         evaluation.status === "Reprovado"
     ).length
 
-    const plans = evaluations.filter(
-      (evaluation) => evaluation.type === "Plano de trabalho"
+    const highPriority = evaluations.filter(
+      (evaluation) => evaluation.priority === "Alta"
     ).length
 
     return {
@@ -262,21 +216,20 @@ export default function CoordinatorEvaluations() {
       pending,
       inProgress,
       concluded,
-      plans,
+      highPriority,
     }
   }, [evaluations])
 
   function clearFilters() {
     setSearch("")
     setSelectedEdital("Todos")
-    setSelectedType("Todos")
     setSelectedStatus("Todos")
     setSelectedYear("Todos")
   }
 
   return (
     <main className="min-h-screen bg-[#F3F4F6]">
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         {/* HEADER */}
         <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -286,18 +239,17 @@ export default function CoordinatorEvaluations() {
             </div>
 
             <h1 className="mt-3 text-2xl font-bold tracking-tight text-primary">
-              Avaliação de projetos e planos de trabalho
+              Avaliação de projetos
             </h1>
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
-              Avalie propostas submetidas por outros coordenadores, analise os dados do projeto ou plano de trabalho
-              e emita um parecer técnico em uma página específica de avaliação.
+              Avalie propostas submetidas para análise.
             </p>
           </div>
 
           <div className="rounded-2xl border border-neutral/30 bg-white px-5 py-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-              Avaliações filtradas
+              Projetos filtrados
             </p>
 
             <p className="mt-2 text-2xl font-bold text-primary">
@@ -305,7 +257,7 @@ export default function CoordinatorEvaluations() {
             </p>
 
             <p className="mt-1 text-xs text-neutral">
-              de {evaluations.length} item(ns) registrados
+              de {evaluations.length} projeto(s) registrados
             </p>
           </div>
         </section>
@@ -329,7 +281,7 @@ export default function CoordinatorEvaluations() {
             </div>
 
             <p className="mt-3 text-xs text-neutral">
-              Projetos e planos de outros coordenadores
+              projeto(s)
             </p>
           </div>
 
@@ -392,7 +344,7 @@ export default function CoordinatorEvaluations() {
             </div>
 
             <p className="mt-3 text-xs text-neutral">
-              {summary.plans} plano(s) de trabalho na fila
+              projeto(s)
             </p>
           </div>
         </section>
@@ -407,7 +359,7 @@ export default function CoordinatorEvaluations() {
               </div>
 
               <p className="mt-1 text-xs text-neutral">
-                Localize avaliações por título, edital, tipo, situação, coordenador proponente ou área.
+                Localize projetos por título, plano de trabalho, edital, situação, ano ou área.
               </p>
             </div>
 
@@ -423,7 +375,7 @@ export default function CoordinatorEvaluations() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
             <div className="lg:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-primary">
-                Buscar avaliação
+                Buscar projeto
               </label>
 
               <div className="relative">
@@ -436,7 +388,7 @@ export default function CoordinatorEvaluations() {
                   type="text"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Título, coordenador, área ou edital..."
+                  placeholder="Título do projeto, plano, área ou edital..."
                   className="w-full rounded-xl border border-neutral/30 bg-white py-2.5 pl-10 pr-3 text-sm text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
                 />
               </div>
@@ -462,26 +414,6 @@ export default function CoordinatorEvaluations() {
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-primary">
-                Tipo
-              </label>
-
-              <select
-                value={selectedType}
-                onChange={(event) =>
-                  setSelectedType(event.target.value as EvaluationType | "Todos")
-                }
-                className="w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
-              >
-                {typeOptions.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-primary">
                 Situação
               </label>
 
@@ -499,9 +431,7 @@ export default function CoordinatorEvaluations() {
                 ))}
               </select>
             </div>
-          </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-primary">
                 Ano
@@ -519,15 +449,13 @@ export default function CoordinatorEvaluations() {
                 ))}
               </select>
             </div>
+          </div>
 
-            <div className="flex items-end lg:col-span-4">
-              <div className="w-full rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3 text-sm text-neutral">
-                <strong className="font-semibold text-primary">
-                  {filteredEvaluations.length}
-                </strong>{" "}
-                avaliação(ões) encontrada(s) conforme os filtros aplicados.
-              </div>
-            </div>
+          <div className="mt-4 rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3 text-sm text-neutral">
+            <strong className="font-semibold text-primary">
+              {filteredEvaluations.length}
+            </strong>{" "}
+            projeto(s) encontrado(s) conforme os filtros aplicados.
           </div>
         </section>
 
@@ -535,11 +463,11 @@ export default function CoordinatorEvaluations() {
         <section className="rounded-2xl border border-neutral/30 bg-white">
           <div className="border-b border-neutral/20 p-6">
             <h2 className="text-base font-semibold text-primary">
-              Fila de avaliações
+              Fila de projetos para avaliação
             </h2>
 
             <p className="mt-1 text-sm text-neutral">
-              Clique em avaliar para abrir a página de análise e emissão de parecer.
+              Clique em avaliar para abrir a página de análise do projeto e emissão de parecer.
             </p>
           </div>
 
@@ -552,52 +480,23 @@ export default function CoordinatorEvaluations() {
                 >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0">
-                      <div className="mb-3 flex flex-wrap items-center gap-2">
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getTypeClass(
-                            evaluation.type
-                          )}`}
-                        >
-                          {getTypeIcon(evaluation.type)}
-                          {evaluation.type}
-                        </span>
-
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClass(
-                            evaluation.status
-                          )}`}
-                        >
-                          {getStatusIcon(evaluation.status)}
-                          {evaluation.status}
-                        </span>
-
-                        {evaluation.priority === "Alta" && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                            <AlertCircle size={13} />
-                            Prioridade alta
-                          </span>
-                        )}
-                      </div>
-
                       <h3 className="text-base font-bold leading-6 text-primary">
-                        {evaluation.title}
+                        {evaluation.projectTitle}
                       </h3>
 
-                      {evaluation.type === "Plano de trabalho" && (
-                        <p className="mt-1 text-xs leading-5 text-neutral">
-                          Projeto vinculado: {evaluation.projectTitle}
-                        </p>
-                      )}
+                      <p className="mt-1 text-xs leading-5 text-neutral">
+                        Plano de trabalho vinculado: {evaluation.workPlanTitle}
+                      </p>
 
                       <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-neutral md:grid-cols-2 xl:grid-cols-4">
                         <span className="inline-flex items-center gap-1.5">
-                          <UserRound size={14} />
-                          {evaluation.proponent}
+                          <GraduationCap size={14} />
+                          {evaluation.area}
                         </span>
 
                         <span className="inline-flex items-center gap-1.5">
-                          <GraduationCap size={14} />
-                          {evaluation.area}
+                          <CalendarDays size={14} />
+                          Submetido em: {evaluation.submittedAt}
                         </span>
 
                         <span className="inline-flex items-center gap-1.5">
@@ -648,11 +547,11 @@ export default function CoordinatorEvaluations() {
               </div>
 
               <h3 className="mt-4 text-base font-semibold text-primary">
-                Nenhuma avaliação encontrada
+                Nenhum projeto encontrado
               </h3>
 
               <p className="mt-1 max-w-md text-sm leading-6 text-neutral">
-                Não encontramos avaliações com os filtros selecionados. Tente limpar os filtros ou alterar os critérios.
+                Não encontramos projetos com os filtros selecionados. Tente limpar os filtros ou alterar os critérios.
               </p>
 
               <button

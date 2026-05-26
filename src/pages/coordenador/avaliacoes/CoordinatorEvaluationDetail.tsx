@@ -13,16 +13,12 @@ import {
   GraduationCap,
   History,
   Info,
-  Notebook,
   Save,
   Send,
   Star,
   Timer,
-  UserRound,
   XCircle,
 } from "lucide-react"
-
-type EvaluationType = "Projeto" | "Plano de trabalho"
 
 type EvaluationStatus =
   | "Pendente"
@@ -55,13 +51,11 @@ type HistoryItem = {
 type EvaluationDetail = {
   id: number
   projectId: number
-  title: string
   projectTitle: string
-  type: EvaluationType
+  workPlanTitle: string
   edital: string
   ano: string
   area: string
-  proponent: string
   submittedAt: string
   deadline: string
   status: EvaluationStatus
@@ -80,13 +74,11 @@ type EvaluationDetail = {
 const evaluationMock: EvaluationDetail = {
   id: 3,
   projectId: 2,
-  title: "Análise de Dados Educacionais para Monitoramento de Indicadores Acadêmicos",
   projectTitle: "Análise de Dados Educacionais para Monitoramento de Indicadores Acadêmicos",
-  type: "Projeto",
+  workPlanTitle: "Construção de painel de indicadores acadêmicos",
   edital: "PIBITI 2026",
   ano: "2026",
   area: "Ciência de Dados",
-  proponent: "Profa. Dra. Marina Costa",
   submittedAt: "07/05/2026",
   deadline: "18/05/2026",
   status: "Em avaliação",
@@ -111,14 +103,14 @@ const evaluationMock: EvaluationDetail = {
       id: 1,
       date: "07/05/2026",
       title: "Avaliação iniciada",
-      description: "O item foi marcado como em avaliação pela coordenação.",
+      description: "O projeto foi marcado como em avaliação.",
       status: "info",
     },
     {
       id: 2,
       date: "07/05/2026",
       title: "Projeto submetido",
-      description: "O coordenador enviou o projeto para avaliação.",
+      description: "O projeto foi enviado para avaliação sem exibição dos dados do proponente.",
       status: "neutral",
     },
     {
@@ -135,13 +127,13 @@ const initialCriteria: Criterion[] = [
   {
     id: 1,
     label: "Aderência ao edital",
-    description: "Avalia se a proposta atende aos objetivos, regras e escopo do edital selecionado.",
+    description: "Avalia se o projeto atende aos objetivos, regras e escopo do edital selecionado.",
     score: "",
   },
   {
     id: 2,
     label: "Relevância acadêmica e científica",
-    description: "Considera a contribuição da proposta para pesquisa, inovação, formação discente ou impacto institucional.",
+    description: "Considera a contribuição do projeto para pesquisa, inovação, formação discente ou impacto institucional.",
     score: "",
   },
   {
@@ -159,13 +151,13 @@ const initialCriteria: Criterion[] = [
   {
     id: 5,
     label: "Viabilidade de execução",
-    description: "Considera cronograma, recursos, carga de trabalho, equipe e possibilidade de entrega.",
+    description: "Considera cronograma, recursos, carga de trabalho e possibilidade de execução do projeto com o plano vinculado.",
     score: "",
   },
   {
     id: 6,
-    label: "Qualidade dos resultados esperados",
-    description: "Avalia se as entregas previstas são relevantes, claras e compatíveis com o projeto.",
+    label: "Qualidade do plano de trabalho vinculado",
+    description: "Avalia se o plano associado ao projeto apresenta atividades, entregas e resultados compatíveis com a proposta.",
     score: "",
   },
 ]
@@ -202,22 +194,6 @@ function getStatusIcon(status: EvaluationStatus | EvaluationDecision) {
     default:
       return <ClipboardList size={14} />
   }
-}
-
-function getTypeClass(type: EvaluationType) {
-  if (type === "Projeto") {
-    return "border-primary/20 bg-primary/5 text-primary"
-  }
-
-  return "border-sky-200 bg-sky-50 text-sky-700"
-}
-
-function getTypeIcon(type: EvaluationType) {
-  if (type === "Projeto") {
-    return <FolderKanban size={14} />
-  }
-
-  return <Notebook size={14} />
 }
 
 function getHistoryDotClass(status: HistoryItem["status"]) {
@@ -318,7 +294,7 @@ export default function CoordinatorEvaluationDetail() {
 
   return (
     <main className="min-h-screen bg-[#F3F4F6]">
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         {/* BOTÃO DE VOLTAR */}
         <div className="flex items-center justify-between">
           <Link
@@ -341,15 +317,6 @@ export default function CoordinatorEvaluationDetail() {
                 </span>
 
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getTypeClass(
-                    evaluation.type
-                  )}`}
-                >
-                  {getTypeIcon(evaluation.type)}
-                  {evaluation.type}
-                </span>
-
-                <span
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClass(
                     evaluation.status
                   )}`}
@@ -360,21 +327,19 @@ export default function CoordinatorEvaluationDetail() {
               </div>
 
               <h1 className="text-2xl font-bold tracking-tight text-primary">
-                {evaluation.title}
+                {evaluation.projectTitle}
               </h1>
 
               <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
-                Registre o parecer técnico e o resultado da avaliação para o item submetido.
+                Registre o parecer técnico e o resultado da avaliação do projeto completo.
               </p>
 
-              {evaluation.type === "Plano de trabalho" && (
-                <p className="mt-2 text-sm leading-6 text-neutral">
-                  Projeto vinculado:{" "}
-                  <span className="font-semibold text-primary">
-                    {evaluation.projectTitle}
-                  </span>
-                </p>
-              )}
+              <p className="mt-2 text-sm leading-6 text-neutral">
+                Plano de trabalho vinculado:{" "}
+                <span className="font-semibold text-primary">
+                  {evaluation.workPlanTitle}
+                </span>
+              </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-neutral">
                 <span className="inline-flex items-center gap-2">
@@ -478,20 +443,20 @@ export default function CoordinatorEvaluationDetail() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                    Proponente
+                    Tipo de avaliação
                   </p>
                   <p className="mt-2 text-lg font-bold text-primary">
-                    Coordenador
+                    Projeto
                   </p>
                 </div>
 
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
-                  <UserRound size={20} />
+                  <FolderKanban size={20} />
                 </div>
               </div>
 
               <p className="mt-3 text-xs text-neutral">
-                {evaluation.proponent}
+                Plano de trabalho já vinculado
               </p>
             </div>
 
@@ -552,12 +517,14 @@ export default function CoordinatorEvaluationDetail() {
                       Conteúdo submetido
                     </h2>
                     <p className="mt-1 text-sm leading-6 text-neutral">
-                      Revise as informações da proposta antes de registrar a pontuação e o parecer.
+                      Revise as informações do projeto e do plano de trabalho vinculado antes de registrar a pontuação e o parecer.
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-5">
+                  <TextBlock title="Projeto" text={evaluation.projectTitle} />
+                  <TextBlock title="Plano de trabalho vinculado" text={evaluation.workPlanTitle} />
                   <TextBlock title="Resumo" text={evaluation.summary} />
                   <TextBlock title="Objetivos" text={evaluation.objectives} />
                   <TextBlock title="Metodologia" text={evaluation.methodology} />
@@ -638,7 +605,7 @@ export default function CoordinatorEvaluationDetail() {
                       Parecer técnico
                     </h2>
                     <p className="mt-1 text-sm leading-6 text-neutral">
-                      Registre a justificativa da avaliação e, se necessário, recomendações de ajuste para o coordenador.
+                      Registre a justificativa da avaliação e, se necessário, recomendações de ajuste para o projeto.
                     </p>
                   </div>
                 </div>
@@ -677,7 +644,7 @@ export default function CoordinatorEvaluationDetail() {
                     <textarea
                       value={generalOpinion}
                       onChange={(event) => setGeneralOpinion(event.target.value)}
-                      placeholder="Descreva a análise geral da proposta, destacando pontos fortes, fragilidades e justificativa da decisão."
+                      placeholder="Descreva a análise geral do projeto, destacando pontos fortes, fragilidades e justificativa da decisão."
                       className={textareaClassName}
                     />
                   </div>
@@ -690,7 +657,7 @@ export default function CoordinatorEvaluationDetail() {
                     <textarea
                       value={recommendations}
                       onChange={(event) => setRecommendations(event.target.value)}
-                      placeholder="Informe ajustes necessários, recomendações metodológicas, correções no plano ou observações adicionais."
+                      placeholder="Informe ajustes necessários, recomendações metodológicas, correções no projeto ou observações adicionais."
                       className={textareaClassName}
                     />
                   </div>
@@ -711,7 +678,8 @@ export default function CoordinatorEvaluationDetail() {
                 </p>
 
                 <div className="mt-5 space-y-3">
-                  <SummaryItem label="Tipo" value={evaluation.type} />
+                  <SummaryItem label="Objeto avaliado" value="Projeto completo" />
+                  <SummaryItem label="Plano vinculado" value={evaluation.workPlanTitle} />
                   <SummaryItem label="Critérios preenchidos" value={`${completedCriteria}/${criteria.length}`} />
                   <SummaryItem
                     label="Nota final"
@@ -730,71 +698,6 @@ export default function CoordinatorEvaluationDetail() {
                     {decision}
                   </div>
                 )}
-              </section>
-
-              {/* HISTÓRICO */}
-              <section className="rounded-2xl border border-neutral/30 bg-white p-6">
-                <div className="mb-5 flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
-                    <History size={20} />
-                  </div>
-
-                  <div>
-                    <h2 className="text-base font-semibold text-primary">
-                      Histórico
-                    </h2>
-                    <p className="mt-1 text-sm leading-6 text-neutral">
-                      Movimentações da avaliação.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="relative space-y-5">
-                  {evaluation.history.map((item, index) => (
-                    <div key={item.id} className="relative flex gap-3">
-                      {index !== evaluation.history.length - 1 && (
-                        <span className="absolute left-[7px] top-5 h-full w-px bg-neutral/20" />
-                      )}
-
-                      <span
-                        className={`relative mt-1 h-3.5 w-3.5 shrink-0 rounded-full ${getHistoryDotClass(
-                          item.status
-                        )}`}
-                      />
-
-                      <div>
-                        <p className="text-sm font-semibold text-primary">
-                          {item.title}
-                        </p>
-
-                        <p className="mt-1 text-xs font-medium text-neutral">
-                          {item.date}
-                        </p>
-
-                        <p className="mt-1 text-sm leading-6 text-neutral">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* INFORMAÇÃO */}
-              <section className="rounded-2xl border border-blue-200 bg-blue-50 p-6">
-                <div className="flex gap-3">
-                  <Info size={18} className="mt-0.5 shrink-0 text-blue-700" />
-
-                  <div>
-                    <p className="text-sm font-semibold text-blue-800">
-                      Regra do fluxo
-                    </p>
-
-                    <p className="mt-1 text-sm leading-6 text-blue-700">
-                      Apenas projetos e planos aprovados poderão seguir para a etapa de indicação de discentes.
-                    </p>
-                  </div>
-                </div>
               </section>
             </aside>
           </section>
@@ -861,27 +764,6 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
       <p className="mt-1 text-sm font-semibold leading-6 text-primary">
         {value}
       </p>
-    </div>
-  )
-}
-
-function ChecklistItem({ checked, text }: { checked: boolean; text: string }) {
-  return (
-    <div
-      className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
-        checked
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-          : "border-neutral/20 bg-neutral/5 text-neutral"
-      }`}
-    >
-      <CheckCircle2
-        size={16}
-        className={checked ? "text-emerald-600" : "text-neutral/50"}
-      />
-
-      <span className="font-medium">
-        {text}
-      </span>
     </div>
   )
 }

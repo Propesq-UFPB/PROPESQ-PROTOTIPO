@@ -172,7 +172,7 @@ export default function ReportsList() {
             Lista de Relatórios
           </h1>
 
-          <p className="mt-2 max-w-3xl text-sm text-neutral">
+          <p className="mt-2 text-sm text-neutral">
             Acompanhe os relatórios vinculados aos seus projetos. Nesta página,
             você pode acessar relatórios pendentes para preenchimento ou
             consultar relatórios já enviados.
@@ -181,11 +181,6 @@ export default function ReportsList() {
 
         {/* LISTA */}
         <section className="rounded-2xl border border-neutral/30 bg-white p-6">
-          <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-primary">
-            <FileText size={16} />
-            Relatórios vinculados ao discente
-          </div>
-
           <div className="space-y-5">
             {REPORTS.map((report) => (
               <article
