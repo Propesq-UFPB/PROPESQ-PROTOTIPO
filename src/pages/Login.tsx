@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { useAuth, Role } from "@/context/AuthContext"
 import logo from "@/utils/img/logo_propesq.png"
 import { Helmet } from "react-helmet"
+const apiUrl = import.meta.env.VITE_API_URL
 
 export default function Login() {
   const { login } = useAuth()
@@ -43,7 +44,7 @@ export default function Login() {
 
     try {
       // Pega a URL do backend da variável de ambiente
-      const apiUrl = import.meta.env.VITE_API_URL
+      const apiUrl = import.meta.env.VITE_API_URL as string
 
       // Faz a requisição para a rota de login
       // Se necessário testar o dashboard basta comentar:
