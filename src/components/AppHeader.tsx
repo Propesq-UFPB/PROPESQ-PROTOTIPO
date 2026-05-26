@@ -527,19 +527,19 @@ export default function AppHeader() {
       { to: "/adm/projetos/comunicacao", label: "Comunicação", icon: <Megaphone size={16} />, end: true },
     ],
     "/adm/avaliacao": [
-      { to: "/adm/avaliacao", label: "Overview", icon: <FileSignature size={16} />, end: true },
+      // { to: "/adm/avaliacao", label: "Overview", icon: <FileSignature size={16} />, end: true },
       { to: "/adm/avaliacao/classificacao", label: "Classificação", icon: <GraduationCap size={16} />, end: true },
       { to: "/adm/avaliacao/pontuacao", label: "Pontuação & IPI", icon: <LineChart size={16} />, end: true },
       { to: "/adm/avaliacao/avaliadores", label: "Avaliadores", icon: <Users size={16} />, end: true },
     ],
     "/adm/monitoring": [
-      { to: "/adm/monitoring", label: "Overview", icon: <BadgeCheck size={16} />, end: true },
+      // { to: "/adm/monitoring", label: "Overview", icon: <BadgeCheck size={16} />, end: true },
       { to: "/adm/monitoring/replacements", label: "Substituições", icon: <Users size={16} />, end: true },
       { to: "/adm/monitoring/report-validation", label: "Validação Relatórios", icon: <FileText size={16} />, end: true },
       { to: "/adm/monitoring/AdmCertificates", label: "Certificados", icon: <Award size={16} />, end: true },
     ],
     "/adm/calls": [
-      { to: "/adm/calls", label: "Overview", icon: <FolderKanban size={16} />, end: true },
+      //{ to: "/adm/calls", label: "Overview", icon: <FolderKanban size={16} />, end: true },
       { to: "/adm/calls/CreateCall", label: "Criar Edital", icon: <Notebook size={16} />, end: true },
       { to: "/adm/calls/Manage", label: "Alterar/Remover", icon: <Pencil size={16} />, end: true },
       { to: "/adm/calls/CallSchedule", label: "Cronograma", icon: <ClipboardList size={16} />, end: true },
@@ -547,7 +547,7 @@ export default function AppHeader() {
       { to: "/adm/calls/quotas", label: "Cotas", icon: <ShieldCheck size={16} />, end: true },
     ],
     "/adm/settings": [
-      { to: "/adm/settings", label: "Overview", icon: <Settings size={16} />, end: true },
+      //{ to: "/adm/settings", label: "Overview", icon: <Settings size={16} />, end: true },
       { to: "/adm/settings/scholarships", label: "Bolsas", icon: <ShieldCheck size={16} />, end: true },
       { to: "/adm/settings/academic-units", label: "Unidades", icon: <Building2 size={16} />, end: true },
       { to: "/adm/settings/roles", label: "Funções", icon: <BookUser size={16} />, end: true },
@@ -561,7 +561,7 @@ export default function AppHeader() {
     // { to: "/discente/editais", label: "Editais", icon: <Megaphone size={16} /> },
     { to: "/discente/planos-disponiveis", label: "Planos", icon: <Notebook size={16} /> },
     { to: "/discente/relatorios", label: "Relatórios", icon: <FileText size={16} /> },
-    { to: "/discente/enic/submissions", label: "ENIC", icon: <Award size={16} /> },
+    //{ to: "/discente/enic/submissions", label: "ENIC", icon: <Award size={16} /> },
     { to: "/discente/certificados", label: "Certificados", icon: <FileBadge size={16} /> },
     { to: "/discente/perfil", label: "Perfil", icon: <User size={16} /> },
   ]
@@ -589,10 +589,10 @@ export default function AppHeader() {
       //{ to: "/discente/relatorios/1/visualizar", label: "Consultar", icon: <Eye size={16} />, end: true },
     ],
     "/discente/enic/submissions": [
-      { to: "/discente/enic/submissions", label: "Submissões", icon: <ClipboardList size={16} />, end: true },
-      { to: "/discente/enic/inscricao", label: "Nova Submissão", icon: <Plus size={16} />, end: true },
+      //{ to: "/discente/enic/submissions", label: "Submissões", icon: <ClipboardList size={16} />, end: true },
+      //{ to: "/discente/enic/inscricao", label: "Nova Submissão", icon: <Plus size={16} />, end: true },
       //{ to: "/discente/enic/visualizar/1", label: "Consultar", icon: <Eye size={16} />, end: true },
-      { to: "/discente/enic/modelo", label: "Modelo de Submissão", icon: <FileText size={16} />, end: true },
+      //{ to: "/discente/enic/modelo", label: "Modelo de Submissão", icon: <FileText size={16} />, end: true },
     ],
     "/discente/certificados": [
       { to: "/discente/certificados", label: "Lista de Certificados", icon: <FileBadge size={16} />, end: true },
@@ -600,8 +600,8 @@ export default function AppHeader() {
     ],
     "/discente/perfil": [
       { to: "/discente/perfil", label: "Meu Perfil", icon: <User size={16} />, end: true },
-      { to: "/discente/perfil/editar", label: "Editar Perfil", icon: <Pencil size={16} />, end: true },
-      { to: "/discente/perfil/dados-bancarios", label: "Dados Bancários", icon: <Wallet size={16} />, end: true },
+      //{ to: "/discente/perfil/editar", label: "Editar Perfil", icon: <Pencil size={16} />, end: true },
+      //{ to: "/discente/perfil/dados-bancarios", label: "Dados Bancários", icon: <Wallet size={16} />, end: true },
       // { to: "/discente/perfil/documentos", label: "Documentos", icon: <Folder size={16} />, end: true },
     ],
   }

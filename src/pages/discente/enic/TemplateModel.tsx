@@ -1,3 +1,5 @@
+// não to usando
+
 import { ArrowLeft, Download, ExternalLink, FileText, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 

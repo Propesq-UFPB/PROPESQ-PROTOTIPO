@@ -879,34 +879,6 @@ export default function ProjectView() {
               </div>
             </SectionCard>
 
-            <SectionCard icon={<Link2 size={16} />} title="Ações Rápidas">
-              <div className="flex flex-col gap-3">
-                <Link
-                  to={`/discente/projetos/${project.id}/vinculo`}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-                >
-                  <Link2 size={16} />
-                  Ver vínculo
-                </Link>
-
-                <Link
-                  to="/discente/historico"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary/5"
-                >
-                  <History size={16} />
-                  Ver histórico
-                </Link>
-
-                <Link
-                  to="/discente/projetos"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/30 px-4 py-3 text-sm font-medium text-neutral transition hover:bg-neutral/5"
-                >
-                  <ArrowLeft size={16} />
-                  Voltar à lista
-                </Link>
-              </div>
-            </SectionCard>
-
             <SectionCard icon={<BookOpen size={16} />} title="Recomendações">
               <ul className="space-y-3 text-sm text-neutral">
                 <li className="flex items-start gap-3">
