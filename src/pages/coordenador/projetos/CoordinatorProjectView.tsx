@@ -1,57 +1,36 @@
 import { Link, useParams } from "react-router-dom"
 import {
+  AlertCircle,
   ArrowLeft,
+  Ban,
   CalendarDays,
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
   Edit3,
-  Eye,
+  ExternalLink,
   FileText,
-  FolderKanban,
+  FileUp,
   GraduationCap,
   History,
   Info,
   Notebook,
-  Send,
+  Star,
+  Tags,
   UserRound,
   Users,
   XCircle,
 } from "lucide-react"
 
 type ProjectStatus =
-  | "Rascunho"
-  | "Enviado"
+  | "Em elaboração"
+  | "Submetido"
   | "Em avaliação"
   | "Aprovado"
-  | "Necessita ajustes"
   | "Reprovado"
+  | "Cancelado"
 
-type WorkPlanStatus =
-  | "Pendente"
-  | "Aprovado"
-  | "Em avaliação"
-  | "Necessita ajustes"
-  | "Reprovado"
-
-type WorkPlan = {
-  id: number
-  title: string
-  modality: "Bolsista" | "Voluntário" | "Bolsista ou Voluntário"
-  vacancies: number
-  workload: number
-  status: WorkPlanStatus
-  summary: string
-  activities: string
-  studentProfile: string
-  expectedResults: string
-  indicatedStudents: {
-    id: number
-    name: string
-    course: string
-    type: "Bolsista" | "Voluntário"
-  }[]
-}
+type ProjectType = "Interno" | "Externo"
 
 type HistoryItem = {
   id: number
@@ -61,61 +40,265 @@ type HistoryItem = {
   status: "success" | "info" | "warning" | "danger" | "neutral"
 }
 
-type Project = {
+type EvaluationGrade = {
+  id: number
+  evaluator: string
+  role: string
+  projectScore: number
+  workPlanScore: number
+  finalScore: number
+  recommendation: "Aprovado" | "Reprovado" | "Aprovado com ressalvas"
+  comment: string
+  evaluatedAt: string
+}
+
+type ProjectMember = {
+  id: number
+  name: string
+  role: string
+  bond: string
+  email: string
+  lattes: string
+}
+
+type ODS = {
+  id: number
+  label: string
+}
+
+type ScheduleItem = {
+  id: number
+  period: string
+  activity: string
+}
+
+type WorkPlan = {
   id: number
   title: string
-  edital: string
-  area: string
-  subarea: string
-  unidade: string
-  linhaPesquisa: string
-  ano: string
-  status: ProjectStatus
-  coordinator: string
-  startDate: string
-  endDate: string
-  updatedAt: string
-  keywords: string[]
+  modality: "Bolsista" | "Voluntário" | "Bolsista ou Voluntário"
+  vacancies: number
+  workload: number
+  status: "Pendente" | "Aprovado" | "Em avaliação" | "Necessita ajustes" | "Reprovado"
+  studentProfile: string
   summary: string
-  justification: string
+  activities: string
+  expectedResults: string
+  references: string
+}
+
+type Project = {
+  id: number
+  type: ProjectType
+  status: ProjectStatus
+  isEditDeadlineOpen: boolean
+  canRequestReconsideration: boolean
+  evaluationPeriodClosed: boolean
+
+  edital: string
+  title: string
+  titleEn: string
+  keywords: string[]
+  keywordsEn: string[]
+  summary: string
+  abstract: string
+  introductionJustification: string
   objectives: string
   methodology: string
-  expectedResults: string
-  schedule: string
   references: string
+
+  center: string
+  unit: string
+  area: string
+  greatArea: string
+  subarea: string
+  specialty: string
+  researchLine: string
+  contactEmail: string
+  startDate: string
+  endDate: string
+  submittedAt: string
+  updatedAt: string
+
+  ods: ODS[]
+  schedule: ScheduleItem[]
+  members: ProjectMember[]
+  complementaryPdf: string
+  externalApprovalProof: string
+
+  internalData: {
+    linkedToResearchGroup: "Sim" | "Não"
+    researchGroup: string
+    hasEthicsProtocol: "Sim" | "Não"
+    ethicsCommittee: string
+    ethicsProtocolNumber: string
+  }
+
+  externalData: {
+    category: string
+    subcategoryLevelOne: string
+    subcategoryLevelTwo: string
+    intellectualPropertyDefinition: string
+    intellectualProductionTreatment: string
+  }
+
+  evaluationGrades: EvaluationGrade[]
   workPlans: WorkPlan[]
   history: HistoryItem[]
 }
 
+const SIGCHAMADOS_URL = "https://sigchamados.ufpb.br"
+
 const projectMock: Project = {
   id: 1,
-  title: "Desenvolvimento de Recursos de Acessibilidade Digital com VLibras",
-  edital: "PIBIC 2026",
-  area: "Ciência da Computação",
-  subarea: "Interação Humano-Computador",
-  unidade: "CI",
-  linhaPesquisa: "Tecnologias Assistivas e Sistemas Inteligentes",
-  ano: "2026",
+  type: "Interno",
   status: "Aprovado",
-  coordinator: "Prof. Dr. Carlos Henrique Almeida",
-  startDate: "01/08/2026",
-  endDate: "31/07/2027",
-  updatedAt: "10/05/2026",
-  keywords: ["Acessibilidade", "VLibras", "Tecnologia Assistiva", "Interface", "Inclusão Digital"],
+  isEditDeadlineOpen: true,
+  canRequestReconsideration: true,
+  evaluationPeriodClosed: true,
+
+  edital: "PIBIC 2026",
+  title: "Desenvolvimento de Recursos de Acessibilidade Digital com VLibras",
+  titleEn: "Development of Digital Accessibility Resources with VLibras",
+  keywords: ["Acessibilidade", "VLibras", "Tecnologia Assistiva", "Inclusão Digital"],
+  keywordsEn: ["Accessibility", "VLibras", "Assistive Technology", "Digital Inclusion"],
   summary:
-    "O projeto propõe o desenvolvimento e a avaliação de recursos digitais voltados à acessibilidade comunicacional, com foco em ferramentas integradas ao ecossistema VLibras. A proposta busca aprimorar a experiência de usuários surdos e ouvintes em ambientes digitais educacionais e institucionais.",
-  justification:
-    "A acessibilidade digital é um requisito essencial para ampliar a inclusão de pessoas surdas em serviços públicos, plataformas educacionais e sistemas institucionais. O projeto se justifica pela necessidade de investigar, propor e avaliar recursos que melhorem a mediação linguística e a interação entre usuários e sistemas digitais.",
+    "O projeto propõe o desenvolvimento e a avaliação de recursos digitais voltados à acessibilidade comunicacional, com foco em ferramentas integradas ao ecossistema VLibras.",
+  abstract:
+    "This project proposes the development and evaluation of digital resources for communicational accessibility, focusing on tools integrated into the VLibras ecosystem.",
+  introductionJustification:
+    "A acessibilidade digital é essencial para ampliar a inclusão de pessoas surdas em serviços públicos, plataformas educacionais e sistemas institucionais. O projeto se justifica pela necessidade de investigar, propor e avaliar recursos que melhorem a mediação linguística e a interação entre usuários e sistemas digitais.",
   objectives:
     "Investigar, desenvolver e avaliar recursos computacionais voltados à acessibilidade digital, considerando aspectos de usabilidade, tradução automática, experiência do usuário e integração com plataformas existentes.",
   methodology:
-    "A metodologia será organizada em etapas: levantamento bibliográfico, análise de requisitos, prototipação de interfaces, desenvolvimento incremental, testes com usuários, análise de resultados e documentação científica. Serão utilizados métodos qualitativos e quantitativos para avaliar a efetividade das soluções propostas.",
-  expectedResults:
-    "Espera-se obter protótipos funcionais, documentação técnica, relatórios de avaliação, produção científica e contribuições para o aprimoramento de ferramentas de acessibilidade digital.",
-  schedule:
-    "Mês 1-2: revisão bibliográfica e levantamento de requisitos. Mês 3-5: prototipação e desenvolvimento inicial. Mês 6-8: testes e ajustes. Mês 9-11: avaliação dos resultados. Mês 12: consolidação, relatório final e produção científica.",
+    "A metodologia será organizada em etapas: levantamento bibliográfico, análise de requisitos, prototipação de interfaces, desenvolvimento incremental, testes com usuários, análise de resultados e documentação científica.",
   references:
     "BRASIL. Lei Brasileira de Inclusão da Pessoa com Deficiência. W3C. Web Content Accessibility Guidelines. NIELSEN, J. Usability Engineering. Trabalhos recentes sobre tecnologias assistivas, tradução automática e acessibilidade digital.",
+
+  center: "CI",
+  unit: "Centro de Informática",
+  area: "Ciência da Computação",
+  greatArea: "Ciências Exatas e da Terra",
+  subarea: "Interação Humano-Computador",
+  specialty: "Tecnologias Assistivas",
+  researchLine: "Tecnologias Assistivas e Sistemas Inteligentes",
+  contactEmail: "coordenador@ufpb.br",
+  startDate: "01/08/2026",
+  endDate: "31/07/2027",
+  submittedAt: "10/05/2026",
+  updatedAt: "20/05/2026",
+
+  ods: [
+    { id: 4, label: "Educação de qualidade" },
+    { id: 9, label: "Indústria, inovação e infraestrutura" },
+    { id: 10, label: "Redução das desigualdades" },
+  ],
+
+  schedule: [
+    {
+      id: 1,
+      period: "Mês 1",
+      activity: "Revisão bibliográfica e levantamento de requisitos.",
+    },
+    {
+      id: 2,
+      period: "Mês 2",
+      activity: "Análise de soluções existentes e definição metodológica.",
+    },
+    {
+      id: 3,
+      period: "Mês 3",
+      activity: "Prototipação inicial dos recursos de acessibilidade.",
+    },
+    {
+      id: 4,
+      period: "Mês 4",
+      activity: "Implementação incremental e validação técnica.",
+    },
+    {
+      id: 5,
+      period: "Mês 5",
+      activity: "Testes com usuários e coleta de feedback.",
+    },
+    {
+      id: 6,
+      period: "Mês 6",
+      activity: "Consolidação dos resultados e elaboração de relatório.",
+    },
+  ],
+
+  members: [
+    {
+      id: 1,
+      name: "Prof. Dr. Carlos Henrique Almeida",
+      role: "Coordenador",
+      bond: "UFPB",
+      email: "carlos.almeida@ufpb.br",
+      lattes: "http://lattes.cnpq.br/0000000000000001",
+    },
+    {
+      id: 2,
+      name: "Dra. Mariana Ferreira",
+      role: "Pesquisadora",
+      bond: "LAVID/UFPB",
+      email: "mariana.ferreira@ufpb.br",
+      lattes: "http://lattes.cnpq.br/0000000000000002",
+    },
+    {
+      id: 3,
+      name: "Ana Beatriz Santos",
+      role: "Discente",
+      bond: "Graduação em Ciência de Dados e IA",
+      email: "ana.santos@academico.ufpb.br",
+      lattes: "http://lattes.cnpq.br/0000000000000003",
+    },
+  ],
+
+  complementaryPdf: "projeto-complementar-vlibras.pdf",
+  externalApprovalProof: "Não se aplica a projeto interno",
+
+  internalData: {
+    linkedToResearchGroup: "Sim",
+    researchGroup: "Tecnologias Assistivas e Sistemas Inteligentes",
+    hasEthicsProtocol: "Sim",
+    ethicsCommittee: "CEP/UFPB",
+    ethicsProtocolNumber: "1234567",
+  },
+
+  externalData: {
+    category: "Não se aplica",
+    subcategoryLevelOne: "Não se aplica",
+    subcategoryLevelTwo: "Não se aplica",
+    intellectualPropertyDefinition: "Não se aplica",
+    intellectualProductionTreatment: "Não se aplica",
+  },
+
+  evaluationGrades: [
+    {
+      id: 1,
+      evaluator: "Avaliador 01",
+      role: "Consultor ad hoc",
+      projectScore: 9.2,
+      workPlanScore: 9.0,
+      finalScore: 9.1,
+      recommendation: "Aprovado",
+      comment:
+        "Projeto bem estruturado, com justificativa consistente, metodologia adequada e boa aderência aos objetivos do edital.",
+      evaluatedAt: "18/05/2026",
+    },
+    {
+      id: 2,
+      evaluator: "Avaliador 02",
+      role: "Comitê interno",
+      projectScore: 8.8,
+      workPlanScore: 8.6,
+      finalScore: 8.7,
+      recommendation: "Aprovado com ressalvas",
+      comment:
+        "A proposta apresenta relevância institucional. Recomenda-se maior detalhamento das métricas de avaliação no acompanhamento.",
+      evaluatedAt: "19/05/2026",
+    },
+  ],
+
   workPlans: [
     {
       id: 1,
@@ -124,682 +307,746 @@ const projectMock: Project = {
       vacancies: 1,
       workload: 20,
       status: "Aprovado",
+      studentProfile:
+        "Discente com interesse em desenvolvimento front-end, acessibilidade digital, UX/UI e tecnologias assistivas.",
       summary:
         "Plano voltado à construção e avaliação de protótipos de interface com foco em acessibilidade, usabilidade e integração com recursos de tradução em Libras.",
       activities:
-        "Levantamento de requisitos, criação de wireframes, desenvolvimento de protótipos navegáveis, testes de usabilidade, documentação dos resultados e apoio na elaboração de relatório parcial e final.",
-      studentProfile:
-        "Discente com interesse em desenvolvimento front-end, acessibilidade digital, UX/UI e tecnologias assistivas.",
+        "Levantamento de requisitos, criação de wireframes, desenvolvimento de protótipos navegáveis, testes de usabilidade e documentação dos resultados.",
       expectedResults:
-        "Protótipos validados, relatório de avaliação de usabilidade e documentação de recomendações de design acessível.",
-      indicatedStudents: [
-        {
-          id: 1,
-          name: "Ana Beatriz Santos",
-          course: "Ciência da Computação",
-          type: "Bolsista",
-        },
-      ],
+        "Protótipos validados, relatório de avaliação de usabilidade e recomendações de design acessível.",
+      references:
+        "NIELSEN, J. Usability Engineering. W3C. Web Content Accessibility Guidelines.",
     },
     {
       id: 2,
-      title: "Análise de dados de uso em ferramentas de acessibilidade",
+      title: "Avaliação de recursos de tradução automática em Libras",
       modality: "Voluntário",
       vacancies: 1,
       workload: 12,
-      status: "Aprovado",
-      summary:
-        "Plano direcionado à análise de registros de uso e indicadores de interação em ferramentas digitais de acessibilidade.",
-      activities:
-        "Organização de dados, criação de indicadores, análise exploratória, geração de gráficos, interpretação dos resultados e apoio na escrita de relatórios técnicos.",
-      studentProfile:
-        "Discente com interesse em análise de dados, Python, visualização de dados e avaliação de sistemas.",
-      expectedResults:
-        "Painéis analíticos, indicadores de uso e relatório interpretativo sobre padrões de interação.",
-      indicatedStudents: [],
-    },
-    {
-      id: 3,
-      title: "Documentação técnica e avaliação de recursos acessíveis",
-      modality: "Bolsista ou Voluntário",
-      vacancies: 1,
-      workload: 16,
       status: "Em avaliação",
-      summary:
-        "Plano voltado à documentação de funcionalidades, acompanhamento de testes e análise qualitativa dos recursos desenvolvidos.",
-      activities:
-        "Elaboração de documentação, acompanhamento de testes, sistematização de feedbacks, revisão de materiais e apoio na consolidação dos relatórios.",
       studentProfile:
-        "Discente com boa escrita, organização, interesse em pesquisa aplicada e acessibilidade.",
+        "Discente com interesse em processamento de linguagem natural, Libras, avaliação de sistemas e análise de dados.",
+      summary:
+        "Plano voltado à avaliação de recursos de tradução automática em Libras integrados a sistemas digitais.",
+      activities:
+        "Organização de cenários de teste, definição de critérios de avaliação, coleta de dados, análise dos resultados e apoio na redação técnica.",
       expectedResults:
-        "Documentação técnica estruturada, registros de avaliação e suporte à redação dos relatórios do projeto.",
-      indicatedStudents: [],
+        "Relatório comparativo sobre desempenho, limitações e oportunidades de melhoria dos recursos avaliados.",
+      references:
+        "Trabalhos recentes sobre tradução automática, Libras, tecnologias assistivas e avaliação de sistemas inteligentes.",
     },
   ],
+
   history: [
     {
       id: 1,
-      date: "10/05/2026",
-      title: "Projeto aprovado",
-      description: "O projeto foi aprovado para execução no edital PIBIC 2026.",
-      status: "success",
+      date: "02/05/2026",
+      title: "Projeto criado",
+      description: "O coordenador iniciou o cadastro do projeto.",
+      status: "neutral",
     },
     {
       id: 2,
-      date: "07/05/2026",
-      title: "Avaliação concluída",
-      description: "A avaliação do projeto e dos planos de trabalho foi registrada.",
+      date: "10/05/2026",
+      title: "Projeto submetido",
+      description: "A proposta foi enviada para avaliação.",
       status: "info",
     },
     {
       id: 3,
-      date: "03/05/2026",
-      title: "Projeto enviado",
-      description: "O projeto foi submetido pelo coordenador para avaliação.",
-      status: "neutral",
+      date: "15/05/2026",
+      title: "Avaliação iniciada",
+      description: "O projeto foi distribuído para avaliadores.",
+      status: "warning",
     },
     {
       id: 4,
-      date: "28/04/2026",
-      title: "Rascunho criado",
-      description: "O projeto foi iniciado no sistema.",
-      status: "neutral",
+      date: "20/05/2026",
+      title: "Projeto aprovado",
+      description: "O projeto recebeu parecer favorável após avaliação.",
+      status: "success",
     },
   ],
 }
 
-function getProjectStatusClass(status: ProjectStatus) {
+function cx(...arr: Array<string | false | null | undefined>) {
+  return arr.filter(Boolean).join(" ")
+}
+
+function getStatusClass(status: ProjectStatus | WorkPlan["status"]) {
   switch (status) {
     case "Aprovado":
       return "border-emerald-200 bg-emerald-50 text-emerald-700"
+    case "Submetido":
     case "Em avaliação":
-      return "border-violet-200 bg-violet-50 text-violet-700"
-    case "Enviado":
       return "border-blue-200 bg-blue-50 text-blue-700"
-    case "Necessita ajustes":
-      return "border-amber-200 bg-amber-50 text-amber-700"
-    case "Reprovado":
-      return "border-red-200 bg-red-50 text-red-700"
-    case "Rascunho":
-    default:
-      return "border-neutral/20 bg-neutral/10 text-neutral"
-  }
-}
-
-function getWorkPlanStatusClass(status: WorkPlanStatus) {
-  switch (status) {
-    case "Aprovado":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700"
-    case "Em avaliação":
-      return "border-violet-200 bg-violet-50 text-violet-700"
-    case "Necessita ajustes":
-      return "border-amber-200 bg-amber-50 text-amber-700"
-    case "Reprovado":
-      return "border-red-200 bg-red-50 text-red-700"
+    case "Em elaboração":
     case "Pendente":
+    case "Necessita ajustes":
+      return "border-amber-200 bg-amber-50 text-amber-700"
+    case "Reprovado":
+    case "Cancelado":
+      return "border-red-200 bg-red-50 text-red-700"
     default:
-      return "border-neutral/20 bg-neutral/10 text-neutral"
+      return "border-neutral/20 bg-neutral/5 text-neutral"
   }
 }
 
-function getProjectStatusIcon(status: ProjectStatus) {
+function getStatusIcon(status: ProjectStatus | WorkPlan["status"]) {
   switch (status) {
     case "Aprovado":
       return <CheckCircle2 size={14} />
     case "Reprovado":
+    case "Cancelado":
       return <XCircle size={14} />
+    case "Submetido":
     case "Em avaliação":
       return <ClipboardList size={14} />
-    case "Enviado":
-      return <Send size={14} />
-    case "Necessita ajustes":
-      return <FileText size={14} />
-    case "Rascunho":
     default:
-      return <Notebook size={14} />
+      return <FileText size={14} />
   }
 }
 
-function getHistoryDotClass(status: HistoryItem["status"]) {
+function getHistoryClass(status: HistoryItem["status"]) {
   switch (status) {
     case "success":
-      return "bg-emerald-500"
+      return "border-emerald-200 bg-emerald-50 text-emerald-700"
     case "info":
-      return "bg-blue-500"
+      return "border-blue-200 bg-blue-50 text-blue-700"
     case "warning":
-      return "bg-amber-500"
+      return "border-amber-200 bg-amber-50 text-amber-700"
     case "danger":
-      return "bg-red-500"
-    case "neutral":
+      return "border-red-200 bg-red-50 text-red-700"
     default:
-      return "bg-neutral/50"
+      return "border-neutral/20 bg-neutral/5 text-neutral"
   }
+}
+
+function Card({
+  title,
+  subtitle,
+  icon,
+  children,
+}: {
+  title: string
+  subtitle?: string
+  icon?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <section className="rounded-2xl border border-neutral/30 bg-white shadow-sm">
+      <div className="flex items-center gap-2 border-b border-neutral/20 px-6 py-4">
+        {icon}
+
+        <div>
+          <h2 className="text-sm font-bold text-primary">{title}</h2>
+
+          {subtitle && (
+            <p className="mt-0.5 text-xs text-neutral">{subtitle}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="p-6">{children}</div>
+    </section>
+  )
+}
+
+function InfoItem({
+  label,
+  value,
+  preWrap,
+}: {
+  label: string
+  value: string
+  preWrap?: boolean
+}) {
+  return (
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-neutral">
+        {label}
+      </p>
+
+      <p
+        className={cx(
+          "mt-1 text-sm leading-6 text-neutral",
+          preWrap && "whitespace-pre-wrap"
+        )}
+      >
+        {value || "—"}
+      </p>
+    </div>
+  )
+}
+
+function StatusBadge({
+  status,
+}: {
+  status: ProjectStatus | WorkPlan["status"]
+}) {
+  return (
+    <span
+      className={cx(
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold",
+        getStatusClass(status)
+      )}
+    >
+      {getStatusIcon(status)}
+      {status}
+    </span>
+  )
 }
 
 export default function CoordinatorProjectView() {
   const { id } = useParams()
-
   const project = projectMock
-
-  const totalPlans = project.workPlans.length
-  const approvedPlans = project.workPlans.filter((plan) => plan.status === "Aprovado").length
-  const totalVacancies = project.workPlans.reduce((acc, plan) => acc + plan.vacancies, 0)
-  const indicatedStudents = project.workPlans.reduce(
-    (acc, plan) => acc + plan.indicatedStudents.length,
-    0
-  )
 
   return (
     <main className="min-h-screen bg-[#F3F4F6]">
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-6">
-        {/* BOTÃO DE VOLTAR */}
-        <div className="flex items-center justify-between">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link
             to="/coordenador/projetos"
-            className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
           >
             <ArrowLeft size={16} />
             Voltar para projetos
           </Link>
+
+          <div className="flex flex-wrap gap-2">
+            {project.isEditDeadlineOpen ? (
+              <Link
+                to={`/coordenador/projetos/${id ?? project.id}/editar`}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90"
+              >
+                <Edit3 size={16} />
+                Editar projeto
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-neutral/10 px-4 py-2.5 text-sm font-semibold text-neutral"
+              >
+                <Edit3 size={16} />
+                Edição encerrada
+              </button>
+            )}
+
+            <a
+              href={SIGCHAMADOS_URL}
+              target="_blank"
+              rel="noreferrer"
+              className={cx(
+                "inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition",
+                project.canRequestReconsideration
+                  ? "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                  : "pointer-events-none cursor-not-allowed border-neutral/20 bg-neutral/10 text-neutral"
+              )}
+            >
+              <ExternalLink size={16} />
+              Solicitar reconsideração
+            </a>
+
+            <button
+              type="button"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+            >
+              <Ban size={16} />
+              Cancelar
+            </button>
+          </div>
         </div>
 
-        {/* HEADER DA PÁGINA */}
-        <section className="rounded-2xl border border-neutral/30 bg-white p-6">
+        <section className="rounded-3xl border border-neutral/30 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-4xl">
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                  <FolderKanban size={14} />
-                  Projeto #{id ?? project.id}
-                </span>
-
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getProjectStatusClass(
-                    project.status
-                  )}`}
-                >
-                  {getProjectStatusIcon(project.status)}
-                  {project.status}
-                </span>
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <FileText size={14} />
+                Projeto #{project.id}
               </div>
 
-              <h1 className="text-2xl font-bold tracking-tight text-primary">
+              <h1 className="mt-3 max-w-4xl text-2xl font-bold tracking-tight text-primary">
                 {project.title}
               </h1>
 
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
-                {project.summary}
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-neutral">
+                {project.titleEn}
               </p>
 
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-neutral">
-                <span className="inline-flex items-center gap-2">
-                  <GraduationCap size={16} />
-                  {project.area}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <StatusBadge status={project.status} />
+
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral/20 bg-neutral/5 px-3 py-1 text-xs font-semibold text-neutral">
+                  <CalendarDays size={14} />
+                  Submetido em {project.submittedAt}
                 </span>
 
-                <span className="h-1 w-1 rounded-full bg-neutral/40" />
-
-                <span>{project.unidade}</span>
-
-                <span className="h-1 w-1 rounded-full bg-neutral/40" />
-
-                <span className="inline-flex items-center gap-2">
-                  <CalendarDays size={16} />
-                  Atualizado em {project.updatedAt}
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral/20 bg-neutral/5 px-3 py-1 text-xs font-semibold text-neutral">
+                  <Info size={14} />
+                  {project.type}
                 </span>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
-              {(project.status === "Rascunho" || project.status === "Necessita ajustes") && (
-                <Link
-                  to={`/coordenador/projetos/novo?edit=${project.id}`}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-semibold text-neutral transition hover:border-primary/30 hover:text-primary"
-                >
-                  <Edit3 size={16} />
-                  Editar projeto
-                </Link>
-              )}
-
-              {(project.status === "Rascunho" || project.status === "Necessita ajustes") && (
-                <Link
-                  to={`/coordenador/projetos/${project.id}?acao=enviar`}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
-                >
-                  <Send size={16} />
-                  Enviar para avaliação
-                </Link>
-              )}
-
-              <Link
-                to={`/coordenador/indicacoes?projeto=${project.id}`}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition hover:border-primary/30 hover:bg-primary/10"
-              >
-                <Users size={16} />
-                Indicar discentes
-              </Link>
+            <div className="grid min-w-[260px] grid-cols-2 gap-3 rounded-2xl border border-neutral/20 bg-neutral/5 p-4">
+              <InfoItem label="Edital" value={project.edital} />
+              <InfoItem label="Atualizado em" value={project.updatedAt} />
+              <InfoItem label="Início" value={project.startDate} />
+              <InfoItem label="Fim" value={project.endDate} />
             </div>
-          </div>
-        </section>
-
-        {/* INDICADORES */}
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Planos vinculados
-                </p>
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {totalPlans}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
-                <Notebook size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              {approvedPlans} plano(s) aprovado(s)
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Vagas previstas
-                </p>
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {totalVacancies}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
-                <UserRound size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              Somatório das vagas dos planos
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Discentes indicados
-                </p>
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {indicatedStudents}/{totalVacancies}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                <Users size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              Indicações já realizadas
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Edital
-                </p>
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {project.ano}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <ClipboardCheck size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              {project.edital}
-            </p>
           </div>
         </section>
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_360px]">
           <div className="space-y-6">
-            {/* DADOS DO PROJETO */}
-            <section className="rounded-2xl border border-neutral/30 bg-white p-6">
-              <div className="mb-5 flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <Info size={20} />
-                </div>
-
-                <div>
-                  <h2 className="text-base font-semibold text-primary">
-                    Dados do projeto
-                  </h2>
-                  <p className="mt-1 text-sm leading-6 text-neutral">
-                    Informações gerais vinculadas ao edital e à unidade acadêmica.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <InfoItem label="Edital" value={project.edital} />
-                <InfoItem label="Ano" value={project.ano} />
-                <InfoItem label="Coordenador" value={project.coordinator} />
-                <InfoItem label="Unidade" value={project.unidade} />
+            <Card
+              title="Campos preenchidos do projeto"
+              subtitle="Dados gerais, campos do Anexo II e informações acadêmicas."
+              icon={<ClipboardCheck size={18} className="text-primary" />}
+            >
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <InfoItem label="Tipo" value={project.type} />
+                <InfoItem label="E-mail de contato" value={project.contactEmail} />
+                <InfoItem label="Centro" value={project.center} />
+                <InfoItem label="Unidade" value={project.unit} />
+                <InfoItem label="Grande área" value={project.greatArea} />
                 <InfoItem label="Área" value={project.area} />
                 <InfoItem label="Subárea" value={project.subarea} />
-                <InfoItem label="Linha de pesquisa" value={project.linhaPesquisa} />
-                <InfoItem label="Período" value={`${project.startDate} até ${project.endDate}`} />
-              </div>
+                <InfoItem label="Especialidade" value={project.specialty} />
+                <InfoItem label="Linha de pesquisa" value={project.researchLine} />
 
-              <div className="mt-5">
-                <p className="mb-2 text-sm font-medium text-primary">
-                  Palavras-chave
+                <div className="md:col-span-2">
+                  <InfoItem label="Título" value={project.title} />
+                </div>
+
+                <div className="md:col-span-2">
+                  <InfoItem label="Title" value={project.titleEn} />
+                </div>
+
+                <div className="md:col-span-2">
+                  <p className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-neutral">
+                    <Tags size={14} />
+                    Palavras-chave
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {project.keywords.map((keyword) => (
+                      <span
+                        key={keyword}
+                        className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary"
+                      >
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <p className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-neutral">
+                    <Tags size={14} />
+                    Keywords
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {project.keywordsEn.map((keyword) => (
+                      <span
+                        key={keyword}
+                        className="rounded-full border border-neutral/20 bg-neutral/5 px-3 py-1 text-xs font-semibold text-neutral"
+                      >
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <InfoItem label="Descrição resumida" value={project.summary} preWrap />
+                </div>
+
+                <div className="md:col-span-2">
+                  <InfoItem label="Abstract" value={project.abstract} preWrap />
+                </div>
+
+                <div className="md:col-span-2">
+                  <InfoItem
+                    label="Introdução / justificativa"
+                    value={project.introductionJustification}
+                    preWrap
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <InfoItem label="Objetivos" value={project.objectives} preWrap />
+                </div>
+
+                <div className="md:col-span-2">
+                  <InfoItem label="Metodologia" value={project.methodology} preWrap />
+                </div>
+
+                <div className="md:col-span-2">
+                  <InfoItem label="Referências" value={project.references} preWrap />
+                </div>
+              </div>
+            </Card>
+
+            <Card
+              title="ODS e cronograma"
+              subtitle="Objetivos do Desenvolvimento Sustentável e planejamento de execução."
+              icon={<GraduationCap size={18} className="text-primary" />}
+            >
+              <div>
+                <p className="mb-3 text-[11px] font-bold uppercase tracking-wide text-neutral">
+                  ODS vinculados
                 </p>
 
                 <div className="flex flex-wrap gap-2">
-                  {project.keywords.map((keyword) => (
+                  {project.ods.map((ods) => (
                     <span
-                      key={keyword}
-                      className="rounded-full border border-neutral/20 bg-neutral/5 px-3 py-1 text-xs font-medium text-neutral"
+                      key={ods.id}
+                      className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary"
                     >
-                      {keyword}
+                      <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-[11px] text-white">
+                        {ods.id}
+                      </span>
+                      {ods.label}
                     </span>
                   ))}
                 </div>
               </div>
-            </section>
 
-            {/* DESCRIÇÃO */}
-            <section className="rounded-2xl border border-neutral/30 bg-white p-6">
-              <div className="mb-5 flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
-                  <FileText size={20} />
-                </div>
+              <div className="mt-6 space-y-3">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-neutral">
+                  Cronograma
+                </p>
 
-                <div>
-                  <h2 className="text-base font-semibold text-primary">
-                    Descrição da proposta
-                  </h2>
-                  <p className="mt-1 text-sm leading-6 text-neutral">
-                    Conteúdo submetido pelo coordenador para avaliação do projeto.
-                  </p>
-                </div>
+                {project.schedule.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-xl border border-neutral/20 bg-neutral/5 p-4"
+                  >
+                    <p className="text-sm font-bold text-primary">{item.period}</p>
+                    <p className="mt-1 text-sm leading-6 text-neutral">
+                      {item.activity}
+                    </p>
+                  </div>
+                ))}
               </div>
+            </Card>
 
-              <div className="space-y-5">
-                <TextBlock title="Resumo" text={project.summary} />
-                <TextBlock title="Justificativa" text={project.justification} />
-                <TextBlock title="Objetivos" text={project.objectives} />
-                <TextBlock title="Metodologia" text={project.methodology} />
-                <TextBlock title="Resultados esperados" text={project.expectedResults} />
-                <TextBlock title="Cronograma" text={project.schedule} />
-                <TextBlock title="Referências" text={project.references} />
-              </div>
-            </section>
-
-            {/* PLANOS */}
-            <section className="rounded-2xl border border-neutral/30 bg-white">
-              <div className="flex flex-col gap-3 border-b border-neutral/20 p-6 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h2 className="text-base font-semibold text-primary">
-                    Planos de trabalho vinculados
-                  </h2>
-                  <p className="mt-1 text-sm text-neutral">
-                    Planos cadastrados dentro deste projeto para indicação de discentes.
-                  </p>
-                </div>
-
-                <Link
-                  to={`/coordenador/projetos/novo?tipo=plano&projeto=${project.id}`}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                >
-                  <Notebook size={16} />
-                  Adicionar plano
-                </Link>
-              </div>
-
-              <div className="divide-y divide-neutral/10">
-                {project.workPlans.map((plan, index) => (
-                  <article key={plan.id} className="p-6">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="max-w-3xl">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center gap-2 rounded-full border border-neutral/20 bg-neutral/5 px-3 py-1 text-xs font-semibold text-neutral">
-                            Plano {index + 1}
-                          </span>
-
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getWorkPlanStatusClass(
-                              plan.status
-                            )}`}
-                          >
-                            <CheckCircle2 size={14} />
-                            {plan.status}
-                          </span>
-                        </div>
-
-                        <h3 className="mt-3 text-base font-semibold text-primary">
-                          {plan.title}
-                        </h3>
-
-                        <p className="mt-2 text-sm leading-6 text-neutral">
-                          {plan.summary}
-                        </p>
-
-                        <div className="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
-                          <MiniInfo label="Modalidade" value={plan.modality} />
-                          <MiniInfo label="Vagas" value={`${plan.vacancies}`} />
-                          <MiniInfo label="Carga semanal" value={`${plan.workload}h`} />
-                        </div>
+            <Card
+              title="Membros do projeto"
+              subtitle="Equipe vinculada ao projeto."
+              icon={<Users size={18} className="text-primary" />}
+            >
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {project.members.map((member) => (
+                  <div
+                    key={member.id}
+                    className="rounded-2xl border border-neutral/20 bg-neutral/5 p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <UserRound size={18} />
                       </div>
 
-                      <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
-                        <Link
-                          to={`/coordenador/projetos/${project.id}?plano=${plan.id}`}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                        >
-                          <Eye size={16} />
-                          Ver plano
-                        </Link>
+                      <div>
+                        <p className="text-sm font-bold text-primary">
+                          {member.name}
+                        </p>
 
-                        {plan.status === "Aprovado" && (
-                          <Link
-                            to={`/coordenador/indicacoes?projeto=${project.id}&plano=${plan.id}`}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition hover:border-primary/30 hover:bg-primary/10"
-                          >
-                            <Users size={16} />
-                            Indicar
-                          </Link>
-                        )}
+                        <p className="mt-1 text-xs font-semibold text-neutral">
+                          {member.role} • {member.bond}
+                        </p>
+
+                        <p className="mt-2 text-sm text-neutral">
+                          {member.email}
+                        </p>
+
+                        <p className="mt-1 break-all text-xs text-neutral">
+                          Lattes: {member.lattes}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card
+              title="Planos de trabalho vinculados"
+              subtitle="Planos cadastrados e vinculados ao projeto."
+              icon={<Notebook size={18} className="text-primary" />}
+            >
+              <div className="space-y-4">
+                {project.workPlans.map((plan) => (
+                  <article
+                    key={plan.id}
+                    className="rounded-2xl border border-neutral/20 bg-white p-5"
+                  >
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="text-base font-bold text-primary">
+                          {plan.title}
+                        </p>
+
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <span className="rounded-full border border-neutral/20 bg-neutral/5 px-3 py-1 text-xs font-semibold text-neutral">
+                            {plan.modality}
+                          </span>
+
+                          <span className="rounded-full border border-neutral/20 bg-neutral/5 px-3 py-1 text-xs font-semibold text-neutral">
+                            {plan.vacancies} vaga(s)
+                          </span>
+
+                          <span className="rounded-full border border-neutral/20 bg-neutral/5 px-3 py-1 text-xs font-semibold text-neutral">
+                            {plan.workload}h semanais
+                          </span>
+
+                          <StatusBadge status={plan.status} />
+                        </div>
                       </div>
                     </div>
 
-                    <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
-                      <TextBlock title="Atividades previstas" text={plan.activities} compact />
-                      <TextBlock title="Perfil esperado do discente" text={plan.studentProfile} compact />
-                      <TextBlock title="Resultados esperados" text={plan.expectedResults} compact />
+                    <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <InfoItem label="Perfil do discente" value={plan.studentProfile} />
+                      <InfoItem label="Resumo" value={plan.summary} preWrap />
 
-                      <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-                        <p className="text-sm font-semibold text-primary">
-                          Discentes indicados
-                        </p>
+                      <div className="md:col-span-2">
+                        <InfoItem label="Atividades" value={plan.activities} preWrap />
+                      </div>
 
-                        {plan.indicatedStudents.length > 0 ? (
-                          <div className="mt-3 space-y-3">
-                            {plan.indicatedStudents.map((student) => (
-                              <div
-                                key={student.id}
-                                className="rounded-xl border border-neutral/20 bg-white p-3"
-                              >
-                                <p className="text-sm font-semibold text-primary">
-                                  {student.name}
-                                </p>
-                                <p className="mt-1 text-xs text-neutral">
-                                  {student.course} • {student.type}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="mt-2 text-sm leading-6 text-neutral">
-                            Nenhum discente indicado para este plano até o momento.
-                          </p>
-                        )}
+                      <div className="md:col-span-2">
+                        <InfoItem
+                          label="Resultados esperados"
+                          value={plan.expectedResults}
+                          preWrap
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <InfoItem label="Referências" value={plan.references} preWrap />
                       </div>
                     </div>
                   </article>
                 ))}
               </div>
-            </section>
+            </Card>
+
+            <Card
+              title="Notas dos avaliadores"
+              subtitle="Disponíveis apenas após o encerramento do período de avaliação."
+              icon={<Star size={18} className="text-primary" />}
+            >
+              {project.evaluationPeriodClosed ? (
+                <div className="space-y-4">
+                  {project.evaluationGrades.map((grade) => (
+                    <article
+                      key={grade.id}
+                      className="rounded-2xl border border-neutral/20 bg-neutral/5 p-5"
+                    >
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-primary">
+                            {grade.evaluator}
+                          </p>
+
+                          <p className="mt-1 text-xs text-neutral">
+                            {grade.role} • Avaliado em {grade.evaluatedAt}
+                          </p>
+                        </div>
+
+                        <span
+                          className={cx(
+                            "inline-flex w-fit rounded-full border px-3 py-1 text-xs font-bold",
+                            grade.recommendation === "Aprovado"
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                              : grade.recommendation === "Reprovado"
+                                ? "border-red-200 bg-red-50 text-red-700"
+                                : "border-amber-200 bg-amber-50 text-amber-700"
+                          )}
+                        >
+                          {grade.recommendation}
+                        </span>
+                      </div>
+
+                      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <div className="rounded-xl border border-neutral/20 bg-white p-4">
+                          <p className="text-[11px] font-bold uppercase text-neutral">
+                            Nota do projeto
+                          </p>
+
+                          <p className="mt-1 text-xl font-bold text-primary">
+                            {grade.projectScore.toFixed(1)}
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl border border-neutral/20 bg-white p-4">
+                          <p className="text-[11px] font-bold uppercase text-neutral">
+                            Nota do plano
+                          </p>
+
+                          <p className="mt-1 text-xl font-bold text-primary">
+                            {grade.workPlanScore.toFixed(1)}
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl border border-neutral/20 bg-white p-4">
+                          <p className="text-[11px] font-bold uppercase text-neutral">
+                            Nota final
+                          </p>
+
+                          <p className="mt-1 text-xl font-bold text-primary">
+                            {grade.finalScore.toFixed(1)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <InfoItem label="Comentário" value={grade.comment} preWrap />
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+                  <AlertCircle size={18} className="mt-0.5 shrink-0" />
+
+                  <div>
+                    <p className="text-sm font-bold">
+                      Notas ainda indisponíveis
+                    </p>
+
+                    <p className="mt-1 text-xs leading-5">
+                      As notas dos avaliadores serão exibidas após o encerramento
+                      do período de avaliação.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </Card>
           </div>
 
-          {/* LATERAL */}
           <aside className="space-y-6">
-            {/* AÇÕES RÁPIDAS */}
-            <section className="rounded-2xl border border-neutral/30 bg-white p-6">
-              <h2 className="text-base font-semibold text-primary">
-                Ações rápidas
-              </h2>
+            <Card
+              title="Status atual"
+              subtitle="Situação mais recente do projeto."
+              icon={<Info size={18} className="text-primary" />}
+            >
+              <div className="space-y-4">
+                <div>
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-neutral">
+                    Status
+                  </p>
 
-              <p className="mt-1 text-sm leading-6 text-neutral">
-                Acesse as próximas etapas relacionadas ao projeto.
-              </p>
-
-              <div className="mt-5 space-y-2">
-
-                <Link
-                  to={`/coordenador/indicacoes?projeto=${project.id}`}
-                  className="flex items-center justify-between rounded-xl border border-neutral/20 bg-white px-4 py-3 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <Users size={16} />
-                    Indicar discentes
-                  </span>
-                  <Eye size={15} />
-                </Link>
-
-                <Link
-                  to={`/coordenador/relatorios?projeto=${project.id}`}
-                  className="flex items-center justify-between rounded-xl border border-neutral/20 bg-white px-4 py-3 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <FileText size={16} />
-                    Relatórios
-                  </span>
-                  <Eye size={15} />
-                </Link>
-              </div>
-            </section>
-
-            {/* HISTÓRICO */}
-            <section className="rounded-2xl border border-neutral/30 bg-white p-6">
-              <div className="mb-5 flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
-                  <History size={20} />
+                  <StatusBadge status={project.status} />
                 </div>
 
-                <div>
-                  <h2 className="text-base font-semibold text-primary">
-                    Histórico
-                  </h2>
-                  <p className="mt-1 text-sm leading-6 text-neutral">
-                    Movimentações registradas para este projeto.
+                <InfoItem label="Submissão" value={project.submittedAt} />
+                <InfoItem label="Última atualização" value={project.updatedAt} />
+
+                <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
+                  <p className="text-xs font-bold text-primary">
+                    Prazo de edição
+                  </p>
+
+                  <p className="mt-1 text-sm text-neutral">
+                    {project.isEditDeadlineOpen
+                      ? "Aberto para edição"
+                      : "Encerrado para edição"}
                   </p>
                 </div>
               </div>
+            </Card>
 
-              <div className="relative space-y-5">
-                {project.history.map((item, index) => (
-                  <div key={item.id} className="relative flex gap-3">
-                    {index !== project.history.length - 1 && (
-                      <span className="absolute left-[7px] top-5 h-full w-px bg-neutral/20" />
-                    )}
+            <Card
+              title="Arquivos"
+              subtitle="Documentos vinculados ao projeto."
+              icon={<FileUp size={18} className="text-primary" />}
+            >
+              <div className="space-y-4">
+                <InfoItem
+                  label="PDF complementar"
+                  value={project.complementaryPdf}
+                />
 
-                    <span
-                      className={`relative mt-1 h-3.5 w-3.5 shrink-0 rounded-full ${getHistoryDotClass(
-                        item.status
-                      )}`}
-                    />
-
-                    <div>
-                      <p className="text-sm font-semibold text-primary">
-                        {item.title}
-                      </p>
-
-                      <p className="mt-1 text-xs font-medium text-neutral">
-                        {item.date}
-                      </p>
-
-                      <p className="mt-1 text-sm leading-6 text-neutral">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                <InfoItem
+                  label="Comprovante externo"
+                  value={project.externalApprovalProof}
+                />
               </div>
-            </section>
+            </Card>
+
+            <Card
+              title="Dados específicos"
+              subtitle={
+                project.type === "Interno"
+                  ? "Informações do projeto interno."
+                  : "Informações do projeto externo."
+              }
+              icon={<ClipboardCheck size={18} className="text-primary" />}
+            >
+              {project.type === "Interno" ? (
+                <div className="space-y-4">
+                  <InfoItem
+                    label="Vinculado a grupo?"
+                    value={project.internalData.linkedToResearchGroup}
+                  />
+
+                  <InfoItem
+                    label="Grupo de pesquisa"
+                    value={project.internalData.researchGroup}
+                  />
+
+                  <InfoItem
+                    label="Possui protocolo de ética?"
+                    value={project.internalData.hasEthicsProtocol}
+                  />
+
+                  <InfoItem
+                    label="Comitê de ética"
+                    value={project.internalData.ethicsCommittee}
+                  />
+
+                  <InfoItem
+                    label="Nº do protocolo"
+                    value={project.internalData.ethicsProtocolNumber}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <InfoItem
+                    label="Categoria"
+                    value={project.externalData.category}
+                  />
+
+                  <InfoItem
+                    label="Subcategoria Nível I"
+                    value={project.externalData.subcategoryLevelOne}
+                  />
+
+                  <InfoItem
+                    label="Subcategoria Nível II"
+                    value={project.externalData.subcategoryLevelTwo}
+                  />
+
+                  <InfoItem
+                    label="Definição de PI"
+                    value={project.externalData.intellectualPropertyDefinition}
+                  />
+
+                  <InfoItem
+                    label="Tratamento da produção intelectual"
+                    value={project.externalData.intellectualProductionTreatment}
+                    preWrap
+                  />
+                </div>
+              )}
+            </Card>
           </aside>
         </section>
       </div>
     </main>
-  )
-}
-
-function InfoItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-        {label}
-      </p>
-      <p className="mt-1 text-sm font-medium leading-6 text-primary">
-        {value}
-      </p>
-    </div>
-  )
-}
-
-function MiniInfo({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-neutral/20 bg-white p-3">
-      <p className="text-xs font-medium text-neutral">
-        {label}
-      </p>
-      <p className="mt-1 text-sm font-semibold text-primary">
-        {value}
-      </p>
-    </div>
-  )
-}
-
-function TextBlock({
-  title,
-  text,
-  compact = false,
-}: {
-  title: string
-  text: string
-  compact?: boolean
-}) {
-  return (
-    <div
-      className={`rounded-xl border border-neutral/20 bg-neutral/5 ${
-        compact ? "p-4" : "p-5"
-      }`}
-    >
-      <p className="text-sm font-semibold text-primary">
-        {title}
-      </p>
-      <p className="mt-2 text-sm leading-6 text-neutral">
-        {text}
-      </p>
-    </div>
   )
 }

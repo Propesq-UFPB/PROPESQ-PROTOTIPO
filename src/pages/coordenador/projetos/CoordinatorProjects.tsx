@@ -1,194 +1,114 @@
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import {
-  ArrowUpRight,
+  Ban,
   CalendarDays,
   CheckCircle2,
   ClipboardList,
+  Edit3,
   Eye,
   FileText,
   Filter,
   FolderKanban,
-  GraduationCap,
-  Notebook,
   Plus,
   Search,
-  Send,
-  Users,
+  Star,
   XCircle,
 } from "lucide-react"
 
-type ProjectStatus =
-  | "Rascunho"
-  | "Enviado"
-  | "Em avaliação"
-  | "Aprovado"
-  | "Necessita ajustes"
-  | "Reprovado"
+type ProjectType = "Interno" | "Externo"
 
-type WorkPlanStatus =
-  | "Pendente"
+type ProjectStatus =
+  | "Em elaboração"
+  | "Submetido"
   | "Aprovado"
-  | "Em avaliação"
-  | "Necessita ajustes"
   | "Reprovado"
 
 type Project = {
   id: number
   title: string
-  edital: string
-  area: string
-  ano: string
-  unidade: string
+  type: ProjectType
   status: ProjectStatus
-  updatedAt: string
-  workPlans: {
-    total: number
-    approved: number
-    pending: number
-  }
-  students: {
-    indicated: number
-    vacancies: number
-  }
+  projectScore: number | null
+  submittedAt: string | null
+  editableUntil: string
+  isWithinEditDeadline: boolean
 }
 
 const projects: Project[] = [
   {
     id: 1,
     title: "Desenvolvimento de Recursos de Acessibilidade Digital com VLibras",
-    edital: "PIBIC 2026",
-    area: "Ciência da Computação",
-    ano: "2026",
-    unidade: "CI",
+    type: "Interno",
     status: "Aprovado",
-    updatedAt: "10/05/2026",
-    workPlans: {
-      total: 3,
-      approved: 3,
-      pending: 0,
-    },
-    students: {
-      indicated: 2,
-      vacancies: 3,
-    },
+    projectScore: 9.4,
+    submittedAt: "10/05/2026",
+    editableUntil: "15/05/2026",
+    isWithinEditDeadline: false,
   },
   {
     id: 2,
     title: "Análise de Dados Educacionais para Monitoramento de Indicadores Acadêmicos",
-    edital: "PIBITI 2026",
-    area: "Ciência de Dados",
-    ano: "2026",
-    unidade: "CI",
-    status: "Em avaliação",
-    updatedAt: "07/05/2026",
-    workPlans: {
-      total: 2,
-      approved: 1,
-      pending: 1,
-    },
-    students: {
-      indicated: 0,
-      vacancies: 2,
-    },
+    type: "Interno",
+    status: "Submetido",
+    projectScore: 8.7,
+    submittedAt: "07/05/2026",
+    editableUntil: "30/05/2026",
+    isWithinEditDeadline: true,
   },
   {
     id: 3,
     title: "Modelos Inteligentes para Apoio à Gestão de Projetos de Pesquisa",
-    edital: "PIBIC 2025",
-    area: "Inteligência Artificial",
-    ano: "2025",
-    unidade: "CI",
-    status: "Necessita ajustes",
-    updatedAt: "28/04/2026",
-    workPlans: {
-      total: 4,
-      approved: 2,
-      pending: 2,
-    },
-    students: {
-      indicated: 1,
-      vacancies: 4,
-    },
+    type: "Interno",
+    status: "Reprovado",
+    projectScore: 5.8,
+    submittedAt: "28/04/2026",
+    editableUntil: "03/05/2026",
+    isWithinEditDeadline: false,
   },
   {
     id: 4,
     title: "Sistema Web para Acompanhamento de Relatórios de Iniciação Científica",
-    edital: "PIVIC 2026",
-    area: "Engenharia de Software",
-    ano: "2026",
-    unidade: "CT",
-    status: "Rascunho",
-    updatedAt: "22/04/2026",
-    workPlans: {
-      total: 1,
-      approved: 0,
-      pending: 1,
-    },
-    students: {
-      indicated: 0,
-      vacancies: 1,
-    },
+    type: "Interno",
+    status: "Em elaboração",
+    projectScore: null,
+    submittedAt: null,
+    editableUntil: "30/05/2026",
+    isWithinEditDeadline: true,
   },
   {
     id: 5,
     title: "Reconhecimento de Padrões em Sinais Multimodais Aplicados à Acessibilidade",
-    edital: "PIBITI 2025",
-    area: "Processamento de Sinais",
-    ano: "2025",
-    unidade: "CI",
-    status: "Enviado",
-    updatedAt: "18/04/2026",
-    workPlans: {
-      total: 2,
-      approved: 0,
-      pending: 2,
-    },
-    students: {
-      indicated: 0,
-      vacancies: 2,
-    },
+    type: "Interno",
+    status: "Submetido",
+    projectScore: 7.9,
+    submittedAt: "18/04/2026",
+    editableUntil: "30/05/2026",
+    isWithinEditDeadline: true,
   },
 ]
 
+const typeOptions: Array<ProjectType | "Todos"> = ["Todos", "Interno", "Externo"]
+
 const statusOptions: Array<ProjectStatus | "Todos"> = [
   "Todos",
-  "Rascunho",
-  "Enviado",
-  "Em avaliação",
+  "Em elaboração",
+  "Submetido",
   "Aprovado",
-  "Necessita ajustes",
   "Reprovado",
-]
-
-const editalOptions = ["Todos", "PIBIC 2026", "PIBITI 2026", "PIVIC 2026", "PIBIC 2025", "PIBITI 2025"]
-
-const yearOptions = ["Todos", "2026", "2025"]
-
-const areaOptions = [
-  "Todos",
-  "Ciência da Computação",
-  "Ciência de Dados",
-  "Inteligência Artificial",
-  "Engenharia de Software",
-  "Processamento de Sinais",
 ]
 
 function getStatusClass(status: ProjectStatus) {
   switch (status) {
     case "Aprovado":
       return "border-emerald-200 bg-emerald-50 text-emerald-700"
-    case "Em avaliação":
-      return "border-violet-200 bg-violet-50 text-violet-700"
-    case "Enviado":
+    case "Submetido":
       return "border-blue-200 bg-blue-50 text-blue-700"
-    case "Necessita ajustes":
-      return "border-amber-200 bg-amber-50 text-amber-700"
     case "Reprovado":
       return "border-red-200 bg-red-50 text-red-700"
-    case "Rascunho":
+    case "Em elaboração":
     default:
-      return "border-neutral/20 bg-neutral/10 text-neutral"
+      return "border-amber-200 bg-amber-50 text-amber-700"
   }
 }
 
@@ -196,26 +116,30 @@ function getStatusIcon(status: ProjectStatus) {
   switch (status) {
     case "Aprovado":
       return <CheckCircle2 size={14} />
+    case "Submetido":
+      return <ClipboardList size={14} />
     case "Reprovado":
       return <XCircle size={14} />
-    case "Em avaliação":
-      return <ClipboardList size={14} />
-    case "Enviado":
-      return <Send size={14} />
-    case "Necessita ajustes":
-      return <FileText size={14} />
-    case "Rascunho":
+    case "Em elaboração":
     default:
-      return <Notebook size={14} />
+      return <FileText size={14} />
+  }
+}
+
+function getTypeClass(type: ProjectType) {
+  switch (type) {
+    case "Externo":
+      return "border-violet-200 bg-violet-50 text-violet-700"
+    case "Interno":
+    default:
+      return "border-primary/20 bg-primary/5 text-primary"
   }
 }
 
 export default function CoordinatorProjects() {
   const [search, setSearch] = useState("")
-  const [selectedEdital, setSelectedEdital] = useState("Todos")
+  const [selectedType, setSelectedType] = useState<ProjectType | "Todos">("Todos")
   const [selectedStatus, setSelectedStatus] = useState<ProjectStatus | "Todos">("Todos")
-  const [selectedYear, setSelectedYear] = useState("Todos")
-  const [selectedArea, setSelectedArea] = useState("Todos")
 
   const filteredProjects = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -224,52 +148,39 @@ export default function CoordinatorProjects() {
       const matchesSearch =
         !normalizedSearch ||
         project.title.toLowerCase().includes(normalizedSearch) ||
-        project.edital.toLowerCase().includes(normalizedSearch) ||
-        project.area.toLowerCase().includes(normalizedSearch) ||
-        project.unidade.toLowerCase().includes(normalizedSearch)
+        project.type.toLowerCase().includes(normalizedSearch) ||
+        project.status.toLowerCase().includes(normalizedSearch)
 
-      const matchesEdital = selectedEdital === "Todos" || project.edital === selectedEdital
+      const matchesType = selectedType === "Todos" || project.type === selectedType
       const matchesStatus = selectedStatus === "Todos" || project.status === selectedStatus
-      const matchesYear = selectedYear === "Todos" || project.ano === selectedYear
-      const matchesArea = selectedArea === "Todos" || project.area === selectedArea
 
-      return matchesSearch && matchesEdital && matchesStatus && matchesYear && matchesArea
+      return matchesSearch && matchesType && matchesStatus
     })
-  }, [search, selectedEdital, selectedStatus, selectedYear, selectedArea])
+  }, [search, selectedType, selectedStatus])
 
   const summary = useMemo(() => {
     const totalProjects = projects.length
+    const submittedProjects = projects.filter((project) => project.status === "Submetido").length
     const approvedProjects = projects.filter((project) => project.status === "Aprovado").length
-    const pendingEvaluation = projects.filter(
-      (project) => project.status === "Enviado" || project.status === "Em avaliação"
-    ).length
-    const totalWorkPlans = projects.reduce((acc, project) => acc + project.workPlans.total, 0)
-    const approvedWorkPlans = projects.reduce((acc, project) => acc + project.workPlans.approved, 0)
-    const totalVacancies = projects.reduce((acc, project) => acc + project.students.vacancies, 0)
-    const indicatedStudents = projects.reduce((acc, project) => acc + project.students.indicated, 0)
+    const draftProjects = projects.filter((project) => project.status === "Em elaboração").length
 
     return {
       totalProjects,
+      submittedProjects,
       approvedProjects,
-      pendingEvaluation,
-      totalWorkPlans,
-      approvedWorkPlans,
-      totalVacancies,
-      indicatedStudents,
+      draftProjects,
     }
   }, [])
 
   function clearFilters() {
     setSearch("")
-    setSelectedEdital("Todos")
+    setSelectedType("Todos")
     setSelectedStatus("Todos")
-    setSelectedYear("Todos")
-    setSelectedArea("Todos")
   }
 
   return (
     <main className="min-h-screen bg-[#F3F4F6]">
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         {/* HEADER DA PÁGINA */}
         <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -279,32 +190,22 @@ export default function CoordinatorProjects() {
             </div>
 
             <h1 className="mt-3 text-2xl font-bold tracking-tight text-primary">
-              Projetos e planos de trabalho
+              Projetos cadastrados
             </h1>
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
-              Gerencie os projetos cadastrados, acompanhe a situação dos planos de trabalho e envie propostas para
-              avaliação conforme o edital selecionado.
+              Acompanhe os projetos cadastrados, consulte avaliações, edite propostas dentro do prazo e cancele
+              submissões quando necessário.
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Link
-              to="/coordenador/projetos/novo"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
-            >
-              <Plus size={16} />
-              Novo projeto
-            </Link>
-
-            <Link
-              to="/coordenador/projetos/novo?tipo=plano"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-semibold text-neutral transition hover:border-primary/30 hover:text-primary"
-            >
-              <Notebook size={16} />
-              Novo plano
-            </Link>
-          </div>
+          <Link
+            to="/coordenador/projetos/novo"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+          >
+            <Plus size={16} />
+            Novo projeto
+          </Link>
         </section>
 
         {/* INDICADORES */}
@@ -313,7 +214,7 @@ export default function CoordinatorProjects() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Projetos cadastrados
+                  Total de projetos
                 </p>
                 <p className="mt-2 text-2xl font-bold text-primary">
                   {summary.totalProjects}
@@ -326,7 +227,7 @@ export default function CoordinatorProjects() {
             </div>
 
             <p className="mt-3 text-xs text-neutral">
-              {summary.approvedProjects} projeto(s) aprovado(s)
+              Projetos internos e externos cadastrados
             </p>
           </div>
 
@@ -334,20 +235,20 @@ export default function CoordinatorProjects() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Planos de trabalho
+                  Em elaboração
                 </p>
                 <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.totalWorkPlans}
+                  {summary.draftProjects}
                 </p>
               </div>
 
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
-                <Notebook size={20} />
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-700">
+                <FileText size={20} />
               </div>
             </div>
 
             <p className="mt-3 text-xs text-neutral">
-              {summary.approvedWorkPlans} plano(s) aprovado(s)
+              Projetos ainda não submetidos
             </p>
           </div>
 
@@ -355,20 +256,20 @@ export default function CoordinatorProjects() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Em tramitação
+                  Submetidos
                 </p>
                 <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.pendingEvaluation}
+                  {summary.submittedProjects}
                 </p>
               </div>
 
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
                 <ClipboardList size={20} />
               </div>
             </div>
 
             <p className="mt-3 text-xs text-neutral">
-              Projetos enviados ou em avaliação
+              Projetos aguardando avaliação
             </p>
           </div>
 
@@ -376,20 +277,20 @@ export default function CoordinatorProjects() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Indicações
+                  Aprovados
                 </p>
                 <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.indicatedStudents}/{summary.totalVacancies}
+                  {summary.approvedProjects}
                 </p>
               </div>
 
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                <Users size={20} />
+                <CheckCircle2 size={20} />
               </div>
             </div>
 
             <p className="mt-3 text-xs text-neutral">
-              Discentes indicados em planos aprovados
+              Projetos com parecer favorável
             </p>
           </div>
         </section>
@@ -402,21 +303,22 @@ export default function CoordinatorProjects() {
                 <Filter size={16} />
                 Busca e filtros
               </div>
+
               <p className="mt-1 text-xs text-neutral">
-                Filtre projetos por edital, situação, ano, área ou palavra-chave.
+                Filtre os projetos por tipo, status ou palavra-chave.
               </p>
             </div>
 
             <button
               type="button"
               onClick={clearFilters}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+              className="inline-flex items-center justify-center rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
             >
               Limpar filtros
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
             <div className="lg:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-primary">
                 Buscar projeto
@@ -427,11 +329,12 @@ export default function CoordinatorProjects() {
                   size={16}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral"
                 />
+
                 <input
                   type="text"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Título, edital, área ou unidade..."
+                  placeholder="Título, tipo ou status..."
                   className="w-full rounded-xl border border-neutral/30 bg-white py-2.5 pl-10 pr-3 text-sm text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
                 />
               </div>
@@ -439,17 +342,17 @@ export default function CoordinatorProjects() {
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-primary">
-                Edital
+                Tipo
               </label>
 
               <select
-                value={selectedEdital}
-                onChange={(event) => setSelectedEdital(event.target.value)}
+                value={selectedType}
+                onChange={(event) => setSelectedType(event.target.value as ProjectType | "Todos")}
                 className="w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
               >
-                {editalOptions.map((edital) => (
-                  <option key={edital} value={edital}>
-                    {edital}
+                {typeOptions.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
                   </option>
                 ))}
               </select>
@@ -457,7 +360,7 @@ export default function CoordinatorProjects() {
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-primary">
-                Situação
+                Status
               </label>
 
               <select
@@ -472,100 +375,57 @@ export default function CoordinatorProjects() {
                 ))}
               </select>
             </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-primary">
-                Ano
-              </label>
-
-              <select
-                value={selectedYear}
-                onChange={(event) => setSelectedYear(event.target.value)}
-                className="w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
-              >
-                {yearOptions.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
-            <div className="lg:col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-primary">
-                Área do projeto
-              </label>
-
-              <select
-                value={selectedArea}
-                onChange={(event) => setSelectedArea(event.target.value)}
-                className="w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
-              >
-                {areaOptions.map((area) => (
-                  <option key={area} value={area}>
-                    {area}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-end lg:col-span-3">
-              <div className="w-full rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3 text-sm text-neutral">
-                <strong className="font-semibold text-primary">
-                  {filteredProjects.length}
-                </strong>{" "}
-                projeto(s) encontrado(s) conforme os filtros aplicados.
-              </div>
-            </div>
+          <div className="mt-4 rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3 text-sm text-neutral">
+            <strong className="font-semibold text-primary">
+              {filteredProjects.length}
+            </strong>{" "}
+            projeto(s) encontrado(s) conforme os filtros aplicados.
           </div>
         </section>
 
-        {/* LISTAGEM */}
+        {/* TABELA */}
         <section className="rounded-2xl border border-neutral/30 bg-white">
-          <div className="flex flex-col gap-3 border-b border-neutral/20 p-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-primary">
-                Projetos cadastrados
-              </h2>
-              <p className="mt-1 text-sm text-neutral">
-                Acompanhe o andamento dos projetos e seus respectivos planos de trabalho.
-              </p>
-            </div>
+          <div className="border-b border-neutral/20 p-6">
+            <h2 className="text-base font-semibold text-primary">
+              Lista de projetos
+            </h2>
 
-            <Link
-              to="/coordenador/avaliacoes"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-            >
-              Ver avaliações
-              <ArrowUpRight size={16} />
-            </Link>
+            <p className="mt-1 text-sm text-neutral">
+              Visualize dados gerais, nota do projeto, data de submissão e ações disponíveis por linha.
+            </p>
           </div>
 
           {filteredProjects.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] border-collapse">
+              <table className="w-full min-w-[1080px] border-collapse">
                 <thead>
                   <tr className="border-b border-neutral/20 bg-neutral/5 text-left">
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Projeto
+                      Título
                     </th>
+
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Edital
+                      Tipo
                     </th>
+
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Planos
+                      Status
                     </th>
+
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Indicações
+                      Nota do projeto — NP
                     </th>
+
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Situação
+                      Data de submissão
                     </th>
+
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Atualização
+                      Prazo de edição
                     </th>
+
                     <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral">
                       Ações
                     </th>
@@ -579,51 +439,19 @@ export default function CoordinatorProjects() {
                       className="border-b border-neutral/10 transition last:border-b-0 hover:bg-neutral/5"
                     >
                       <td className="px-6 py-5 align-top">
-                        <div className="max-w-md">
-                          <p className="font-semibold leading-5 text-primary">
-                            {project.title}
-                          </p>
-
-                          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-neutral">
-                            <span className="inline-flex items-center gap-1">
-                              <GraduationCap size={13} />
-                              {project.area}
-                            </span>
-                            <span className="h-1 w-1 rounded-full bg-neutral/40" />
-                            <span>{project.unidade}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-5 align-top">
-                        <p className="text-sm font-medium text-primary">
-                          {project.edital}
-                        </p>
-                        <p className="mt-1 text-xs text-neutral">
-                          Ano {project.ano}
+                        <p className="max-w-md font-semibold leading-5 text-primary">
+                          {project.title}
                         </p>
                       </td>
 
                       <td className="px-6 py-5 align-top">
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold text-primary">
-                            {project.workPlans.approved}/{project.workPlans.total} aprovados
-                          </p>
-                          <p className="text-xs text-neutral">
-                            {project.workPlans.pending} pendente(s) ou em ajuste
-                          </p>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-5 align-top">
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold text-primary">
-                            {project.students.indicated}/{project.students.vacancies} discentes
-                          </p>
-                          <p className="text-xs text-neutral">
-                            vinculados aos planos aprovados
-                          </p>
-                        </div>
+                        <span
+                          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getTypeClass(
+                            project.type
+                          )}`}
+                        >
+                          {project.type}
+                        </span>
                       </td>
 
                       <td className="px-6 py-5 align-top">
@@ -638,14 +466,53 @@ export default function CoordinatorProjects() {
                       </td>
 
                       <td className="px-6 py-5 align-top">
-                        <div className="inline-flex items-center gap-2 text-sm text-neutral">
-                          <CalendarDays size={15} />
-                          {project.updatedAt}
+                        {project.projectScore !== null ? (
+                          <div className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                            <Star size={15} />
+                            {project.projectScore.toFixed(1)}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-neutral">
+                            Ainda não avaliado
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-6 py-5 align-top">
+                        {project.submittedAt ? (
+                          <div className="inline-flex items-center gap-2 text-sm text-neutral">
+                            <CalendarDays size={15} />
+                            {project.submittedAt}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-neutral">
+                            Não submetido
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-6 py-5 align-top">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-primary">
+                            Até {project.editableUntil}
+                          </p>
+
+                          <p
+                            className={`text-xs ${
+                              project.isWithinEditDeadline
+                                ? "text-emerald-700"
+                                : "text-neutral"
+                            }`}
+                          >
+                            {project.isWithinEditDeadline
+                              ? "Dentro do prazo"
+                              : "Prazo encerrado"}
+                          </p>
                         </div>
                       </td>
 
                       <td className="px-6 py-5 align-top">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex flex-wrap justify-end gap-2">
                           <Link
                             to={`/coordenador/projetos/${project.id}`}
                             className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
@@ -654,31 +521,41 @@ export default function CoordinatorProjects() {
                             Visualizar
                           </Link>
 
-                          <Link
-                            to={`/coordenador/projetos/${project.id}?acao=planos`}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                          >
-                            <Notebook size={15} />
-                            Planos
-                          </Link>
-
-                          {project.status === "Rascunho" || project.status === "Necessita ajustes" ? (
+                          {project.isWithinEditDeadline ? (
                             <Link
-                              to={`/coordenador/projetos/${project.id}?acao=enviar`}
-                              className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
-                            >
-                              <Send size={15} />
-                              Enviar
-                            </Link>
-                          ) : (
-                            <Link
-                              to={`/coordenador/indicacoes?projeto=${project.id}`}
+                              to={`/coordenador/projetos/${project.id}/editar`}
                               className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:border-primary/30 hover:bg-primary/10"
                             >
-                              <Users size={15} />
-                              Indicar
+                              <Edit3 size={15} />
+                              Editar
                             </Link>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled
+                              title="Edição indisponível: prazo encerrado"
+                              className="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-neutral/5 px-3 py-2 text-sm font-medium text-neutral/60"
+                            >
+                              <Edit3 size={15} />
+                              Editar
+                            </button>
                           )}
+
+                          <Link
+                            to={`/coordenador/avaliacoes?projeto=${project.id}`}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+                          >
+                            <ClipboardList size={15} />
+                            Ver avaliações
+                          </Link>
+
+                          <button
+                            type="button"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
+                          >
+                            <Ban size={15} />
+                            Cancelar
+                          </button>
                         </div>
                       </td>
                     </tr>

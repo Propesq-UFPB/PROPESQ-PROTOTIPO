@@ -11,17 +11,21 @@ import {
   Copy,
   FileText,
   Filter,
+  GraduationCap,
   Hash,
   ListChecks,
   Plus,
   RefreshCcw,
   Save,
   Search,
-  Tags,
   Trash2,
 } from "lucide-react"
 
 /* ================= TIPOS ================= */
+
+type ProjectStatus = "APROVADO" | "VALIDADO" | "SUBMETIDO" | "EM ANÁLISE" | "REPROVADO"
+
+type WorkPlanModalidade = "PIBIC" | "PIBIC-AF" | "PIBITI" | "PIVIC" | "PIVITI"
 
 type Project = {
   id: string
@@ -32,8 +36,8 @@ type Project = {
   unidade: string
   centro: string
   periodo: string
-  status: string
-  modalidadeBolsa: string
+  status: ProjectStatus
+  modalidadeBolsa: WorkPlanModalidade
   totalPlanos: number
 }
 
@@ -45,71 +49,36 @@ type CronogramaItem = {
 
 type WorkPlan = {
   id: string
-  tipoBolsa: string
-  direcionamento: string
+  modalidade: WorkPlanModalidade | ""
+  titulo: string
+  title: string
+  discenteNome: string
+  discenteMatricula: string
+  solicitarCotaBolsa: boolean
   periodoIni: string
   periodoFim: string
-  cota: string
-  vinculacaoInstitucional: string
-  areaConhecimento: string
   introducaoJustificativa: string
   objetivos: string
   metodologia: string
   cronogramaAtividades: CronogramaItem[]
   referencias: string
-  resumoPlano: string
-  palavrasChave: string
 }
 
-/* ================= OPTIONS ================= */
+/* ================= CONSTANTES ================= */
 
-const tipoBolsaOptions = [
+const MAX_PLANOS_POR_PROJETO = 6
+const MAX_CHARS_ANEXO_II = 9000
+const PROJECT_ALLOWED_STATUSES: ProjectStatus[] = ["APROVADO", "VALIDADO"]
+
+const modalidadesPlano: WorkPlanModalidade[] = [
   "PIBIC",
+  "PIBIC-AF",
   "PIBITI",
   "PIVIC",
-  "PIBIC-AF",
-  "PIBIC-EM",
-  "Voluntário",
-  "Outro",
+  "PIVITI",
 ]
 
-const direcionamentos = [
-  "Discente de graduação",
-  "Discente de ensino médio",
-  "Discente voluntário",
-  "Bolsista institucional",
-  "Outro",
-]
-
-const cotas = ["1", "2", "3", "4", "5", "Mais de 5"]
-
-const vinculacoesInstitucionais = [
-  "UFPB",
-  "CNPq",
-  "FAPESQ",
-  "CAPES",
-  "Instituição parceira",
-  "Outra",
-]
-
-const areaConhecimentoOptions = [
-  "Ciência da Computação",
-  "Engenharias",
-  "Saúde",
-  "Humanas",
-  "Linguística/Artes",
-  "Outra",
-]
-
-const modalidadesBolsa = [
-  "Todas",
-  "PIBIC",
-  "PIBITI",
-  "PIVIC",
-  "PIBIC-AF",
-  "PIBIC-EM",
-  "Voluntário",
-]
+const modalidadesFiltro = ["Todas", ...modalidadesPlano] as const
 
 const mesesCronograma = [
   "Mês 1",
@@ -138,7 +107,7 @@ const projectsMock: Project[] = [
     unidade: "Departamento A",
     centro: "CCEN",
     periodo: "2026-08-01 → 2027-07-31",
-    status: "SUBMETIDO",
+    status: "APROVADO",
     modalidadeBolsa: "PIBIC",
     totalPlanos: 1,
   },
@@ -151,7 +120,7 @@ const projectsMock: Project[] = [
     unidade: "Laboratório X",
     centro: "CT",
     periodo: "2026-08-01 → 2027-07-31",
-    status: "SUBMETIDO",
+    status: "VALIDADO",
     modalidadeBolsa: "PIBITI",
     totalPlanos: 2,
   },
@@ -164,7 +133,7 @@ const projectsMock: Project[] = [
     unidade: "Programa Y",
     centro: "CCHLA",
     periodo: "2026-08-01 → 2027-07-31",
-    status: "EM ANÁLISE",
+    status: "SUBMETIDO",
     modalidadeBolsa: "PIVIC",
     totalPlanos: 1,
   },
@@ -174,13 +143,14 @@ const initialPlansByProject: Record<string, WorkPlan[]> = {
   "1": [
     {
       id: "plano-existente-1",
-      tipoBolsa: "PIBIC",
-      direcionamento: "Discente de graduação",
+      modalidade: "PIBIC",
+      titulo: "Análise de requisitos e validação do sistema de acompanhamento",
+      title: "Requirements Analysis and Validation of the Monitoring System",
+      discenteNome: "Ana Beatriz Lima",
+      discenteMatricula: "202600001",
+      solicitarCotaBolsa: true,
       periodoIni: "2026-08-01",
       periodoFim: "2027-07-31",
-      cota: "1",
-      vinculacaoInstitucional: "UFPB",
-      areaConhecimento: "Ciência da Computação",
       introducaoJustificativa:
         "Plano previamente cadastrado no fluxo inicial de submissão do projeto.",
       objetivos:
@@ -200,21 +170,19 @@ const initialPlansByProject: Record<string, WorkPlan[]> = {
         },
       ],
       referencias: "Referências cadastradas no plano inicial.",
-      resumoPlano:
-        "Plano inicial vinculado ao projeto no momento do cadastro obrigatório.",
-      palavrasChave: "pesquisa, iniciação científica, acompanhamento",
     },
   ],
   "2": [
     {
       id: "plano-existente-2",
-      tipoBolsa: "PIBITI",
-      direcionamento: "Bolsista institucional",
+      modalidade: "PIBITI",
+      titulo: "Prototipação de módulos computacionais para ambientes educacionais",
+      title: "Prototyping Computational Modules for Educational Environments",
+      discenteNome: "Carlos Eduardo Santos",
+      discenteMatricula: "202600002",
+      solicitarCotaBolsa: true,
       periodoIni: "2026-08-01",
       periodoFim: "2027-07-31",
-      cota: "1",
-      vinculacaoInstitucional: "CNPq",
-      areaConhecimento: "Engenharias",
       introducaoJustificativa: "Plano cadastrado no fluxo inicial.",
       objetivos: "Desenvolver e validar componentes tecnológicos do projeto.",
       metodologia: "Prototipação, testes e análise dos resultados.",
@@ -226,18 +194,17 @@ const initialPlansByProject: Record<string, WorkPlan[]> = {
         },
       ],
       referencias: "Referências técnicas do projeto.",
-      resumoPlano: "Plano voltado à execução tecnológica do projeto.",
-      palavrasChave: "inovação, protótipo, tecnologia",
     },
     {
       id: "plano-existente-3",
-      tipoBolsa: "PIBITI",
-      direcionamento: "Discente de graduação",
+      modalidade: "PIBITI",
+      titulo: "Avaliação experimental de modelos de visão computacional",
+      title: "Experimental Evaluation of Computer Vision Models",
+      discenteNome: "Maria Clara Oliveira",
+      discenteMatricula: "202600003",
+      solicitarCotaBolsa: false,
       periodoIni: "2026-08-01",
       periodoFim: "2027-07-31",
-      cota: "2",
-      vinculacaoInstitucional: "UFPB",
-      areaConhecimento: "Ciência da Computação",
       introducaoJustificativa: "Plano complementar já cadastrado.",
       objetivos: "Apoiar experimentos computacionais.",
       metodologia: "Implementação incremental e avaliação empírica.",
@@ -249,53 +216,25 @@ const initialPlansByProject: Record<string, WorkPlan[]> = {
         },
       ],
       referencias: "Referências complementares.",
-      resumoPlano: "Plano complementar de desenvolvimento e avaliação.",
-      palavrasChave: "visão computacional, avaliação, dados",
-    },
-  ],
-  "3": [
-    {
-      id: "plano-existente-5",
-      tipoBolsa: "PIVIC",
-      direcionamento: "Discente voluntário",
-      periodoIni: "2026-08-01",
-      periodoFim: "2027-07-31",
-      cota: "1",
-      vinculacaoInstitucional: "UFPB",
-      areaConhecimento: "Humanas",
-      introducaoJustificativa: "Plano cadastrado no fluxo inicial.",
-      objetivos: "Mapear demandas e propor melhorias de acessibilidade.",
-      metodologia: "Levantamento bibliográfico, análise documental e entrevistas.",
-      cronogramaAtividades: [
-        {
-          id: "cronograma-existente-6",
-          mes: "Mês 1",
-          atividade: "Revisão bibliográfica e definição de escopo.",
-        },
-      ],
-      referencias: "Referências sobre acessibilidade e tecnologia assistiva.",
-      resumoPlano: "Plano inicial para pesquisa sobre acessibilidade.",
-      palavrasChave: "acessibilidade, tecnologia assistiva, inclusão",
     },
   ],
 }
 
 const emptyWorkPlan: WorkPlan = {
   id: "",
-  tipoBolsa: "",
-  direcionamento: "",
+  modalidade: "",
+  titulo: "",
+  title: "",
+  discenteNome: "",
+  discenteMatricula: "",
+  solicitarCotaBolsa: false,
   periodoIni: "",
   periodoFim: "",
-  cota: "",
-  vinculacaoInstitucional: "",
-  areaConhecimento: "",
   introducaoJustificativa: "",
   objetivos: "",
   metodologia: "",
   cronogramaAtividades: [],
   referencias: "",
-  resumoPlano: "",
-  palavrasChave: "",
 }
 
 /* ================= UTIL/UI ================= */
@@ -403,15 +342,55 @@ function Info({
   )
 }
 
+function CharacterCounter({ value }: { value: string }) {
+  const remaining = MAX_CHARS_ANEXO_II - value.length
+  const nearLimit = remaining <= 500
+
+  return (
+    <p
+      className={cx(
+        "text-right text-[11px]",
+        nearLimit ? "font-semibold text-amber-700" : "text-neutral"
+      )}
+    >
+      {value.length}/{MAX_CHARS_ANEXO_II} caracteres
+    </p>
+  )
+}
+
+function AnexoTextarea({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string
+  onChange: (value: string) => void
+  placeholder: string
+}) {
+  return (
+    <div className="space-y-1">
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        maxLength={MAX_CHARS_ANEXO_II}
+        className={textareaClassName}
+        placeholder={placeholder}
+      />
+
+      <CharacterCounter value={value} />
+    </div>
+  )
+}
+
 /* ================= PÁGINA ================= */
 
 export default function CoordinatorProjectWorkPlanForm() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState("")
-  const [plansByProject, setPlansByProject] = useState<Record<string, WorkPlan[]>>(
-    initialPlansByProject
-  )
+  const [plansByProject, setPlansByProject] =
+    useState<Record<string, WorkPlan[]>>(initialPlansByProject)
+
   const [draft, setDraft] = useState<WorkPlan>(createEmptyDraft())
   const [cronogramaMes, setCronogramaMes] = useState("")
   const [cronogramaAtividade, setCronogramaAtividade] = useState("")
@@ -419,7 +398,7 @@ export default function CoordinatorProjectWorkPlanForm() {
   const [filters, setFilters] = useState({
     codigo: "",
     nome: "",
-    modalidadeBolsa: "Todas",
+    modalidade: "Todas",
   })
 
   const selectedProject = useMemo(() => {
@@ -430,12 +409,27 @@ export default function CoordinatorProjectWorkPlanForm() {
     ? plansByProject[selectedProject.id] || []
     : []
 
+  const limitePlanosAtingido = existingPlans.length >= MAX_PLANOS_POR_PROJETO
+
+  const discenteJaPossuiPlano = useMemo(() => {
+    const matricula = draft.discenteMatricula.trim()
+
+    if (!matricula) return false
+
+    return existingPlans.some(
+      (plan) =>
+        plan.discenteMatricula.trim().toLowerCase() === matricula.toLowerCase()
+    )
+  }, [draft.discenteMatricula, existingPlans])
+
   const filteredProjects = useMemo(() => {
     const codigo = filters.codigo.trim().toLowerCase()
     const nome = filters.nome.trim().toLowerCase()
-    const modalidadeBolsa = filters.modalidadeBolsa
+    const modalidade = filters.modalidade
 
     return projectsMock.filter((project) => {
+      const statusPermitido = PROJECT_ALLOWED_STATUSES.includes(project.status)
+
       const matchCodigo = codigo
         ? project.codigo.toLowerCase().includes(codigo)
         : true
@@ -445,11 +439,9 @@ export default function CoordinatorProjectWorkPlanForm() {
         : true
 
       const matchModalidade =
-        modalidadeBolsa === "Todas"
-          ? true
-          : project.modalidadeBolsa === modalidadeBolsa
+        modalidade === "Todas" ? true : project.modalidadeBolsa === modalidade
 
-      return matchCodigo && matchNome && matchModalidade
+      return statusPermitido && matchCodigo && matchNome && matchModalidade
     })
   }, [filters])
 
@@ -460,22 +452,22 @@ export default function CoordinatorProjectWorkPlanForm() {
   const canSavePlan = useMemo(() => {
     return Boolean(
       selectedProject &&
-        draft.tipoBolsa.trim() &&
-        draft.direcionamento.trim() &&
+        !limitePlanosAtingido &&
+        !discenteJaPossuiPlano &&
+        draft.modalidade &&
+        draft.titulo.trim() &&
+        draft.title.trim() &&
+        draft.discenteNome.trim() &&
+        draft.discenteMatricula.trim() &&
         draft.periodoIni &&
         draft.periodoFim &&
-        draft.cota.trim() &&
-        draft.vinculacaoInstitucional.trim() &&
-        draft.areaConhecimento.trim() &&
         draft.introducaoJustificativa.trim() &&
         draft.objetivos.trim() &&
         draft.metodologia.trim() &&
         draft.cronogramaAtividades.length > 0 &&
-        draft.referencias.trim() &&
-        draft.resumoPlano.trim() &&
-        draft.palavrasChave.trim()
+        draft.referencias.trim()
     )
-  }, [draft, selectedProject])
+  }, [discenteJaPossuiPlano, draft, limitePlanosAtingido, selectedProject])
 
   function resetDraft() {
     setDraft(createEmptyDraft())
@@ -488,7 +480,7 @@ export default function CoordinatorProjectWorkPlanForm() {
     setFilters({
       codigo: "",
       nome: "",
-      modalidadeBolsa: "Todas",
+      modalidade: "Todas",
     })
   }
 
@@ -504,6 +496,11 @@ export default function CoordinatorProjectWorkPlanForm() {
     setDraft({
       ...lastPlan,
       id: createId("plano"),
+      titulo: "",
+      title: "",
+      discenteNome: "",
+      discenteMatricula: "",
+      solicitarCotaBolsa: false,
       cronogramaAtividades: lastPlan.cronogramaAtividades.map((item) => ({
         ...item,
         id: createId("cronograma"),
@@ -641,9 +638,10 @@ export default function CoordinatorProjectWorkPlanForm() {
             </h1>
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
-              Busque e selecione um projeto já cadastrado para vincular um novo
-              plano de trabalho. Esta página é independente no menu e não depende
-              de id na rota.
+              Selecione um projeto aprovado ou validado e cadastre o plano com os
+              campos exigidos pelo Anexo II. O sistema limita até{" "}
+              {MAX_PLANOS_POR_PROJETO} planos por projeto e permite no máximo 1
+              plano por discente.
             </p>
           </div>
 
@@ -660,7 +658,7 @@ export default function CoordinatorProjectWorkPlanForm() {
 
         <Card
           title="Selecionar projeto"
-          subtitle="Use os filtros básicos para localizar o projeto que receberá o novo plano."
+          subtitle="Apenas projetos com status aprovado ou validado são exibidos para vinculação."
           icon={<Search size={18} className="text-primary" />}
         >
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.4fr_240px_auto]">
@@ -692,18 +690,18 @@ export default function CoordinatorProjectWorkPlanForm() {
               />
             </Field>
 
-            <Field label="Modalidade da Bolsa">
+            <Field label="Modalidade">
               <select
-                value={filters.modalidadeBolsa}
+                value={filters.modalidade}
                 onChange={(event) =>
                   setFilters((current) => ({
                     ...current,
-                    modalidadeBolsa: event.target.value,
+                    modalidade: event.target.value,
                   }))
                 }
                 className={selectClassName}
               >
-                {modalidadesBolsa.map((item) => (
+                {modalidadesFiltro.map((item) => (
                   <option key={item} value={item}>
                     {item}
                   </option>
@@ -735,18 +733,20 @@ export default function CoordinatorProjectWorkPlanForm() {
             {filteredProjects.length === 0 ? (
               <div className="p-6 text-center">
                 <p className="text-sm font-semibold text-primary">
-                  Nenhum projeto encontrado.
+                  Nenhum projeto aprovado ou validado encontrado.
                 </p>
 
                 <p className="mt-1 text-xs text-neutral">
-                  Ajuste os filtros para localizar o projeto desejado.
+                  Ajuste os filtros ou verifique o status dos projetos.
                 </p>
               </div>
             ) : (
               <div className="divide-y divide-neutral/20">
                 {filteredProjects.map((project) => {
                   const selected = project.id === selectedProjectId
-                  const totalPlanos = plansByProject[project.id]?.length || project.totalPlanos
+                  const totalPlanos =
+                    plansByProject[project.id]?.length || project.totalPlanos
+                  const projectLimitReached = totalPlanos >= MAX_PLANOS_POR_PROJETO
 
                   return (
                     <div
@@ -759,10 +759,15 @@ export default function CoordinatorProjectWorkPlanForm() {
                       <div className="col-span-3">
                         <p className="font-bold text-primary">{project.codigo}</p>
                         <p className="mt-1 text-xs text-neutral">{project.edital}</p>
+                        <span className="mt-2 inline-flex rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[11px] font-bold text-green-700">
+                          {project.status}
+                        </span>
                       </div>
 
                       <div className="col-span-4">
-                        <p className="font-semibold text-primary">{project.titulo}</p>
+                        <p className="font-semibold text-primary">
+                          {project.titulo}
+                        </p>
                         <p className="mt-1 text-xs text-neutral">
                           {project.centro} • {project.unidade}
                         </p>
@@ -775,8 +780,14 @@ export default function CoordinatorProjectWorkPlanForm() {
                       </div>
 
                       <div className="col-span-2 text-neutral">
-                        <p className="font-semibold text-primary">{totalPlanos}</p>
-                        <p className="mt-1 text-xs">já vinculado(s)</p>
+                        <p className="font-semibold text-primary">
+                          {totalPlanos}/{MAX_PLANOS_POR_PROJETO}
+                        </p>
+                        <p className="mt-1 text-xs">
+                          {projectLimitReached
+                            ? "limite atingido"
+                            : "já vinculado(s)"}
+                        </p>
                       </div>
 
                       <div className="col-span-1 flex justify-end">
@@ -790,8 +801,14 @@ export default function CoordinatorProjectWorkPlanForm() {
                               : "border border-neutral/20 bg-white text-primary hover:border-primary/30"
                           )}
                         >
-                          {selected ? <Check size={14} /> : <Plus size={14} />}
-                          {selected ? "Selecionado" : "Selecionar"}
+                          {selected ? (
+                            <>
+                              <Check size={14} />
+                              Selecionado
+                            </>
+                          ) : (
+                            "Selecionar"
+                          )}
                         </button>
                       </div>
                     </div>
@@ -805,8 +822,8 @@ export default function CoordinatorProjectWorkPlanForm() {
         {selectedProject ? (
           <>
             <Card
-              title="Projeto selecionado"
-              subtitle="O novo plano será vinculado ao projeto abaixo."
+              title="Projeto vinculado"
+              subtitle="O plano de trabalho será vinculado ao projeto abaixo."
               icon={<FileText size={18} className="text-primary" />}
             >
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -817,7 +834,7 @@ export default function CoordinatorProjectWorkPlanForm() {
                 <Info label="Código" value={selectedProject.codigo} />
                 <Info label="Status" value={selectedProject.status} />
                 <Info label="Edital" value={selectedProject.edital} />
-                <Info label="Modalidade da Bolsa" value={selectedProject.modalidadeBolsa} />
+                <Info label="Modalidade" value={selectedProject.modalidadeBolsa} />
                 <Info label="Coordenador" value={selectedProject.coordenador} />
                 <Info label="Período" value={selectedProject.periodo} />
                 <Info label="Centro" value={selectedProject.centro} />
@@ -827,72 +844,103 @@ export default function CoordinatorProjectWorkPlanForm() {
 
             <Card
               title="Planos já vinculados"
-              subtitle="O projeto já possui pelo menos 1 plano obrigatório cadastrado no fluxo inicial."
+              subtitle={`Limite: até ${MAX_PLANOS_POR_PROJETO} planos no total, com no máximo 1 plano por discente.`}
               icon={<ListChecks size={18} className="text-primary" />}
             >
-              <div className="space-y-3">
-                {existingPlans.map((plan, index) => (
-                  <div
-                    key={plan.id}
-                    className="rounded-xl border border-neutral/20 bg-white p-4"
-                  >
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <p className="text-sm font-bold text-primary">
-                          Plano de trabalho {index + 1}
-                        </p>
+              {existingPlans.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-neutral/30 bg-neutral/5 p-4 text-center">
+                  <p className="text-sm font-semibold text-primary">
+                    Nenhum plano vinculado a este projeto.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {existingPlans.map((plan, index) => (
+                    <div
+                      key={plan.id}
+                      className="rounded-xl border border-neutral/20 bg-white p-4"
+                    >
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-primary">
+                            Plano de trabalho {index + 1}
+                          </p>
 
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
-                            <BookOpen size={12} />
-                            {plan.tipoBolsa}
-                          </span>
+                          <p className="mt-1 text-sm font-semibold text-primary">
+                            {plan.titulo}
+                          </p>
 
-                          <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
-                            <CalendarDays size={12} />
-                            {plan.periodoIni} → {plan.periodoFim}
-                          </span>
+                          <p className="mt-1 text-xs text-neutral">
+                            {plan.title}
+                          </p>
 
-                          <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
-                            <Hash size={12} />
-                            Cota: {plan.cota}
-                          </span>
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
+                              <BookOpen size={12} />
+                              {plan.modalidade}
+                            </span>
+
+                            <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
+                              <GraduationCap size={12} />
+                              {plan.discenteNome} • {plan.discenteMatricula}
+                            </span>
+
+                            <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
+                              <CalendarDays size={12} />
+                              {plan.periodoIni} → {plan.periodoFim}
+                            </span>
+
+                            {plan.solicitarCotaBolsa && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 font-semibold text-primary">
+                                <Hash size={12} />
+                                Solicita cota
+                              </span>
+                            )}
+                          </div>
                         </div>
 
-                        <p className="mt-3 line-clamp-2 text-sm leading-6 text-neutral">
-                          {plan.resumoPlano}
-                        </p>
+                        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-bold text-green-700">
+                          <Check size={13} />
+                          Vinculado
+                        </span>
                       </div>
-
-                      <span className="inline-flex w-fit items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-bold text-green-700">
-                        <Check size={13} />
-                        Vinculado
-                      </span>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </Card>
 
             <Card
               title="Novo plano de trabalho"
-              subtitle="Preencha os dados abaixo para adicionar um novo plano ao projeto selecionado."
+              subtitle="Preencha os campos exigidos pelo Anexo II."
               icon={<Plus size={18} className="text-primary" />}
             >
               <div className="mb-6 flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 text-primary">
                 <AlertCircle size={18} className="mt-0.5 shrink-0" />
 
                 <div>
-                  <p className="text-sm font-bold">
-                    Este cadastro é complementar.
-                  </p>
+                  <p className="text-sm font-bold">Regras do cadastro</p>
 
                   <p className="mt-1 text-xs leading-5 text-neutral">
-                    O plano será vinculado ao projeto {selectedProject.codigo}. Para
-                    mudar o vínculo, selecione outro projeto na lista acima.
+                    Este projeto possui {existingPlans.length}/
+                    {MAX_PLANOS_POR_PROJETO} planos. Cada discente pode ter no
+                    máximo 1 plano vinculado a este projeto.
                   </p>
                 </div>
               </div>
+
+              {limitePlanosAtingido && (
+                <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
+                  <p className="text-sm font-bold text-red-800">
+                    Limite de planos atingido.
+                  </p>
+
+                  <p className="mt-1 text-xs text-red-800/80">
+                    Não é possível adicionar mais planos a este projeto, pois o
+                    limite de {MAX_PLANOS_POR_PROJETO} planos já foi alcançado.
+                  </p>
+                </div>
+              )}
 
               <div className="flex flex-col gap-3 border-b border-neutral/20 pb-4 md:flex-row md:items-center md:justify-between">
                 <div>
@@ -909,10 +957,16 @@ export default function CoordinatorProjectWorkPlanForm() {
                   <button
                     type="button"
                     onClick={duplicateLastPlan}
-                    className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:border-primary/30"
+                    disabled={existingPlans.length === 0 || limitePlanosAtingido}
+                    className={cx(
+                      "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
+                      existingPlans.length === 0 || limitePlanosAtingido
+                        ? "cursor-not-allowed border-neutral/10 bg-neutral/10 text-neutral"
+                        : "border-neutral/20 bg-white text-primary hover:border-primary/30"
+                    )}
                   >
                     <Copy size={14} />
-                    Duplicar último
+                    Duplicar estrutura
                   </button>
 
                   <button
@@ -927,19 +981,20 @@ export default function CoordinatorProjectWorkPlanForm() {
               </div>
 
               <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
-                <Field label="Tipo de Bolsa" required>
+                <Field label="Modalidade" required>
                   <select
-                    value={draft.tipoBolsa}
+                    value={draft.modalidade}
+                    disabled={limitePlanosAtingido}
                     onChange={(event) =>
                       setDraft((current) => ({
                         ...current,
-                        tipoBolsa: event.target.value,
+                        modalidade: event.target.value as WorkPlanModalidade,
                       }))
                     }
                     className={selectClassName}
                   >
                     <option value="">Selecione</option>
-                    {tipoBolsaOptions.map((item) => (
+                    {modalidadesPlano.map((item) => (
                       <option key={item} value={item}>
                         {item}
                       </option>
@@ -947,24 +1002,122 @@ export default function CoordinatorProjectWorkPlanForm() {
                   </select>
                 </Field>
 
-                <Field label="Direcionamento" required>
-                  <select
-                    value={draft.direcionamento}
+                <Field
+                  label="Solicitar Cota de Bolsa"
+                  hint="Marque esta opção quando desejar solicitar cota de bolsa para o plano."
+                >
+                  <label
+                    className={cx(
+                      "flex min-h-[42px] items-center gap-3 rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary",
+                      limitePlanosAtingido && "opacity-60"
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={draft.solicitarCotaBolsa}
+                      disabled={limitePlanosAtingido}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          solicitarCotaBolsa: event.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border-neutral/30 text-primary focus:ring-primary"
+                    />
+
+                    <span className="font-semibold">
+                      Solicitar cota de bolsa para este plano
+                    </span>
+                  </label>
+                </Field>
+
+                <div className="md:col-span-2">
+                  <Field
+                    label="Título"
+                    required
+                  >
+                    <input
+                      value={draft.titulo}
+                      disabled={limitePlanosAtingido}
+                      maxLength={MAX_CHARS_ANEXO_II}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          titulo: event.target.value,
+                        }))
+                      }
+                      className={inputClassName}
+                      placeholder="Digite o título do plano"
+                    />
+
+                    <CharacterCounter value={draft.titulo} />
+                  </Field>
+                </div>
+
+                <div className="md:col-span-2">
+                  <Field
+                    label="Title"
+                    required
+                  >
+                    <input
+                      value={draft.title}
+                      disabled={limitePlanosAtingido}
+                      maxLength={MAX_CHARS_ANEXO_II}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          title: event.target.value,
+                        }))
+                      }
+                      className={inputClassName}
+                      placeholder="Enter the work plan title in English"
+                    />
+
+                    <CharacterCounter value={draft.title} />
+                  </Field>
+                </div>
+
+                <Field label="Nome do discente" required>
+                  <input
+                    value={draft.discenteNome}
+                    disabled={limitePlanosAtingido}
                     onChange={(event) =>
                       setDraft((current) => ({
                         ...current,
-                        direcionamento: event.target.value,
+                        discenteNome: event.target.value,
                       }))
                     }
-                    className={selectClassName}
-                  >
-                    <option value="">Selecione</option>
-                    {direcionamentos.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
+                    className={inputClassName}
+                    placeholder="Nome completo do discente"
+                  />
+                </Field>
+
+                <Field
+                  label="Matrícula do discente"
+                  required
+                >
+                  <input
+                    value={draft.discenteMatricula}
+                    disabled={limitePlanosAtingido}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        discenteMatricula: event.target.value,
+                      }))
+                    }
+                    className={cx(
+                      inputClassName,
+                      discenteJaPossuiPlano &&
+                        "border-red-300 focus:border-red-500 focus:ring-red-100"
+                    )}
+                    placeholder="Ex.: 202600001"
+                  />
+
+                  {discenteJaPossuiPlano && (
+                    <p className="text-[11px] font-semibold text-red-700">
+                      Este discente já possui um plano vinculado a este projeto.
+                    </p>
+                  )}
                 </Field>
 
                 <Field label="Período" required hint="Defina início e fim do plano.">
@@ -972,6 +1125,7 @@ export default function CoordinatorProjectWorkPlanForm() {
                     <input
                       type="date"
                       value={draft.periodoIni}
+                      disabled={limitePlanosAtingido}
                       onChange={(event) =>
                         setDraft((current) => ({
                           ...current,
@@ -984,6 +1138,7 @@ export default function CoordinatorProjectWorkPlanForm() {
                     <input
                       type="date"
                       value={draft.periodoFim}
+                      disabled={limitePlanosAtingido}
                       onChange={(event) =>
                         setDraft((current) => ({
                           ...current,
@@ -995,77 +1150,16 @@ export default function CoordinatorProjectWorkPlanForm() {
                   </div>
                 </Field>
 
-                <Field label="Cota" required>
-                  <select
-                    value={draft.cota}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        cota: event.target.value,
-                      }))
-                    }
-                    className={selectClassName}
-                  >
-                    <option value="">Selecione</option>
-                    {cotas.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Vinculação institucional" required>
-                  <select
-                    value={draft.vinculacaoInstitucional}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        vinculacaoInstitucional: event.target.value,
-                      }))
-                    }
-                    className={selectClassName}
-                  >
-                    <option value="">Selecione</option>
-                    {vinculacoesInstitucionais.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Área de conhecimento" required>
-                  <select
-                    value={draft.areaConhecimento}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        areaConhecimento: event.target.value,
-                      }))
-                    }
-                    className={selectClassName}
-                  >
-                    <option value="">Selecione</option>
-                    {areaConhecimentoOptions.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
                 <div className="md:col-span-2">
-                  <Field label="Introdução e justificativa" required>
-                    <textarea
+                  <Field label="Introdução / justificativa" required>
+                    <AnexoTextarea
                       value={draft.introducaoJustificativa}
-                      onChange={(event) =>
+                      onChange={(value) =>
                         setDraft((current) => ({
                           ...current,
-                          introducaoJustificativa: event.target.value,
+                          introducaoJustificativa: value,
                         }))
                       }
-                      className={textareaClassName}
                       placeholder="Apresente o contexto do plano e a justificativa da atividade."
                     />
                   </Field>
@@ -1073,15 +1167,14 @@ export default function CoordinatorProjectWorkPlanForm() {
 
                 <div className="md:col-span-2">
                   <Field label="Objetivos" required>
-                    <textarea
+                    <AnexoTextarea
                       value={draft.objetivos}
-                      onChange={(event) =>
+                      onChange={(value) =>
                         setDraft((current) => ({
                           ...current,
-                          objetivos: event.target.value,
+                          objetivos: value,
                         }))
                       }
-                      className={textareaClassName}
                       placeholder="Informe os objetivos gerais e específicos do plano."
                     />
                   </Field>
@@ -1089,15 +1182,14 @@ export default function CoordinatorProjectWorkPlanForm() {
 
                 <div className="md:col-span-2">
                   <Field label="Metodologia" required>
-                    <textarea
+                    <AnexoTextarea
                       value={draft.metodologia}
-                      onChange={(event) =>
+                      onChange={(value) =>
                         setDraft((current) => ({
                           ...current,
-                          metodologia: event.target.value,
+                          metodologia: value,
                         }))
                       }
-                      className={textareaClassName}
                       placeholder="Descreva os procedimentos, métodos e etapas de execução."
                     />
                   </Field>
@@ -1105,16 +1197,22 @@ export default function CoordinatorProjectWorkPlanForm() {
 
                 <div className="md:col-span-2">
                   <Field
-                    label="Cronograma de atividades"
+                    label="Cronograma"
                     required
-                    hint="Adicione pelo menos uma atividade. Você pode usar os modelos rápidos e editar o mês ou o texto de cada atividade antes de salvar."
+                    hint="Adicione pelo menos uma atividade. Os modelos podem ser editados antes de salvar."
                   >
                     <div className="rounded-2xl border border-neutral/20 p-4">
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
+                          disabled={limitePlanosAtingido}
                           onClick={() => applyCronogramaTemplate(6)}
-                          className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:border-primary/30"
+                          className={cx(
+                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
+                            limitePlanosAtingido
+                              ? "cursor-not-allowed border-neutral/10 bg-neutral/10 text-neutral"
+                              : "border-neutral/20 bg-white text-primary hover:border-primary/30"
+                          )}
                         >
                           <CalendarDays size={14} />
                           Modelo 6 meses
@@ -1122,8 +1220,14 @@ export default function CoordinatorProjectWorkPlanForm() {
 
                         <button
                           type="button"
+                          disabled={limitePlanosAtingido}
                           onClick={() => applyCronogramaTemplate(12)}
-                          className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:border-primary/30"
+                          className={cx(
+                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
+                            limitePlanosAtingido
+                              ? "cursor-not-allowed border-neutral/10 bg-neutral/10 text-neutral"
+                              : "border-neutral/20 bg-white text-primary hover:border-primary/30"
+                          )}
                         >
                           <CalendarDays size={14} />
                           Modelo 12 meses
@@ -1133,6 +1237,7 @@ export default function CoordinatorProjectWorkPlanForm() {
                       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[180px_1fr_auto]">
                         <select
                           value={cronogramaMes}
+                          disabled={limitePlanosAtingido}
                           onChange={(event) =>
                             setCronogramaMes(event.target.value)
                           }
@@ -1148,6 +1253,8 @@ export default function CoordinatorProjectWorkPlanForm() {
 
                         <input
                           value={cronogramaAtividade}
+                          disabled={limitePlanosAtingido}
+                          maxLength={MAX_CHARS_ANEXO_II}
                           onChange={(event) =>
                             setCronogramaAtividade(event.target.value)
                           }
@@ -1158,10 +1265,10 @@ export default function CoordinatorProjectWorkPlanForm() {
                         <button
                           type="button"
                           onClick={addCronogramaItem}
-                          disabled={!canAddCronogramaItem}
+                          disabled={!canAddCronogramaItem || limitePlanosAtingido}
                           className={cx(
                             "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
-                            canAddCronogramaItem
+                            canAddCronogramaItem && !limitePlanosAtingido
                               ? "bg-primary text-white hover:bg-primary/90"
                               : "cursor-not-allowed bg-neutral/10 text-neutral"
                           )}
@@ -1179,7 +1286,8 @@ export default function CoordinatorProjectWorkPlanForm() {
                             </p>
 
                             <p className="mt-1 text-xs text-neutral">
-                              Selecione um mês, descreva a atividade e clique em adicionar.
+                              Selecione um mês, descreva a atividade e clique em
+                              adicionar.
                             </p>
                           </div>
                         ) : (
@@ -1191,6 +1299,7 @@ export default function CoordinatorProjectWorkPlanForm() {
                               <Field label={`Item ${index + 1}`}>
                                 <select
                                   value={item.mes}
+                                  disabled={limitePlanosAtingido}
                                   onChange={(event) =>
                                     updateCronogramaItem(
                                       item.id,
@@ -1211,6 +1320,8 @@ export default function CoordinatorProjectWorkPlanForm() {
                               <Field label="Atividade do cronograma">
                                 <textarea
                                   value={item.atividade}
+                                  disabled={limitePlanosAtingido}
+                                  maxLength={MAX_CHARS_ANEXO_II}
                                   onChange={(event) =>
                                     updateCronogramaItem(
                                       item.id,
@@ -1221,13 +1332,21 @@ export default function CoordinatorProjectWorkPlanForm() {
                                   className="min-h-[88px] w-full resize-y rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm leading-6 text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
                                   placeholder="Edite o texto sugerido pelo modelo"
                                 />
+
+                                <CharacterCounter value={item.atividade} />
                               </Field>
 
                               <div className="flex md:pt-6">
                                 <button
                                   type="button"
+                                  disabled={limitePlanosAtingido}
                                   onClick={() => removeCronogramaItem(item.id)}
-                                  className="inline-flex w-fit items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                                  className={cx(
+                                    "inline-flex w-fit items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
+                                    limitePlanosAtingido
+                                      ? "cursor-not-allowed border-neutral/10 bg-neutral/10 text-neutral"
+                                      : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                                  )}
                                 >
                                   <Trash2 size={14} />
                                   Remover
@@ -1243,52 +1362,15 @@ export default function CoordinatorProjectWorkPlanForm() {
 
                 <div className="md:col-span-2">
                   <Field label="Referências" required>
-                    <textarea
+                    <AnexoTextarea
                       value={draft.referencias}
-                      onChange={(event) =>
+                      onChange={(value) =>
                         setDraft((current) => ({
                           ...current,
-                          referencias: event.target.value,
+                          referencias: value,
                         }))
                       }
-                      className={textareaClassName}
                       placeholder="Informe as referências bibliográficas do plano."
-                    />
-                  </Field>
-                </div>
-
-                <div className="md:col-span-2">
-                  <Field label="Resumo do plano" required>
-                    <textarea
-                      value={draft.resumoPlano}
-                      onChange={(event) =>
-                        setDraft((current) => ({
-                          ...current,
-                          resumoPlano: event.target.value,
-                        }))
-                      }
-                      className={textareaClassName}
-                      placeholder="Resumo objetivo do plano de trabalho."
-                    />
-                  </Field>
-                </div>
-
-                <div className="md:col-span-2">
-                  <Field
-                    label="Palavras-chave"
-                    required
-                    hint="Separe por vírgula ou ponto e vírgula."
-                  >
-                    <input
-                      value={draft.palavrasChave}
-                      onChange={(event) =>
-                        setDraft((current) => ({
-                          ...current,
-                          palavrasChave: event.target.value,
-                        }))
-                      }
-                      className={inputClassName}
-                      placeholder="ex.: IA, educação, acessibilidade"
                     />
                   </Field>
                 </div>
@@ -1335,16 +1417,18 @@ export default function CoordinatorProjectWorkPlanForm() {
         ) : (
           <Card
             title="Nenhum projeto selecionado"
-            subtitle="Selecione um projeto na lista acima para liberar o formulário de cadastro do plano."
+            subtitle="Selecione um projeto aprovado ou validado na lista acima para liberar o formulário."
             icon={<AlertCircle size={18} className="text-primary" />}
           >
             <div className="rounded-2xl border border-dashed border-neutral/30 bg-neutral/5 p-6 text-center">
               <p className="text-sm font-semibold text-primary">
-                O formulário de plano de trabalho será exibido após a seleção do projeto.
+                O formulário de plano de trabalho será exibido após a seleção do
+                projeto.
               </p>
 
               <p className="mt-1 text-xs text-neutral">
-                A vinculação do novo plano será feita com base no projeto selecionado nesta página.
+                A vinculação do novo plano será feita com base no projeto
+                selecionado nesta página.
               </p>
             </div>
           </Card>

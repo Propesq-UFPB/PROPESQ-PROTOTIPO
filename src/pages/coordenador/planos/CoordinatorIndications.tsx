@@ -5,15 +5,16 @@ import {
   ArrowUpRight,
   CheckCircle2,
   ClipboardList,
+  ExternalLink,
   Eye,
   Filter,
   Info,
   Notebook,
+  RefreshCcw,
   Search,
-  Trash2,
+  ShieldCheck,
   UserCheck,
   UserPlus,
-  UserRound,
   Users,
   XCircle,
 } from "lucide-react"
@@ -27,14 +28,26 @@ type IndicationStatus =
 
 type Modality = "Bolsista" | "Voluntário" | "Bolsista ou Voluntário"
 
-type Student = {
+type CommitmentTermStatus =
+  | "Não enviado"
+  | "Aguardando aceite"
+  | "Aceito na Plataforma Carlos Chagas"
+  | "Pendente de correção"
+
+type Candidate = {
   id: number
   name: string
   registration: string
   course: string
   semester: string
   cra: string
+  completedCredits: number
+  failures: number
+  academicStatus: string
   email: string
+  lattesUrl: string
+  interestRegisteredAt: string
+  sigaaStatus: "Interesse registrado" | "Documentação pendente" | "Apto para indicação"
 }
 
 type BankData = {
@@ -56,12 +69,18 @@ type IndicationPlan = {
   workload: number
   status: IndicationStatus
   approvedAt: string
-  indicatedStudent: Student | null
+  validityStart: string
+  validityEnd: string
+  indicationDeadline: string
+  substitutionDeadline: string
+  commitmentTermStatus: CommitmentTermStatus
+  indicatedStudent: Candidate | null
   indicationType: "Bolsista" | "Voluntário" | null
   bankData: BankData | null
+  candidates: Candidate[]
 }
 
-const students: Student[] = [
+const candidates: Candidate[] = [
   {
     id: 1,
     name: "Ana Beatriz Santos",
@@ -69,7 +88,13 @@ const students: Student[] = [
     course: "Ciência da Computação",
     semester: "5º período",
     cra: "8.7",
+    completedCredits: 112,
+    failures: 0,
+    academicStatus: "Regular",
     email: "ana.beatriz@academico.ufpb.br",
+    lattesUrl: "https://lattes.cnpq.br/0000000000000001",
+    interestRegisteredAt: "12/05/2026",
+    sigaaStatus: "Apto para indicação",
   },
   {
     id: 2,
@@ -78,7 +103,13 @@ const students: Student[] = [
     course: "Ciência de Dados e Inteligência Artificial",
     semester: "6º período",
     cra: "8.4",
+    completedCredits: 138,
+    failures: 1,
+    academicStatus: "Regular",
     email: "joao.victor@academico.ufpb.br",
+    lattesUrl: "https://lattes.cnpq.br/0000000000000002",
+    interestRegisteredAt: "13/05/2026",
+    sigaaStatus: "Apto para indicação",
   },
   {
     id: 3,
@@ -87,7 +118,13 @@ const students: Student[] = [
     course: "Engenharia de Computação",
     semester: "7º período",
     cra: "9.1",
+    completedCredits: 164,
+    failures: 0,
+    academicStatus: "Regular",
     email: "mariana.lima@academico.ufpb.br",
+    lattesUrl: "https://lattes.cnpq.br/0000000000000003",
+    interestRegisteredAt: "14/05/2026",
+    sigaaStatus: "Interesse registrado",
   },
   {
     id: 4,
@@ -96,7 +133,13 @@ const students: Student[] = [
     course: "Ciência da Computação",
     semester: "3º período",
     cra: "7.9",
+    completedCredits: 72,
+    failures: 1,
+    academicStatus: "Regular",
     email: "pedro.silva@academico.ufpb.br",
+    lattesUrl: "https://lattes.cnpq.br/0000000000000004",
+    interestRegisteredAt: "15/05/2026",
+    sigaaStatus: "Documentação pendente",
   },
 ]
 
@@ -114,13 +157,19 @@ const initialPlans: IndicationPlan[] = [
     workload: 20,
     status: "Indicação aprovada",
     approvedAt: "10/05/2026",
-    indicatedStudent: students[0],
+    validityStart: "01/09/2026",
+    validityEnd: "31/08/2027",
+    indicationDeadline: "01/10/2026",
+    substitutionDeadline: "10/06/2027",
+    commitmentTermStatus: "Aceito na Plataforma Carlos Chagas",
+    indicatedStudent: candidates[0],
     indicationType: "Bolsista",
     bankData: {
       bankName: "Banco do Brasil",
       agency: "1234-5",
       account: "98765-4",
     },
+    candidates: [candidates[0], candidates[1], candidates[2]],
   },
   {
     id: 2,
@@ -135,9 +184,15 @@ const initialPlans: IndicationPlan[] = [
     workload: 12,
     status: "Pendente de indicação",
     approvedAt: "10/05/2026",
+    validityStart: "01/09/2026",
+    validityEnd: "31/08/2027",
+    indicationDeadline: "01/10/2026",
+    substitutionDeadline: "10/06/2027",
+    commitmentTermStatus: "Não enviado",
     indicatedStudent: null,
     indicationType: null,
     bankData: null,
+    candidates: [candidates[1], candidates[3]],
   },
   {
     id: 3,
@@ -152,13 +207,19 @@ const initialPlans: IndicationPlan[] = [
     workload: 20,
     status: "Aguardando validação",
     approvedAt: "09/05/2026",
-    indicatedStudent: students[1],
+    validityStart: "01/09/2026",
+    validityEnd: "31/08/2027",
+    indicationDeadline: "01/10/2026",
+    substitutionDeadline: "10/06/2027",
+    commitmentTermStatus: "Aguardando aceite",
+    indicatedStudent: candidates[1],
     indicationType: "Bolsista",
     bankData: {
       bankName: "Caixa Econômica Federal",
       agency: "0021",
       account: "45678-9",
     },
+    candidates: [candidates[1], candidates[2]],
   },
   {
     id: 4,
@@ -173,38 +234,23 @@ const initialPlans: IndicationPlan[] = [
     workload: 20,
     status: "Indicação recusada",
     approvedAt: "30/04/2026",
-    indicatedStudent: students[2],
+    validityStart: "01/09/2025",
+    validityEnd: "31/08/2026",
+    indicationDeadline: "01/10/2025",
+    substitutionDeadline: "10/06/2026",
+    commitmentTermStatus: "Pendente de correção",
+    indicatedStudent: candidates[2],
     indicationType: "Bolsista",
     bankData: {
       bankName: "Banco do Brasil",
       agency: "3344-1",
       account: "10203-6",
     },
-  },
-  {
-    id: 5,
-    projectId: 4,
-    projectTitle: "Reconhecimento de Padrões em Sinais Multimodais Aplicados à Acessibilidade",
-    planTitle: "Extração e análise de características em sinais multimodais",
-    edital: "PIBITI 2025",
-    ano: "2025",
-    area: "Processamento de Sinais",
-    modality: "Voluntário",
-    vacancies: 1,
-    workload: 16,
-    status: "Discente indicado",
-    approvedAt: "28/04/2026",
-    indicatedStudent: students[3],
-    indicationType: "Voluntário",
-    bankData: {
-      bankName: "Nubank",
-      agency: "0001",
-      account: "778899-0",
-    },
+    candidates: [candidates[2], candidates[0]],
   },
 ]
 
-const editalOptions = ["Todos", "PIBIC 2026", "PIBITI 2026", "PIBIC 2025", "PIBITI 2025"]
+const editalOptions = ["Todos", "PIBIC 2026", "PIBITI 2026", "PIBIC 2025"]
 
 const statusOptions: Array<IndicationStatus | "Todos"> = [
   "Todos",
@@ -220,6 +266,14 @@ const modalityOptions: Array<Modality | "Todos"> = [
   "Bolsista",
   "Voluntário",
   "Bolsista ou Voluntário",
+]
+
+const termOptions: Array<CommitmentTermStatus | "Todos"> = [
+  "Todos",
+  "Não enviado",
+  "Aguardando aceite",
+  "Aceito na Plataforma Carlos Chagas",
+  "Pendente de correção",
 ]
 
 const yearOptions = ["Todos", "2026", "2025"]
@@ -273,23 +327,49 @@ function getModalityClass(modality: Modality) {
   }
 }
 
-export default function CoordinatorIndications() {
+function getTermClass(status: CommitmentTermStatus) {
+  switch (status) {
+    case "Aceito na Plataforma Carlos Chagas":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700"
+    case "Aguardando aceite":
+      return "border-blue-200 bg-blue-50 text-blue-700"
+    case "Pendente de correção":
+      return "border-red-200 bg-red-50 text-red-700"
+    case "Não enviado":
+    default:
+      return "border-amber-200 bg-amber-50 text-amber-700"
+  }
+}
+
+function getSigaaStatusClass(status: Candidate["sigaaStatus"]) {
+  switch (status) {
+    case "Apto para indicação":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700"
+    case "Documentação pendente":
+      return "border-amber-200 bg-amber-50 text-amber-700"
+    case "Interesse registrado":
+    default:
+      return "border-blue-200 bg-blue-50 text-blue-700"
+  }
+}
+
+export default function CoordinatorWorkPlans() {
   const [plans, setPlans] = useState<IndicationPlan[]>(initialPlans)
 
   const [search, setSearch] = useState("")
   const [selectedEdital, setSelectedEdital] = useState("Todos")
   const [selectedStatus, setSelectedStatus] = useState<IndicationStatus | "Todos">("Todos")
   const [selectedModality, setSelectedModality] = useState<Modality | "Todos">("Todos")
+  const [selectedTermStatus, setSelectedTermStatus] = useState<CommitmentTermStatus | "Todos">("Todos")
   const [selectedYear, setSelectedYear] = useState("Todos")
 
   const [activePlanId, setActivePlanId] = useState<number | null>(null)
-  const [studentName, setStudentName] = useState("")
-  const [studentRegistration, setStudentRegistration] = useState("")
+  const [selectedCandidateId, setSelectedCandidateId] = useState<number | null>(null)
   const [selectedIndicationType, setSelectedIndicationType] = useState<"Bolsista" | "Voluntário">("Bolsista")
   const [bankName, setBankName] = useState("")
   const [bankAgency, setBankAgency] = useState("")
   const [bankAccount, setBankAccount] = useState("")
-  const [lastAction, setLastAction] = useState<"saved" | "removed" | "invalid" | null>(null)
+  const [lastAction, setLastAction] = useState<"saved" | "substituted" | "invalid" | null>(null)
 
   const filteredPlans = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -303,39 +383,38 @@ export default function CoordinatorIndications() {
         plan.edital.toLowerCase().includes(normalizedSearch) ||
         plan.indicatedStudent?.name.toLowerCase().includes(normalizedSearch) ||
         plan.indicatedStudent?.registration.toLowerCase().includes(normalizedSearch) ||
-        plan.bankData?.bankName.toLowerCase().includes(normalizedSearch) ||
-        plan.bankData?.agency.toLowerCase().includes(normalizedSearch) ||
-        plan.bankData?.account.toLowerCase().includes(normalizedSearch)
+        plan.candidates.some(
+          (candidate) =>
+            candidate.name.toLowerCase().includes(normalizedSearch) ||
+            candidate.registration.toLowerCase().includes(normalizedSearch) ||
+            candidate.course.toLowerCase().includes(normalizedSearch)
+        )
 
       const matchesEdital = selectedEdital === "Todos" || plan.edital === selectedEdital
       const matchesStatus = selectedStatus === "Todos" || plan.status === selectedStatus
       const matchesModality = selectedModality === "Todos" || plan.modality === selectedModality
+      const matchesTerm = selectedTermStatus === "Todos" || plan.commitmentTermStatus === selectedTermStatus
       const matchesYear = selectedYear === "Todos" || plan.ano === selectedYear
 
-      return matchesSearch && matchesEdital && matchesStatus && matchesModality && matchesYear
+      return matchesSearch && matchesEdital && matchesStatus && matchesModality && matchesTerm && matchesYear
     })
-  }, [plans, search, selectedEdital, selectedStatus, selectedModality, selectedYear])
+  }, [plans, search, selectedEdital, selectedStatus, selectedModality, selectedTermStatus, selectedYear])
 
   const summary = useMemo(() => {
     const totalPlans = plans.length
     const pending = plans.filter((plan) => plan.status === "Pendente de indicação").length
-    const indicated = plans.filter(
-      (plan) =>
-        plan.status === "Discente indicado" ||
-        plan.status === "Aguardando validação" ||
-        plan.status === "Indicação aprovada"
+    const indicated = plans.filter((plan) => plan.indicatedStudent).length
+    const acceptedTerms = plans.filter(
+      (plan) => plan.commitmentTermStatus === "Aceito na Plataforma Carlos Chagas"
     ).length
-    const approved = plans.filter((plan) => plan.status === "Indicação aprovada").length
-    const refused = plans.filter((plan) => plan.status === "Indicação recusada").length
-    const totalVacancies = plans.reduce((acc, plan) => acc + plan.vacancies, 0)
+    const totalCandidates = plans.reduce((acc, plan) => acc + plan.candidates.length, 0)
 
     return {
       totalPlans,
       pending,
       indicated,
-      approved,
-      refused,
-      totalVacancies,
+      acceptedTerms,
+      totalCandidates,
     }
   }, [plans])
 
@@ -343,18 +422,24 @@ export default function CoordinatorIndications() {
     return plans.find((plan) => plan.id === activePlanId) ?? null
   }, [plans, activePlanId])
 
+  const selectedCandidate = useMemo(() => {
+    return activePlan?.candidates.find((candidate) => candidate.id === selectedCandidateId) ?? null
+  }, [activePlan, selectedCandidateId])
+
   function clearFilters() {
     setSearch("")
     setSelectedEdital("Todos")
     setSelectedStatus("Todos")
     setSelectedModality("Todos")
+    setSelectedTermStatus("Todos")
     setSelectedYear("Todos")
   }
 
-  function openIndicationForm(plan: IndicationPlan) {
+  function openIndicationForm(plan: IndicationPlan, candidate?: Candidate) {
+    const candidateToUse = candidate ?? plan.indicatedStudent ?? plan.candidates[0] ?? null
+
     setActivePlanId(plan.id)
-    setStudentName(plan.indicatedStudent?.name ?? "")
-    setStudentRegistration(plan.indicatedStudent?.registration ?? "")
+    setSelectedCandidateId(candidateToUse?.id ?? null)
     setSelectedIndicationType(plan.indicationType ?? (plan.modality === "Voluntário" ? "Voluntário" : "Bolsista"))
     setBankName(plan.bankData?.bankName ?? "")
     setBankAgency(plan.bankData?.agency ?? "")
@@ -364,115 +449,78 @@ export default function CoordinatorIndications() {
 
   function closeIndicationForm() {
     setActivePlanId(null)
-    setStudentName("")
-    setStudentRegistration("")
+    setSelectedCandidateId(null)
     setSelectedIndicationType("Bolsista")
     setBankName("")
     setBankAgency("")
     setBankAccount("")
   }
 
-  function saveIndication() {
+  function saveIndication(action: "saved" | "substituted" = "saved") {
+    const needsBankData = selectedIndicationType === "Bolsista"
+
     const hasRequiredFields =
       activePlan &&
-      studentName.trim().length > 0 &&
-      studentRegistration.trim().length > 0 &&
-      bankName.trim().length > 0 &&
-      bankAgency.trim().length > 0 &&
-      bankAccount.trim().length > 0
+      selectedCandidate &&
+      (!needsBankData ||
+        (bankName.trim().length > 0 &&
+          bankAgency.trim().length > 0 &&
+          bankAccount.trim().length > 0))
 
-    if (!hasRequiredFields || !activePlan) {
+    if (!hasRequiredFields || !activePlan || !selectedCandidate) {
       setLastAction("invalid")
       return
     }
-
-    const existingStudent = students.find(
-      (student) =>
-        student.registration === studentRegistration.trim() ||
-        student.name.toLowerCase() === studentName.trim().toLowerCase()
-    )
-
-    const selectedStudent: Student = existingStudent
-      ? {
-          ...existingStudent,
-          name: studentName.trim(),
-          registration: studentRegistration.trim(),
-        }
-      : {
-          id: Date.now(),
-          name: studentName.trim(),
-          registration: studentRegistration.trim(),
-          course: "Não informado",
-          semester: "Não informado",
-          cra: "Não informado",
-          email: "Não informado",
-        }
 
     setPlans((current) =>
       current.map((plan) =>
         plan.id === activePlan.id
           ? {
               ...plan,
-              indicatedStudent: selectedStudent,
+              indicatedStudent: selectedCandidate,
               indicationType: selectedIndicationType,
-              bankData: {
-                bankName: bankName.trim(),
-                agency: bankAgency.trim(),
-                account: bankAccount.trim(),
-              },
+              bankData:
+                selectedIndicationType === "Bolsista"
+                  ? {
+                      bankName: bankName.trim(),
+                      agency: bankAgency.trim(),
+                      account: bankAccount.trim(),
+                    }
+                  : null,
               status:
                 plan.status === "Indicação aprovada"
-                  ? "Indicação aprovada"
+                  ? "Aguardando validação"
                   : "Discente indicado",
+              commitmentTermStatus:
+                selectedIndicationType === "Bolsista"
+                  ? "Aguardando aceite"
+                  : "Não enviado",
             }
           : plan
       )
     )
 
-    setLastAction("saved")
+    setLastAction(action)
     closeIndicationForm()
-  }
-
-  function removeIndication(planId: number) {
-    setPlans((current) =>
-      current.map((plan) =>
-        plan.id === planId
-          ? {
-              ...plan,
-              indicatedStudent: null,
-              indicationType: null,
-              bankData: null,
-              status: "Pendente de indicação",
-            }
-          : plan
-      )
-    )
-
-    setLastAction("removed")
-
-    if (activePlanId === planId) {
-      closeIndicationForm()
-    }
   }
 
   return (
     <main className="min-h-screen bg-[#F3F4F6]">
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-6">
-        {/* HEADER */}
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-              <UserPlus size={14} />
-              Indicação de discentes
+              <Notebook size={14} />
+              Planos de trabalho
             </div>
 
             <h1 className="mt-3 text-2xl font-bold tracking-tight text-primary">
-              Indicação de discentes aos planos aprovados
+              Indicações para Planos de Trabalho
             </h1>
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
-              Selecione os planos de trabalho aprovados, indique os discentes responsáveis e acompanhe a validação das
-              indicações no edital correspondente.
+              Acompanhe os planos aprovados, visualize os discentes interessados via SIGAA e registre indicações ou
+              substituições.
             </p>
           </div>
 
@@ -486,148 +534,69 @@ export default function CoordinatorIndications() {
             </p>
 
             <p className="mt-1 text-xs text-neutral">
-              de {plans.length} plano(s) aprovados
+              de {plans.length} plano(s)
             </p>
           </div>
         </section>
 
-        {/* INDICADORES */}
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Planos aprovados
-                </p>
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.totalPlans}
-                </p>
-              </div>
+          <SummaryCard
+            label="Planos"
+            value={summary.totalPlans}
+            description="Disponíveis para indicação"
+            icon={<Notebook size={20} />}
+            iconClassName="bg-primary/10 text-primary"
+          />
 
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <Notebook size={20} />
-              </div>
-            </div>
+          <SummaryCard
+            label="Candidatos"
+            value={summary.totalCandidates}
+            description="Interesse via SIGAA"
+            icon={<Users size={20} />}
+            iconClassName="bg-sky-50 text-sky-700"
+          />
 
-            <p className="mt-3 text-xs text-neutral">
-              Disponíveis para indicação
-            </p>
-          </div>
+          <SummaryCard
+            label="Pendentes"
+            value={summary.pending}
+            description="Aguardando indicação"
+            icon={<AlertCircle size={20} />}
+            iconClassName="bg-amber-50 text-amber-700"
+          />
 
-          <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Pendentes
-                </p>
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.pending}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-700">
-                <AlertCircle size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              Aguardando indicação
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Indicados
-                </p>
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.indicated}/{summary.totalVacancies}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
-                <Users size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              Indicações registradas
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Validadas
-                </p>
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.approved}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                <CheckCircle2 size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              {summary.refused} indicação(ões) recusada(s)
-            </p>
-          </div>
+          <SummaryCard
+            label="Termos aceitos"
+            value={summary.acceptedTerms}
+            description="Plataforma Carlos Chagas"
+            icon={<ShieldCheck size={20} />}
+            iconClassName="bg-emerald-50 text-emerald-700"
+          />
         </section>
 
-        {/* ALERTAS */}
         {lastAction === "saved" && (
-          <section className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-            <div className="flex gap-3">
-              <CheckCircle2 size={18} className="mt-0.5 text-emerald-700" />
-              <div>
-                <p className="text-sm font-semibold text-emerald-800">
-                  Indicação registrada no protótipo
-                </p>
-                <p className="mt-1 text-sm leading-6 text-emerald-700">
-                  Em uma versão integrada, a indicação e os dados bancários seriam salvos e encaminhados para validação.
-                </p>
-              </div>
-            </div>
-          </section>
+          <AlertBox
+            type="success"
+            title="Indicação registrada"
+            description="A indicação foi registrada no protótipo e ficará aguardando validação."
+          />
         )}
 
-        {lastAction === "removed" && (
-          <section className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4">
-            <div className="flex gap-3">
-              <Info size={18} className="mt-0.5 text-blue-700" />
-              <div>
-                <p className="text-sm font-semibold text-blue-800">
-                  Indicação removida no protótipo
-                </p>
-                <p className="mt-1 text-sm leading-6 text-blue-700">
-                  O plano voltou para o estado de pendente de indicação.
-                </p>
-              </div>
-            </div>
-          </section>
+        {lastAction === "substituted" && (
+          <AlertBox
+            type="info"
+            title="Substituição registrada"
+            description="A substituição foi registrada no protótipo."
+          />
         )}
 
         {lastAction === "invalid" && (
-          <section className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
-            <div className="flex gap-3">
-              <AlertCircle size={18} className="mt-0.5 text-amber-700" />
-              <div>
-                <p className="text-sm font-semibold text-amber-800">
-                  Existem campos obrigatórios pendentes
-                </p>
-                <p className="mt-1 text-sm leading-6 text-amber-700">
-                  Informe o nome, a matrícula do discente e os dados bancários antes de confirmar.
-                </p>
-              </div>
-            </div>
-          </section>
+          <AlertBox
+            type="warning"
+            title="Campos obrigatórios pendentes"
+            description="Selecione um candidato e preencha os dados necessários antes de confirmar."
+          />
         )}
 
-        {/* FILTROS */}
         <section className="rounded-2xl border border-neutral/30 bg-white p-6">
           <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -637,7 +606,7 @@ export default function CoordinatorIndications() {
               </div>
 
               <p className="mt-1 text-xs text-neutral">
-                Localize planos aprovados por edital, projeto, situação, modalidade, ano ou discente indicado.
+                Filtre por edital, situação, modalidade, termo, ano ou candidato.
               </p>
             </div>
 
@@ -650,10 +619,10 @@ export default function CoordinatorIndications() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-6">
             <div className="lg:col-span-2">
               <label className={labelClassName}>
-                Buscar indicação
+                Buscar
               </label>
 
               <div className="relative">
@@ -666,109 +635,61 @@ export default function CoordinatorIndications() {
                   type="text"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Plano, projeto, área, matrícula ou discente..."
+                  placeholder="Plano, projeto, área, matrícula ou candidato..."
                   className="w-full rounded-xl border border-neutral/30 bg-white py-2.5 pl-10 pr-3 text-sm text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
                 />
               </div>
             </div>
 
-            <div>
-              <label className={labelClassName}>
-                Edital
-              </label>
+            <FilterSelect label="Edital" value={selectedEdital} onChange={setSelectedEdital} options={editalOptions} />
 
-              <select
-                value={selectedEdital}
-                onChange={(event) => setSelectedEdital(event.target.value)}
-                className={inputClassName}
-              >
-                {editalOptions.map((edital) => (
-                  <option key={edital} value={edital}>
-                    {edital}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FilterSelect
+              label="Situação"
+              value={selectedStatus}
+              onChange={(value) => setSelectedStatus(value as IndicationStatus | "Todos")}
+              options={statusOptions}
+            />
 
-            <div>
-              <label className={labelClassName}>
-                Situação
-              </label>
+            <FilterSelect
+              label="Modalidade"
+              value={selectedModality}
+              onChange={(value) => setSelectedModality(value as Modality | "Todos")}
+              options={modalityOptions}
+            />
 
-              <select
-                value={selectedStatus}
-                onChange={(event) => setSelectedStatus(event.target.value as IndicationStatus | "Todos")}
-                className={inputClassName}
-              >
-                {statusOptions.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={labelClassName}>
-                Modalidade
-              </label>
-
-              <select
-                value={selectedModality}
-                onChange={(event) => setSelectedModality(event.target.value as Modality | "Todos")}
-                className={inputClassName}
-              >
-                {modalityOptions.map((modality) => (
-                  <option key={modality} value={modality}>
-                    {modality}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FilterSelect
+              label="Termo CNPq"
+              value={selectedTermStatus}
+              onChange={(value) => setSelectedTermStatus(value as CommitmentTermStatus | "Todos")}
+              options={termOptions}
+            />
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
-            <div>
-              <label className={labelClassName}>
-                Ano
-              </label>
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-6">
+            <FilterSelect label="Ano" value={selectedYear} onChange={setSelectedYear} options={yearOptions} />
 
-              <select
-                value={selectedYear}
-                onChange={(event) => setSelectedYear(event.target.value)}
-                className={inputClassName}
-              >
-                {yearOptions.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-end lg:col-span-4">
+            <div className="flex items-end lg:col-span-5">
               <div className="w-full rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3 text-sm text-neutral">
                 <strong className="font-semibold text-primary">
                   {filteredPlans.length}
                 </strong>{" "}
-                plano(s) encontrado(s) conforme os filtros aplicados.
+                plano(s) encontrado(s).
               </div>
             </div>
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_380px]">
-          {/* LISTAGEM */}
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_390px]">
           <div className="space-y-5">
             <section className="rounded-2xl border border-neutral/30 bg-white">
               <div className="flex flex-col gap-3 border-b border-neutral/20 p-6 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="text-base font-semibold text-primary">
-                    Planos aprovados para indicação
+                    Planos aprovados e candidatos interessados
                   </h2>
 
                   <p className="mt-1 text-sm text-neutral">
-                    Indique discentes aos planos de trabalho aprovados nos editais.
+                    Veja os candidatos do SIGAA e realize a indicação.
                   </p>
                 </div>
 
@@ -785,127 +706,149 @@ export default function CoordinatorIndications() {
                 <div className="divide-y divide-neutral/10">
                   {filteredPlans.map((plan) => (
                     <article key={plan.id} className="p-6 transition hover:bg-neutral/5">
-                      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="max-w-3xl">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                              <Notebook size={14} />
-                              Plano aprovado
-                            </span>
+                      <div className="flex flex-col gap-5">
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="max-w-3xl">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                                <Notebook size={14} />
+                                Plano aprovado
+                              </span>
 
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClass(
-                                plan.status
-                              )}`}
-                            >
-                              {getStatusIcon(plan.status)}
-                              {plan.status}
-                            </span>
+                              <span
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClass(
+                                  plan.status
+                                )}`}
+                              >
+                                {getStatusIcon(plan.status)}
+                                {plan.status}
+                              </span>
 
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getModalityClass(
-                                plan.modality
-                              )}`}
-                            >
-                              {plan.modality}
-                            </span>
-                          </div>
+                              <span
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getModalityClass(
+                                  plan.modality
+                                )}`}
+                              >
+                                {plan.modality}
+                              </span>
 
-                          <h3 className="mt-3 text-base font-semibold leading-6 text-primary">
-                            {plan.planTitle}
-                          </h3>
+                              <span
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getTermClass(
+                                  plan.commitmentTermStatus
+                                )}`}
+                              >
+                                <ShieldCheck size={14} />
+                                {plan.commitmentTermStatus}
+                              </span>
+                            </div>
 
-                          <p className="mt-2 text-sm leading-6 text-neutral">
-                            Projeto vinculado:{" "}
-                            <span className="font-medium text-primary">
-                              {plan.projectTitle}
-                            </span>
-                          </p>
+                            <h3 className="mt-3 text-base font-semibold leading-6 text-primary">
+                              {plan.planTitle}
+                            </h3>
 
-                          <div className="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
-                            <MiniInfo label="Edital" value={`${plan.edital} • ${plan.ano}`} />
-                            <MiniInfo label="Área" value={plan.area} />
-                            <MiniInfo label="Carga semanal" value={`${plan.workload}h`} />
-                          </div>
-
-                          <div className="mt-4 rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-                            <p className="text-sm font-semibold text-primary">
-                              Discente indicado
+                            <p className="mt-2 text-sm leading-6 text-neutral">
+                              Projeto vinculado:{" "}
+                              <span className="font-medium text-primary">
+                                {plan.projectTitle}
+                              </span>
                             </p>
 
-                            {plan.indicatedStudent ? (
-                              <div className="mt-3 rounded-xl border border-neutral/20 bg-white p-4">
-                                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                                  <div className="w-full">
-                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                                      <MiniInfo label="Nome" value={plan.indicatedStudent.name} />
-                                      <MiniInfo label="Matrícula" value={plan.indicatedStudent.registration} />
-                                    </div>
+                            <div className="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
+                              <MiniInfo label="Edital" value={`${plan.edital} • ${plan.ano}`} />
+                              <MiniInfo label="Área" value={plan.area} />
+                              <MiniInfo label="Carga semanal" value={`${plan.workload}h`} />
+                            </div>
 
-                                    <p className="mt-3 text-xs leading-5 text-neutral">
-                                      {plan.indicatedStudent.course} • {plan.indicatedStudent.semester} • CRA{" "}
-                                      {plan.indicatedStudent.cra}
-                                    </p>
-                                  </div>
+                            <div className="mt-3 grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
+                              <MiniInfo label="Vigência" value={`${plan.validityStart} a ${plan.validityEnd}`} />
+                              <MiniInfo label="Prazo indicação" value={plan.indicationDeadline} />
+                              <MiniInfo label="Prazo substituição" value={plan.substitutionDeadline} />
+                            </div>
+                          </div>
 
-                                  {plan.indicationType && (
-                                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                                      <UserCheck size={14} />
-                                      {plan.indicationType}
-                                    </span>
-                                  )}
-                                </div>
+                          <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+                            <Link
+                              to={`/coordenador/projetos/${plan.projectId}`}
+                              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+                            >
+                              <Eye size={16} />
+                              Ver projeto
+                            </Link>
 
-                                {plan.bankData && (
-                                  <div className="mt-4 rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-                                    <p className="text-sm font-semibold text-primary">
-                                      Dados bancários
-                                    </p>
+                            <button
+                              type="button"
+                              onClick={() => openIndicationForm(plan)}
+                              className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+                            >
+                              <UserPlus size={16} />
+                              {plan.indicatedStudent ? "Alterar indicação" : "Indicar discente"}
+                            </button>
 
-                                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-                                      <MiniInfo label="Banco" value={plan.bankData.bankName} />
-                                      <MiniInfo label="Agência" value={plan.bankData.agency} />
-                                      <MiniInfo label="Conta" value={plan.bankData.account} />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <p className="mt-2 text-sm leading-6 text-neutral">
-                                Nenhum discente indicado para este plano até o momento.
-                              </p>
+                            {plan.indicatedStudent && (
+                              <button
+                                type="button"
+                                onClick={() => openIndicationForm(plan)}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+                              >
+                                <RefreshCcw size={16} />
+                                Substituir discente
+                              </button>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
-                          <Link
-                            to={`/coordenador/projetos/${plan.projectId}`}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                          >
-                            <Eye size={16} />
-                            Ver projeto
-                          </Link>
+                        <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
+                          <p className="text-sm font-semibold text-primary">
+                            Discente indicado
+                          </p>
 
-                          <button
-                            type="button"
-                            onClick={() => openIndicationForm(plan)}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
-                          >
-                            <UserPlus size={16} />
-                            {plan.indicatedStudent ? "Alterar indicação" : "Indicar discente"}
-                          </button>
+                          {plan.indicatedStudent ? (
+                            <div className="mt-3 flex flex-col gap-3 rounded-xl border border-neutral/20 bg-white p-4 md:flex-row md:items-center md:justify-between">
+                              <div>
+                                <p className="text-sm font-semibold text-primary">
+                                  {plan.indicatedStudent.name}
+                                </p>
 
-                          {plan.indicatedStudent && plan.status !== "Indicação aprovada" && (
-                            <button
-                              type="button"
-                              onClick={() => removeIndication(plan.id)}
-                              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-red-200 hover:text-red-600"
-                            >
-                              <Trash2 size={16} />
-                              Remover
-                            </button>
+                                <p className="mt-1 text-xs leading-5 text-neutral">
+                                  {plan.indicatedStudent.registration} • {plan.indicatedStudent.course} •{" "}
+                                  {plan.indicatedStudent.semester} • CRA {plan.indicatedStudent.cra}
+                                </p>
+                              </div>
+
+                              {plan.indicationType && (
+                                <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                                  <UserCheck size={14} />
+                                  {plan.indicationType}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="mt-2 text-sm leading-6 text-neutral">
+                              Nenhum discente indicado para este plano.
+                            </p>
                           )}
+                        </div>
+
+                        <div className="border-t border-neutral/10 pt-4">
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <p className="text-sm font-semibold text-primary">
+                              Candidatos interessados via SIGAA
+                            </p>
+
+                            <span className="text-xs text-neutral">
+                              {plan.candidates.length} candidato(s)
+                            </span>
+                          </div>
+
+                          <ul className="divide-y divide-neutral/10 rounded-xl border border-neutral/10 bg-white">
+                            {plan.candidates.map((candidate) => (
+                              <CandidateCard
+                                key={candidate.id}
+                                candidate={candidate}
+                                onIndicate={() => openIndicationForm(plan, candidate)}
+                              />
+                            ))}
+                          </ul>
                         </div>
                       </div>
                     </article>
@@ -922,8 +865,7 @@ export default function CoordinatorIndications() {
                   </h3>
 
                   <p className="mt-1 max-w-md text-sm leading-6 text-neutral">
-                    Não encontramos planos aprovados com os filtros selecionados. Tente limpar os filtros ou alterar os
-                    critérios de busca.
+                    Tente limpar os filtros ou alterar os critérios de busca.
                   </p>
 
                   <button
@@ -938,7 +880,6 @@ export default function CoordinatorIndications() {
             </section>
           </div>
 
-          {/* FORMULÁRIO LATERAL */}
           <aside className="space-y-6">
             <section className="rounded-2xl border border-neutral/30 bg-white p-6">
               <div className="mb-5 flex items-start gap-3">
@@ -953,8 +894,8 @@ export default function CoordinatorIndications() {
 
                   <p className="mt-1 text-sm leading-6 text-neutral">
                     {activePlan
-                      ? "Informe o discente, o tipo de indicação e os dados bancários."
-                      : "Clique em “Indicar discente” em um plano aprovado para abrir o formulário."}
+                      ? "Escolha um candidato, defina a modalidade e informe os dados necessários."
+                      : "Clique em “Indicar discente” em um plano aprovado."}
                   </p>
                 </div>
               </div>
@@ -970,38 +911,55 @@ export default function CoordinatorIndications() {
                       {activePlan.planTitle}
                     </p>
 
-                    <p className="mt-1 text-xs leading-5 text-neutral">
+                    <p className="mt-1 text-xs text-neutral">
                       {activePlan.edital} • {activePlan.modality}
                     </p>
                   </div>
 
                   <div>
                     <label className={labelClassName}>
-                      Nome do discente <span className="text-red-500">*</span>
+                      Candidato interessado
                     </label>
 
-                    <input
-                      type="text"
-                      value={studentName}
-                      onChange={(event) => setStudentName(event.target.value)}
-                      placeholder="Informe o nome completo do discente"
+                    <select
+                      value={selectedCandidateId ?? ""}
+                      onChange={(event) => setSelectedCandidateId(Number(event.target.value))}
                       className={inputClassName}
-                    />
+                    >
+                      {activePlan.candidates.map((candidate) => (
+                        <option key={candidate.id} value={candidate.id}>
+                          {candidate.name} — {candidate.registration}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  <div>
-                    <label className={labelClassName}>
-                      Matrícula do discente <span className="text-red-500">*</span>
-                    </label>
+                  {selectedCandidate && (
+                    <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
+                      <p className="text-sm font-semibold text-primary">
+                        {selectedCandidate.name}
+                      </p>
 
-                    <input
-                      type="text"
-                      value={studentRegistration}
-                      onChange={(event) => setStudentRegistration(event.target.value)}
-                      placeholder="Informe a matrícula"
-                      className={inputClassName}
-                    />
-                  </div>
+                      <p className="mt-1 text-xs leading-5 text-neutral">
+                        {selectedCandidate.registration} • {selectedCandidate.course}
+                      </p>
+
+                      <p className="mt-1 text-xs leading-5 text-neutral">
+                        CRA {selectedCandidate.cra} • {selectedCandidate.completedCredits} créditos •{" "}
+                        {selectedCandidate.failures} reprovação(ões)
+                      </p>
+
+                      <a
+                        href={selectedCandidate.lattesUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary transition hover:text-primary/80"
+                      >
+                        Ver Currículo Lattes
+                        <ExternalLink size={13} />
+                      </a>
+                    </div>
+                  )}
 
                   <div>
                     <label className={labelClassName}>
@@ -1015,31 +973,31 @@ export default function CoordinatorIndications() {
                       }
                       className={inputClassName}
                     >
-                      <option value="Bolsista" disabled={activePlan.modality === "Voluntário"}>
-                        Bolsista
-                      </option>
-                      <option value="Voluntário" disabled={activePlan.modality === "Bolsista"}>
-                        Voluntário
-                      </option>
+                      {(activePlan.modality === "Bolsista" ||
+                        activePlan.modality === "Bolsista ou Voluntário") && (
+                        <option value="Bolsista">
+                          Bolsista
+                        </option>
+                      )}
+
+                      {(activePlan.modality === "Voluntário" ||
+                        activePlan.modality === "Bolsista ou Voluntário") && (
+                        <option value="Voluntário">
+                          Voluntário
+                        </option>
+                      )}
                     </select>
                   </div>
 
-                  {(studentName || studentRegistration) && (
-                    <SelectedStudentCard
-                      name={studentName}
-                      registration={studentRegistration}
-                    />
-                  )}
+                  {selectedIndicationType === "Bolsista" && (
+                    <div className="space-y-3 rounded-xl border border-neutral/20 bg-neutral/5 p-4">
+                      <p className="text-sm font-semibold text-primary">
+                        Dados bancários
+                      </p>
 
-                  <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-                    <p className="text-sm font-semibold text-primary">
-                      Dados bancários
-                    </p>
-
-                    <div className="mt-4 space-y-4">
                       <div>
                         <label className={labelClassName}>
-                          Nome do banco <span className="text-red-500">*</span>
+                          Banco <span className="text-red-500">*</span>
                         </label>
 
                         <input
@@ -1079,16 +1037,28 @@ export default function CoordinatorIndications() {
                         />
                       </div>
                     </div>
-                  </div>
+                  )}
+
+                  {selectedIndicationType === "Bolsista" && (
+                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                      <div className="flex gap-3">
+                        <Info size={18} className="mt-0.5 shrink-0 text-blue-700" />
+
+                        <p className="text-sm leading-6 text-blue-700">
+                          Para bolsista, o termo de compromisso CNPq deve ser aceito na Plataforma Carlos Chagas.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex flex-col gap-2">
                     <button
                       type="button"
-                      onClick={saveIndication}
+                      onClick={() => saveIndication(activePlan.indicatedStudent ? "substituted" : "saved")}
                       className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
                     >
-                      <UserCheck size={16} />
-                      Confirmar indicação
+                      {activePlan.indicatedStudent ? <RefreshCcw size={16} /> : <UserCheck size={16} />}
+                      {activePlan.indicatedStudent ? "Confirmar substituição" : "Confirmar indicação"}
                     </button>
 
                     <button
@@ -1103,8 +1073,8 @@ export default function CoordinatorIndications() {
               ) : (
                 <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
                   <p className="text-sm leading-6 text-neutral">
-                    A indicação só deve ser realizada para planos de trabalho aprovados. Selecione um plano para
-                    preencher os dados do discente e os dados bancários.
+                    Selecione um plano aprovado para visualizar os candidatos interessados via SIGAA e registrar a
+                    indicação.
                   </p>
                 </div>
               )}
@@ -1116,45 +1086,201 @@ export default function CoordinatorIndications() {
   )
 }
 
+function SummaryCard({
+  label,
+  value,
+  description,
+  icon,
+  iconClassName,
+}: {
+  label: string
+  value: number
+  description: string
+  icon: React.ReactNode
+  iconClassName: string
+}) {
+  return (
+    <div className="rounded-2xl border border-neutral/30 bg-white p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
+            {label}
+          </p>
+
+          <p className="mt-2 text-2xl font-bold text-primary">
+            {value}
+          </p>
+        </div>
+
+        <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${iconClassName}`}>
+          {icon}
+        </div>
+      </div>
+
+      <p className="mt-3 text-xs text-neutral">
+        {description}
+      </p>
+    </div>
+  )
+}
+
+function AlertBox({
+  type,
+  title,
+  description,
+}: {
+  type: "success" | "info" | "warning"
+  title: string
+  description: string
+}) {
+  const styles = {
+    success: {
+      wrapper: "border-emerald-200 bg-emerald-50",
+      icon: "text-emerald-700",
+      title: "text-emerald-800",
+      description: "text-emerald-700",
+      iconNode: <CheckCircle2 size={18} />,
+    },
+    info: {
+      wrapper: "border-blue-200 bg-blue-50",
+      icon: "text-blue-700",
+      title: "text-blue-800",
+      description: "text-blue-700",
+      iconNode: <Info size={18} />,
+    },
+    warning: {
+      wrapper: "border-amber-200 bg-amber-50",
+      icon: "text-amber-700",
+      title: "text-amber-800",
+      description: "text-amber-700",
+      iconNode: <AlertCircle size={18} />,
+    },
+  }[type]
+
+  return (
+    <section className={`rounded-2xl border px-5 py-4 ${styles.wrapper}`}>
+      <div className="flex gap-3">
+        <div className={`mt-0.5 ${styles.icon}`}>
+          {styles.iconNode}
+        </div>
+
+        <div>
+          <p className={`text-sm font-semibold ${styles.title}`}>
+            {title}
+          </p>
+
+          <p className={`mt-1 text-sm leading-6 ${styles.description}`}>
+            {description}
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: string[]
+}) {
+  return (
+    <div>
+      <label className={labelClassName}>
+        {label}
+      </label>
+
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={inputClassName}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 function MiniInfo({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-neutral/20 bg-white p-3">
-      <p className="text-xs font-medium text-neutral">
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral">
         {label}
       </p>
 
-      <p className="mt-1 text-sm font-semibold leading-5 text-primary">
+      <p className="mt-1 text-sm font-medium text-primary">
         {value}
       </p>
     </div>
   )
 }
 
-function SelectedStudentCard({
-  name,
-  registration,
+function CandidateCard({
+  candidate,
+  onIndicate,
 }: {
-  name: string
-  registration: string
+  candidate: Candidate
+  onIndicate: () => void
 }) {
   return (
-    <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-      <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <UserRound size={18} />
-        </div>
-
-        <div className="w-full">
+    <li className="flex flex-col gap-3 px-4 py-3 transition hover:bg-neutral/5 md:flex-row md:items-center md:justify-between">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm font-semibold text-primary">
-            Dados do discente
+            {candidate.name}
           </p>
 
-          <div className="mt-3 grid grid-cols-1 gap-3">
-            <MiniInfo label="Nome" value={name || "Não informado"} />
-            <MiniInfo label="Matrícula" value={registration || "Não informado"} />
-          </div>
+          <span
+            className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${getSigaaStatusClass(
+              candidate.sigaaStatus
+            )}`}
+          >
+            {candidate.sigaaStatus}
+          </span>
+        </div>
+
+        <p className="mt-1 text-xs leading-5 text-neutral">
+          {candidate.registration} • {candidate.course} • {candidate.semester}
+        </p>
+
+        <p className="mt-0.5 text-xs leading-5 text-neutral">
+          CRA {candidate.cra} • {candidate.completedCredits} créditos •{" "}
+          {candidate.failures} reprovação(ões) • {candidate.academicStatus}
+        </p>
+
+        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs">
+          <span className="text-neutral">
+            Interesse em {candidate.interestRegisteredAt}
+          </span>
+
+          <a
+            href={candidate.lattesUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 font-semibold text-primary transition hover:text-primary/80"
+          >
+            Ver Lattes
+            <ExternalLink size={12} />
+          </a>
         </div>
       </div>
-    </div>
+
+      <button
+        type="button"
+        onClick={onIndicate}
+        className="inline-flex w-fit items-center justify-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition hover:bg-primary/90"
+      >
+        Indicar
+      </button>
+    </li>
   )
 }

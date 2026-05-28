@@ -97,7 +97,7 @@ function isActive(pathname: string, to: string, end?: boolean) {
   if (to === "/dashboard")
     return pathname === "/dashboard" || pathname.startsWith("/dashboard/")
 
- /* Coordenador */
+  /* Coordenador */
 
   if (to === "/coordenador/planos/indicacoes") {
     return (
@@ -136,6 +136,14 @@ function isActive(pathname: string, to: string, end?: boolean) {
     return (
       pathname === "/coordenador/relatorios" ||
       pathname.startsWith("/coordenador/relatorios/")
+    )
+  }
+
+  if (to === "/coordenador/producao/ipi") {
+    return (
+      pathname === "/coordenador/producao" ||
+      pathname === "/coordenador/producao/ipi" ||
+      pathname.startsWith("/coordenador/producao/")
     )
   }
 
@@ -234,6 +242,9 @@ function themeFromPath(pathname: string): ThemeTokens {
 
   if (pathname.startsWith("/coordenador/relatorios"))
     return { ...base, page: "#D97706", pageSoft: "#FFEDD5" }
+
+  if (pathname.startsWith("/coordenador/producao"))
+    return { ...base, page: "#2563EB", pageSoft: "#DBEAFE" }
 
   return base
 }
@@ -532,10 +543,10 @@ export default function AppHeader() {
   const adminPrimary: NavItem[] = [
     { to: "/dashboard", label: "Dashboard", icon: <Home size={16} /> },
     { to: "/adm/admprojetos", label: "Projetos", icon: <FolderKanban size={16} /> },
-    { to: "/adm/avaliacao/classificacao", label: "Avaliação",      icon: <FileSignature size={16} /> },
+    { to: "/adm/avaliacao/classificacao", label: "Avaliação", icon: <FileSignature size={16} /> },
     { to: "/adm/monitoring/replacements", label: "Acompanhamento", icon: <BadgeCheck size={16} /> },
-    { to: "/adm/calls/CreateCall",        label: "Editais",         icon: <LineChart size={16} /> },
-    { to: "/adm/settings/scholarships",   label: "Configurações",   icon: <Settings size={16} /> },
+    { to: "/adm/calls/CreateCall", label: "Editais", icon: <LineChart size={16} /> },
+    { to: "/adm/settings/scholarships", label: "Configurações", icon: <Settings size={16} /> },
   ]
 
   const adminSecondaryByPrimary: Record<string, NavItem[]> = {
@@ -591,8 +602,8 @@ export default function AppHeader() {
 
   const studentSecondaryByPrimary: Record<string, NavItem[]> = {
     "/discente/projetos": [
-      {to: "/discente/projetos", label: "Meus Projetos", icon: <FolderKanban size={16} />, end: true,},
-      {to: "/discente/projetos/consultar",label: "Consultar Projetos", icon: <Search size={16} />,end: true,},
+      { to: "/discente/projetos", label: "Meus Projetos", icon: <FolderKanban size={16} />, end: true },
+      { to: "/discente/projetos/consultar", label: "Consultar Projetos", icon: <Search size={16} />, end: true },
     ],
     //"/discente/editais": [
       //{ to: "/discente/editais", label: "Lista de Editais", icon: <Megaphone size={16} />, end: true },
@@ -634,17 +645,18 @@ export default function AppHeader() {
     { to: "/coordenador/avaliacoes", label: "Avaliações", icon: <FileSignature size={16} /> },
     { to: "/coordenador/planos/indicacoes", label: "Planos", icon: <Notebook size={16} /> },
     { to: "/coordenador/relatorios", label: "Relatórios", icon: <FileText size={16} /> },
+    { to: "/coordenador/producao/ipi", label: "Produção", icon: <Award size={16} /> },
   ]
 
   const coordinatorSecondaryByPrimary: Record<string, NavItem[]> = {
     "/coordenador/projetos": [
-      {to: "/coordenador/projetos", label: "Lista de Projetos", icon: <FolderKanban size={16} />, end: true,},
-      {to: "/coordenador/projetos/novo", label: "Novo Projeto", icon: <Plus size={16} />, end: true,},
+      { to: "/coordenador/projetos", label: "Lista de Projetos", icon: <FolderKanban size={16} />, end: true },
+      { to: "/coordenador/projetos/novo", label: "Novo Projeto", icon: <Plus size={16} />, end: true },
       //{to: "/coordenador/projetos/1", label: "Visualizar Projeto", icon: <Eye size={16} />, end: true,},
     ],
 
     "/coordenador/avaliacoes": [
-      {to: "/coordenador/avaliacoes", label: "Lista de Avaliações", icon: <ClipboardList size={16} />, end: true,},
+      { to: "/coordenador/avaliacoes", label: "Lista de Avaliações", icon: <ClipboardList size={16} />, end: true },
       //{to: "/coordenador/avaliacoes/1", label: "Detalhe da Avaliação", icon: <Eye size={16} />, end: true,},
     ],
 
@@ -654,8 +666,13 @@ export default function AppHeader() {
     ],
 
     "/coordenador/relatorios": [
-      {to: "/coordenador/relatorios", label: "Lista de Relatórios", icon: <FileText size={16} />,end: true,},
+      { to: "/coordenador/relatorios", label: "Lista de Relatórios", icon: <FileText size={16} />, end: true },
       //{to: "/coordenador/relatorios/1/revisao",label: "Revisar Relatório",icon: <FileSignature size={16} />,end: true,},
+    ],
+
+    "/coordenador/producao/ipi": [
+      { to: "/coordenador/producao/ipi", label: "IPI", icon: <Award size={16} />, end: true },
+      { to: "/coordenador/producao/resultado", label: "Resultado & Classificação", icon: <LineChart size={16} />, end: true },
     ],
   }
 
@@ -764,8 +781,6 @@ export default function AppHeader() {
           </nav>
 
           <div className="flex items-center justify-end gap-3">
-
-
             <button
               onClick={logout}
               className="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors border text-[color:var(--page)] border-[color:var(--page)] hover:bg-[color:var(--page)] hover:text-white"

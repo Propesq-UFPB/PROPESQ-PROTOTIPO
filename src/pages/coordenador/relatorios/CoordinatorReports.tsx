@@ -2,232 +2,181 @@ import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import {
   AlertCircle,
-  ArrowUpRight,
   CalendarDays,
   CheckCircle2,
-  ClipboardCheck,
-  ClipboardList,
+  Clock,
   FileSignature,
   FileText,
-  Filter,
-  FolderKanban,
-  Notebook,
   Search,
   Timer,
-  XCircle,
 } from "lucide-react"
 
 type ReportType = "Parcial" | "Final"
-
-type ReportStatus =
-  | "Não submetido"
-  | "Submetido"
-  | "Em análise"
-  | "Aprovado"
-  | "Aprovado com ressalvas"
-  | "Solicitar ajustes"
-  | "Reprovado"
+type ReportStatus = "Pendente" | "Submetido" | "Parecer emitido"
+type DeadlineAlert = "normal" | "proximo" | "vencido"
 
 type Report = {
   id: number
-  projectId: number
   planId: number
-  projectTitle: string
   planTitle: string
   studentName: string
   studentRegistration: string
-  studentCourse: string
-  edital: string
-  ano: string
-  area: string
   type: ReportType
   status: ReportStatus
-  submittedAt: string | null
   deadline: string
-  reviewer: string | null
+  submittedAt: string | null
   reviewedAt: string | null
-  title: string
-  summary: string
-  fileName: string | null
 }
 
 const reports: Report[] = [
   {
     id: 1,
-    projectId: 1,
     planId: 1,
-    projectTitle: "Desenvolvimento de Recursos de Acessibilidade Digital com VLibras",
     planTitle: "Prototipação de interfaces acessíveis para ambientes educacionais",
     studentName: "Ana Beatriz Santos",
     studentRegistration: "20230014567",
-    studentCourse: "Ciência da Computação",
-    edital: "PIBIC 2026",
-    ano: "2026",
-    area: "Interação Humano-Computador",
     type: "Parcial",
     status: "Submetido",
-    submittedAt: "08/05/2026",
     deadline: "15/05/2026",
-    reviewer: null,
+    submittedAt: "08/05/2026",
     reviewedAt: null,
-    title: "Relatório parcial sobre prototipação de interfaces acessíveis",
-    summary:
-      "O relatório apresenta as atividades iniciais de levantamento de requisitos, análise de acessibilidade e construção dos primeiros protótipos de interface.",
-    fileName: "relatorio_parcial_ana_beatriz.pdf",
   },
   {
     id: 2,
-    projectId: 1,
     planId: 1,
-    projectTitle: "Desenvolvimento de Recursos de Acessibilidade Digital com VLibras",
     planTitle: "Prototipação de interfaces acessíveis para ambientes educacionais",
     studentName: "Ana Beatriz Santos",
     studentRegistration: "20230014567",
-    studentCourse: "Ciência da Computação",
-    edital: "PIBIC 2026",
-    ano: "2026",
-    area: "Interação Humano-Computador",
     type: "Final",
-    status: "Não submetido",
-    submittedAt: null,
+    status: "Pendente",
     deadline: "30/07/2027",
-    reviewer: null,
+    submittedAt: null,
     reviewedAt: null,
-    title: "Relatório final",
-    summary:
-      "Relatório final ainda não submetido pelo discente. A submissão ficará disponível no período definido pelo edital.",
-    fileName: null,
   },
   {
     id: 3,
-    projectId: 1,
     planId: 2,
-    projectTitle: "Desenvolvimento de Recursos de Acessibilidade Digital com VLibras",
     planTitle: "Análise de dados de uso em ferramentas de acessibilidade",
     studentName: "João Victor Almeida",
     studentRegistration: "20220017890",
-    studentCourse: "Ciência de Dados e Inteligência Artificial",
-    edital: "PIBIC 2026",
-    ano: "2026",
-    area: "Ciência de Dados",
     type: "Parcial",
-    status: "Em análise",
-    submittedAt: "06/05/2026",
-    deadline: "15/05/2026",
-    reviewer: "Prof. Dr. Carlos Henrique Almeida",
+    status: "Submetido",
+    deadline: "02/06/2026",
+    submittedAt: "27/05/2026",
     reviewedAt: null,
-    title: "Relatório parcial de análise exploratória de dados de uso",
-    summary:
-      "O relatório descreve a organização inicial dos dados, indicadores preliminares e primeiras análises exploratórias sobre o uso da ferramenta.",
-    fileName: "relatorio_parcial_joao_victor.pdf",
   },
   {
     id: 4,
-    projectId: 2,
     planId: 3,
-    projectTitle: "Análise de Dados Educacionais para Monitoramento de Indicadores Acadêmicos",
     planTitle: "Construção de painel analítico para acompanhamento acadêmico",
     studentName: "Mariana Costa Lima",
     studentRegistration: "20210011223",
-    studentCourse: "Engenharia de Computação",
-    edital: "PIBITI 2026",
-    ano: "2026",
-    area: "Ciência de Dados",
     type: "Parcial",
-    status: "Solicitar ajustes",
-    submittedAt: "03/05/2026",
+    status: "Parecer emitido",
     deadline: "12/05/2026",
-    reviewer: "Profa. Dra. Marina Costa",
+    submittedAt: "03/05/2026",
     reviewedAt: "09/05/2026",
-    title: "Relatório parcial do painel analítico educacional",
-    summary:
-      "O relatório apresenta o levantamento de requisitos, modelagem inicial dos indicadores e primeiros protótipos do painel.",
-    fileName: "relatorio_parcial_mariana_lima.pdf",
   },
   {
     id: 5,
-    projectId: 3,
     planId: 4,
-    projectTitle: "Modelos Inteligentes para Apoio à Gestão de Projetos de Pesquisa",
     planTitle: "Implementação de módulo inteligente para triagem de propostas",
     studentName: "Pedro Henrique Silva",
     studentRegistration: "20240015678",
-    studentCourse: "Ciência da Computação",
-    edital: "PIBIC 2025",
-    ano: "2025",
-    area: "Inteligência Artificial",
     type: "Final",
-    status: "Aprovado com ressalvas",
-    submittedAt: "18/04/2026",
+    status: "Parecer emitido",
     deadline: "30/04/2026",
-    reviewer: "Prof. Dr. Renato Lima",
+    submittedAt: "18/04/2026",
     reviewedAt: "22/04/2026",
-    title: "Relatório final sobre módulo inteligente de triagem",
-    summary:
-      "O relatório final consolida as atividades de implementação, testes e documentação do módulo inteligente aplicado à triagem de propostas.",
-    fileName: "relatorio_final_pedro_silva.pdf",
   },
   {
     id: 6,
-    projectId: 4,
     planId: 5,
-    projectTitle: "Reconhecimento de Padrões em Sinais Multimodais Aplicados à Acessibilidade",
     planTitle: "Extração e análise de características em sinais multimodais",
     studentName: "Larissa Ferreira Gomes",
     studentRegistration: "20220019876",
-    studentCourse: "Ciência da Computação",
-    edital: "PIBITI 2025",
-    ano: "2025",
-    area: "Processamento de Sinais",
     type: "Final",
-    status: "Aprovado",
-    submittedAt: "15/04/2026",
-    deadline: "30/04/2026",
-    reviewer: "Prof. Dr. Carlos Henrique Almeida",
-    reviewedAt: "20/04/2026",
-    title: "Relatório final de análise de sinais multimodais",
-    summary:
-      "O relatório final apresenta a consolidação das técnicas aplicadas, resultados obtidos e discussão sobre os padrões observados nos sinais analisados.",
-    fileName: "relatorio_final_larissa_gomes.pdf",
+    status: "Pendente",
+    deadline: "05/06/2026",
+    submittedAt: null,
+    reviewedAt: null,
   },
 ]
 
-const editalOptions = ["Todos", "PIBIC 2026", "PIBITI 2026", "PIBIC 2025", "PIBITI 2025"]
-
-const typeOptions: Array<ReportType | "Todos"> = [
-  "Todos",
-  "Parcial",
-  "Final",
-]
+const typeOptions: Array<ReportType | "Todos"> = ["Todos", "Parcial", "Final"]
 
 const statusOptions: Array<ReportStatus | "Todos"> = [
   "Todos",
-  "Não submetido",
+  "Pendente",
   "Submetido",
-  "Em análise",
-  "Aprovado",
-  "Aprovado com ressalvas",
-  "Solicitar ajustes",
-  "Reprovado",
+  "Parecer emitido",
 ]
 
-const yearOptions = ["Todos", "2026", "2025"]
+function parseBrazilianDate(date: string) {
+  const [day, month, year] = date.split("/").map(Number)
+  return new Date(year, month - 1, day)
+}
+
+function getDaysUntilDeadline(deadline: string) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const deadlineDate = parseBrazilianDate(deadline)
+  deadlineDate.setHours(0, 0, 0, 0)
+
+  const diffTime = deadlineDate.getTime() - today.getTime()
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+}
+
+function getDeadlineAlert(report: Report): DeadlineAlert {
+  const days = getDaysUntilDeadline(report.deadline)
+
+  if (report.status === "Parecer emitido") {
+    return "normal"
+  }
+
+  if (days < 0) {
+    return "vencido"
+  }
+
+  if (days <= 7) {
+    return "proximo"
+  }
+
+  return "normal"
+}
+
+function getDeadlineLabel(report: Report) {
+  const days = getDaysUntilDeadline(report.deadline)
+  const alert = getDeadlineAlert(report)
+
+  if (report.status === "Parecer emitido") {
+    return "Concluído"
+  }
+
+  if (alert === "vencido") {
+    return `Vencido há ${Math.abs(days)} dia(s)`
+  }
+
+  if (alert === "proximo") {
+    if (days === 0) {
+      return "Vence hoje"
+    }
+
+    return `Vence em ${days} dia(s)`
+  }
+
+  return "Dentro do prazo"
+}
 
 function getStatusClass(status: ReportStatus) {
   switch (status) {
-    case "Aprovado":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700"
-    case "Aprovado com ressalvas":
-      return "border-teal-200 bg-teal-50 text-teal-700"
-    case "Solicitar ajustes":
+    case "Pendente":
       return "border-amber-200 bg-amber-50 text-amber-700"
-    case "Em análise":
-      return "border-violet-200 bg-violet-50 text-violet-700"
     case "Submetido":
       return "border-blue-200 bg-blue-50 text-blue-700"
-    case "Reprovado":
-      return "border-red-200 bg-red-50 text-red-700"
-    case "Não submetido":
+    case "Parecer emitido":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700"
     default:
       return "border-neutral/20 bg-neutral/10 text-neutral"
   }
@@ -235,21 +184,14 @@ function getStatusClass(status: ReportStatus) {
 
 function getStatusIcon(status: ReportStatus) {
   switch (status) {
-    case "Aprovado":
-      return <CheckCircle2 size={14} />
-    case "Aprovado com ressalvas":
-      return <ClipboardCheck size={14} />
-    case "Solicitar ajustes":
-      return <AlertCircle size={14} />
-    case "Em análise":
-      return <ClipboardList size={14} />
+    case "Pendente":
+      return <Timer size={14} />
     case "Submetido":
       return <FileText size={14} />
-    case "Reprovado":
-      return <XCircle size={14} />
-    case "Não submetido":
+    case "Parecer emitido":
+      return <CheckCircle2 size={14} />
     default:
-      return <Timer size={14} />
+      return <Clock size={14} />
   }
 }
 
@@ -261,12 +203,34 @@ function getTypeClass(type: ReportType) {
   return "border-primary/20 bg-primary/5 text-primary"
 }
 
+function getDeadlineClass(alert: DeadlineAlert) {
+  switch (alert) {
+    case "vencido":
+      return "border-red-200 bg-red-50 text-red-700"
+    case "proximo":
+      return "border-amber-200 bg-amber-50 text-amber-700"
+    case "normal":
+    default:
+      return "border-neutral/20 bg-neutral/5 text-neutral"
+  }
+}
+
+function getRowClass(alert: DeadlineAlert) {
+  switch (alert) {
+    case "vencido":
+      return "border-l-4 border-l-red-400 bg-red-50/40"
+    case "proximo":
+      return "border-l-4 border-l-amber-400 bg-amber-50/40"
+    case "normal":
+    default:
+      return "border-l-4 border-l-transparent"
+  }
+}
+
 export default function CoordinatorReports() {
   const [search, setSearch] = useState("")
-  const [selectedEdital, setSelectedEdital] = useState("Todos")
   const [selectedType, setSelectedType] = useState<ReportType | "Todos">("Todos")
   const [selectedStatus, setSelectedStatus] = useState<ReportStatus | "Todos">("Todos")
-  const [selectedYear, setSelectedYear] = useState("Todos")
 
   const filteredReports = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -274,67 +238,49 @@ export default function CoordinatorReports() {
     return reports.filter((report) => {
       const matchesSearch =
         !normalizedSearch ||
-        report.title.toLowerCase().includes(normalizedSearch) ||
-        report.projectTitle.toLowerCase().includes(normalizedSearch) ||
         report.planTitle.toLowerCase().includes(normalizedSearch) ||
         report.studentName.toLowerCase().includes(normalizedSearch) ||
-        report.studentRegistration.toLowerCase().includes(normalizedSearch) ||
-        report.studentCourse.toLowerCase().includes(normalizedSearch) ||
-        report.area.toLowerCase().includes(normalizedSearch) ||
-        report.edital.toLowerCase().includes(normalizedSearch)
+        report.studentRegistration.toLowerCase().includes(normalizedSearch)
 
-      const matchesEdital = selectedEdital === "Todos" || report.edital === selectedEdital
       const matchesType = selectedType === "Todos" || report.type === selectedType
       const matchesStatus = selectedStatus === "Todos" || report.status === selectedStatus
-      const matchesYear = selectedYear === "Todos" || report.ano === selectedYear
 
-      return matchesSearch && matchesEdital && matchesType && matchesStatus && matchesYear
+      return matchesSearch && matchesType && matchesStatus
     })
-  }, [search, selectedEdital, selectedType, selectedStatus, selectedYear])
+  }, [search, selectedType, selectedStatus])
 
   const summary = useMemo(() => {
-    const submitted = reports.filter((report) => report.status !== "Não submetido").length
-
-    const pendingReview = reports.filter(
-      (report) => report.status === "Submetido" || report.status === "Em análise"
-    ).length
-
-    const approved = reports.filter(
-      (report) =>
-        report.status === "Aprovado" ||
-        report.status === "Aprovado com ressalvas"
-    ).length
-
-    const adjustments = reports.filter(
-      (report) => report.status === "Solicitar ajustes"
-    ).length
+    const pending = reports.filter((report) => report.status === "Pendente").length
+    const submitted = reports.filter((report) => report.status === "Submetido").length
+    const reviewed = reports.filter((report) => report.status === "Parecer emitido").length
+    const overdue = reports.filter((report) => getDeadlineAlert(report) === "vencido").length
+    const closeDeadline = reports.filter((report) => getDeadlineAlert(report) === "proximo").length
 
     return {
       total: reports.length,
+      pending,
       submitted,
-      pendingReview,
-      approved,
-      adjustments,
+      reviewed,
+      overdue,
+      closeDeadline,
     }
   }, [])
 
   function clearFilters() {
     setSearch("")
-    setSelectedEdital("Todos")
     setSelectedType("Todos")
     setSelectedStatus("Todos")
-    setSelectedYear("Todos")
   }
 
   return (
     <main className="min-h-screen bg-[#F3F4F6]">
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         {/* HEADER */}
         <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
               <FileText size={14} />
-              Relatórios dos discentes
+              Lista de Relatórios
             </div>
 
             <h1 className="mt-3 text-2xl font-bold tracking-tight text-primary">
@@ -342,8 +288,8 @@ export default function CoordinatorReports() {
             </h1>
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
-              Acompanhe os relatórios parciais e finais submetidos pelos discentes vinculados aos seus planos de
-              trabalho, revise relatórios e solicite ajustes quando necessário.
+              Acompanhe relatórios parciais e finais dos discentes, com status de submissão,
+              prazo e indicação visual de vencimento.
             </p>
           </div>
 
@@ -357,129 +303,101 @@ export default function CoordinatorReports() {
             </p>
 
             <p className="mt-1 text-xs text-neutral">
-              de {reports.length} relatório(s) vinculados
+              de {reports.length} relatório(s)
             </p>
           </div>
         </section>
 
-        {/* INDICADORES */}
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {/* ALERTAS */}
+        {(summary.overdue > 0 || summary.closeDeadline > 0) && (
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {summary.overdue > 0 && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-700">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="mt-0.5 shrink-0" size={20} />
+
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {summary.overdue} relatório(s) com prazo vencido
+                    </p>
+
+                    <p className="mt-1 text-sm leading-6">
+                      Verifique os relatórios pendentes ou submetidos que ultrapassaram o prazo.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {summary.closeDeadline > 0 && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-700">
+                <div className="flex items-start gap-3">
+                  <Clock className="mt-0.5 shrink-0" size={20} />
+
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {summary.closeDeadline} relatório(s) com prazo próximo
+                    </p>
+
+                    <p className="mt-1 text-sm leading-6">
+                      Relatórios com vencimento em até 7 dias aparecem destacados na tabela.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* RESUMO */}
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
           <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Total vinculado
-                </p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
+              Total
+            </p>
 
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.total}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <FileText size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              Relatórios parciais e finais
+            <p className="mt-2 text-2xl font-bold text-primary">
+              {summary.total}
             </p>
           </div>
 
           <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Submetidos
-                </p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
+              Pendentes
+            </p>
 
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.submitted}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
-                <ClipboardList size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              Enviados pelos discentes
+            <p className="mt-2 text-2xl font-bold text-primary">
+              {summary.pending}
             </p>
           </div>
 
           <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Pendentes de revisão
-                </p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
+              Submetidos
+            </p>
 
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.pendingReview}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
-                <FileSignature size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              Submetidos ou em análise
+            <p className="mt-2 text-2xl font-bold text-primary">
+              {summary.submitted}
             </p>
           </div>
 
           <div className="rounded-2xl border border-neutral/30 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                  Concluídos
-                </p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
+              Parecer emitido
+            </p>
 
-                <p className="mt-2 text-2xl font-bold text-primary">
-                  {summary.approved}
-                </p>
-              </div>
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                <CheckCircle2 size={20} />
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral">
-              {summary.adjustments} com ajustes solicitados
+            <p className="mt-2 text-2xl font-bold text-primary">
+              {summary.reviewed}
             </p>
           </div>
         </section>
 
         {/* FILTROS */}
-        <section className="rounded-2xl border border-neutral/30 bg-white p-6">
-          <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                <Filter size={16} />
-                Busca e filtros
-              </div>
-
-              <p className="mt-1 text-xs text-neutral">
-                Localize relatórios por discente, matrícula, projeto, plano, edital, tipo ou situação.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-            >
-              Limpar filtros
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <section className="rounded-2xl border border-neutral/30 bg-white p-5">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
             <div className="lg:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-primary">
-                Buscar relatório
+                Buscar
               </label>
 
               <div className="relative">
@@ -492,28 +410,10 @@ export default function CoordinatorReports() {
                   type="text"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Discente, matrícula, projeto, plano ou relatório..."
+                  placeholder="Plano, discente ou matrícula..."
                   className="w-full rounded-xl border border-neutral/30 bg-white py-2.5 pl-10 pr-3 text-sm text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
                 />
               </div>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-primary">
-                Edital
-              </label>
-
-              <select
-                value={selectedEdital}
-                onChange={(event) => setSelectedEdital(event.target.value)}
-                className="w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
-              >
-                {editalOptions.map((edital) => (
-                  <option key={edital} value={edital}>
-                    {edital}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div>
@@ -523,7 +423,9 @@ export default function CoordinatorReports() {
 
               <select
                 value={selectedType}
-                onChange={(event) => setSelectedType(event.target.value as ReportType | "Todos")}
+                onChange={(event) =>
+                  setSelectedType(event.target.value as ReportType | "Todos")
+                }
                 className="w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
               >
                 {typeOptions.map((type) => (
@@ -536,12 +438,14 @@ export default function CoordinatorReports() {
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-primary">
-                Situação
+                Status
               </label>
 
               <select
                 value={selectedStatus}
-                onChange={(event) => setSelectedStatus(event.target.value as ReportStatus | "Todos")}
+                onChange={(event) =>
+                  setSelectedStatus(event.target.value as ReportStatus | "Todos")
+                }
                 className="w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
               >
                 {statusOptions.map((status) => (
@@ -553,81 +457,59 @@ export default function CoordinatorReports() {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-primary">
-                Ano
-              </label>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-neutral">
+              <strong className="font-semibold text-primary">
+                {filteredReports.length}
+              </strong>{" "}
+              relatório(s) encontrado(s).
+            </p>
 
-              <select
-                value={selectedYear}
-                onChange={(event) => setSelectedYear(event.target.value)}
-                className="w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
-              >
-                {yearOptions.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-end lg:col-span-4">
-              <div className="w-full rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3 text-sm text-neutral">
-                <strong className="font-semibold text-primary">
-                  {filteredReports.length}
-                </strong>{" "}
-                relatório(s) encontrado(s) conforme os filtros aplicados.
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center justify-center rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+            >
+              Limpar filtros
+            </button>
           </div>
         </section>
 
-        {/* LISTAGEM */}
+        {/* TABELA */}
         <section className="rounded-2xl border border-neutral/30 bg-white">
-          <div className="flex flex-col gap-3 border-b border-neutral/20 p-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-primary">
-                Relatórios recebidos
-              </h2>
+          <div className="border-b border-neutral/20 p-6">
+            <h2 className="text-base font-semibold text-primary">
+              Relatórios
+            </h2>
 
-              <p className="mt-1 text-sm text-neutral">
-                Acompanhe os relatórios submetidos pelos discentes e revise o relatório do coordenador.
-              </p>
-            </div>
-
-            <Link
-              to="/coordenador/indicacoes"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-            >
-              Ver indicações
-              <ArrowUpRight size={16} />
-            </Link>
+            <p className="mt-1 text-sm text-neutral">
+              Tabela com plano vinculado, discente, tipo, status e prazo.
+            </p>
           </div>
 
           {filteredReports.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] border-collapse">
+              <table className="w-full min-w-[940px] border-collapse">
                 <thead>
                   <tr className="border-b border-neutral/20 bg-neutral/5 text-left">
+                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
+                      Plano vinculado
+                    </th>
+
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
                       Discente
                     </th>
 
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Projeto / Plano
+                      Tipo
                     </th>
 
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Edital
+                      Status
                     </th>
 
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Prazo / Envio
-                    </th>
-
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Situação
+                      Prazo
                     </th>
 
                     <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral">
@@ -637,132 +519,128 @@ export default function CoordinatorReports() {
                 </thead>
 
                 <tbody>
-                  {filteredReports.map((report) => (
-                    <tr
-                      key={report.id}
-                      className="border-b border-neutral/10 transition last:border-b-0 hover:bg-neutral/5"
-                    >
-                      <td className="px-6 py-5 align-top">
-                        <div className="max-w-[220px]">
+                  {filteredReports.map((report) => {
+                    const deadlineAlert = getDeadlineAlert(report)
+
+                    return (
+                      <tr
+                        key={report.id}
+                        className={`border-b border-neutral/10 transition last:border-b-0 hover:bg-neutral/5 ${getRowClass(
+                          deadlineAlert
+                        )}`}
+                      >
+                        <td className="px-6 py-5 align-top">
+                          <div className="max-w-sm">
+                            <p className="text-sm font-semibold leading-5 text-primary">
+                              {report.planTitle}
+                            </p>
+
+                            <p className="mt-1 text-xs text-neutral">
+                              Plano #{report.planId}
+                            </p>
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-5 align-top">
                           <p className="text-sm font-semibold text-primary">
                             {report.studentName}
                           </p>
 
-                          <p className="mt-1 text-xs leading-5 text-neutral">
+                          <p className="mt-1 text-xs text-neutral">
                             Matrícula {report.studentRegistration}
                           </p>
+                        </td>
 
-                          <p className="mt-1 text-xs leading-5 text-neutral">
-                            {report.studentCourse}
-                          </p>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-5 align-top">
-                        <div className="max-w-sm">
-                          <p className="text-sm font-semibold leading-5 text-primary">
-                            {report.projectTitle}
-                          </p>
-
-                          <p className="mt-2 text-xs leading-5 text-neutral">
-                            Plano: {report.planTitle}
-                          </p>
-
-                          <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-neutral/20 bg-neutral/5 px-3 py-1 text-xs font-medium text-neutral">
-                            <Notebook size={13} />
-                            {report.area}
-                          </div>
-
-                          <div
-                            className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getTypeClass(
+                        <td className="px-6 py-5 align-top">
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getTypeClass(
                               report.type
                             )}`}
                           >
                             <FileText size={13} />
-                            Relatório {report.type}
-                          </div>
-                        </div>
-                      </td>
+                            {report.type}
+                          </span>
+                        </td>
 
-                      <td className="px-6 py-5 align-top">
-                        <p className="text-sm font-medium text-primary">
-                          {report.edital}
-                        </p>
+                        <td className="px-6 py-5 align-top">
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClass(
+                              report.status
+                            )}`}
+                          >
+                            {getStatusIcon(report.status)}
+                            {report.status}
+                          </span>
 
-                        <p className="mt-1 text-xs text-neutral">
-                          Ano {report.ano}
-                        </p>
-                      </td>
-
-                      <td className="px-6 py-5 align-top">
-                        <div className="space-y-2 text-sm text-neutral">
-                          <div className="inline-flex items-center gap-2">
-                            <CalendarDays size={15} />
-                            Prazo: {report.deadline}
-                          </div>
-
-                          <p className="text-xs">
-                            {report.submittedAt
-                              ? `Enviado em ${report.submittedAt}`
-                              : "Ainda não submetido"}
-                          </p>
-
-                          {report.reviewedAt && (
-                            <p className="text-xs">
-                              Revisado em {report.reviewedAt}
+                          {report.submittedAt && (
+                            <p className="mt-2 text-xs text-neutral">
+                              Submetido em {report.submittedAt}
                             </p>
                           )}
-                        </div>
-                      </td>
 
-                      <td className="px-6 py-5 align-top">
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClass(
-                            report.status
-                          )}`}
-                        >
-                          {getStatusIcon(report.status)}
-                          {report.status}
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-5 align-top">
-                        <div className="flex justify-end gap-2">
-                          <Link
-                            to={`/coordenador/projetos/${report.projectId}`}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                          >
-                            <FolderKanban size={15} />
-                            Projeto
-                          </Link>
-
-                          {report.status !== "Não submetido" ? (
-                            <Link
-                              to="/coordenador/relatorios/1/revisao"
-                              className={
-                                report.status === "Submetido" ||
-                                report.status === "Em análise"
-                                  ? "inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
-                                  : "inline-flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:border-primary/30 hover:bg-primary/10"
-                              }
-                            >
-                              <FileSignature size={15} />
-                              Revisar relatório
-                            </Link>
-                          ) : (
-                            <button
-                              type="button"
-                              disabled
-                              className="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-neutral/5 px-3 py-2 text-sm font-medium text-neutral/60"
-                            >
-                              <Timer size={15} />
-                              Aguardando
-                            </button>
+                          {report.reviewedAt && (
+                            <p className="mt-1 text-xs text-neutral">
+                              Parecer em {report.reviewedAt}
+                            </p>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+
+                        <td className="px-6 py-5 align-top">
+                          <div className="space-y-2">
+                            <div className="inline-flex items-center gap-2 text-sm text-neutral">
+                              <CalendarDays size={15} />
+                              {report.deadline}
+                            </div>
+
+                            <div
+                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getDeadlineClass(
+                                deadlineAlert
+                              )}`}
+                            >
+                              {deadlineAlert === "vencido" ? (
+                                <AlertCircle size={13} />
+                              ) : deadlineAlert === "proximo" ? (
+                                <Clock size={13} />
+                              ) : (
+                                <CheckCircle2 size={13} />
+                              )}
+
+                              {getDeadlineLabel(report)}
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-5 align-top">
+                          <div className="flex justify-end">
+                            {report.status === "Pendente" ? (
+                              <button
+                                type="button"
+                                disabled
+                                className="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-neutral/5 px-3 py-2 text-sm font-medium text-neutral/60"
+                              >
+                                <Timer size={15} />
+                                Aguardando
+                              </button>
+                            ) : (
+                              <Link
+                                to={`/coordenador/relatorios/${report.id}/revisao`}
+                                className={
+                                  report.status === "Submetido"
+                                    ? "inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
+                                    : "inline-flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:border-primary/30 hover:bg-primary/10"
+                                }
+                              >
+                                <FileSignature size={15} />
+                                {report.status === "Submetido"
+                                  ? "Emitir parecer"
+                                  : "Ver parecer"}
+                              </Link>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -777,8 +655,7 @@ export default function CoordinatorReports() {
               </h3>
 
               <p className="mt-1 max-w-md text-sm leading-6 text-neutral">
-                Não encontramos relatórios com os filtros selecionados. Tente limpar os filtros ou alterar os critérios
-                de busca.
+                Não encontramos relatórios com os filtros selecionados.
               </p>
 
               <button
