@@ -33,6 +33,9 @@ import {
   History,
   Folder,
   Search,
+  ClipboardCheck,
+  GitBranch,
+  Gavel,
 } from "lucide-react"
 
 import LogoImg from "@/utils/img/logo_propesq.png"
@@ -56,6 +59,26 @@ function isActive(pathname: string, to: string, end?: boolean) {
       pathname.startsWith("/adm/admprojetos/") ||
       pathname.startsWith("/adm/projetos")
     )
+  }
+
+  if (to === "/adm/avaliacao/avaliadores") {
+    return pathname === "/adm/avaliacao" || pathname.startsWith("/adm/avaliacao/")
+  }
+
+  if (to === "/adm/resultados/ranking") {
+    return pathname === "/adm/resultados" || pathname.startsWith("/adm/resultados/")
+  }
+
+  if (to === "/adm/monitoring/replacements") {
+    return pathname === "/adm/monitoring" || pathname.startsWith("/adm/monitoring/")
+  }
+
+  if (to === "/adm/calls/CreateCall") {
+    return pathname === "/adm/calls" || pathname.startsWith("/adm/calls/")
+  }
+
+  if (to === "/adm/settings/scholarships") {
+    return pathname === "/adm/settings" || pathname.startsWith("/adm/settings/")
   }
 
   if (to === "/discente/projetos") {
@@ -183,6 +206,9 @@ function themeFromPath(pathname: string): ThemeTokens {
 
   if (pathname.startsWith("/adm/avaliacao") || pathname.startsWith("/avaliacoes"))
     return { ...base, page: "#7C3AED", pageSoft: "#EDE9FE" }
+
+  if (pathname.startsWith("/adm/resultados"))
+    return { ...base, page: "#0891B2", pageSoft: "#CFFAFE" }
 
   if (pathname.startsWith("/adm/monitoring"))
     return { ...base, page: "#D97706", pageSoft: "#FFEDD5" }
@@ -543,7 +569,8 @@ export default function AppHeader() {
   const adminPrimary: NavItem[] = [
     { to: "/dashboard", label: "Dashboard", icon: <Home size={16} /> },
     { to: "/adm/admprojetos", label: "Projetos", icon: <FolderKanban size={16} /> },
-    { to: "/adm/avaliacao/classificacao", label: "Avaliação", icon: <FileSignature size={16} /> },
+    { to: "/adm/avaliacao/avaliadores", label: "Avaliação", icon: <FileSignature size={16} /> },
+    { to: "/adm/resultados/ranking", label: "Resultados", icon: <Award size={16} /> },
     { to: "/adm/monitoring/replacements", label: "Acompanhamento", icon: <BadgeCheck size={16} /> },
     { to: "/adm/calls/CreateCall", label: "Editais", icon: <LineChart size={16} /> },
     { to: "/adm/settings/scholarships", label: "Configurações", icon: <Settings size={16} /> },
@@ -560,11 +587,17 @@ export default function AppHeader() {
       { to: "/adm/projetos/status", label: "Alterar Situação", icon: <Workflow size={16} />, end: true },
       { to: "/adm/projetos/comunicacao", label: "Comunicação", icon: <Megaphone size={16} />, end: true },
     ],
-    "/adm/avaliacao/classificacao": [
+    "/adm/avaliacao/avaliadores": [
       // { to: "/adm/avaliacao", label: "Overview", icon: <FileSignature size={16} />, end: true },
-      { to: "/adm/avaliacao/classificacao", label: "Classificação", icon: <GraduationCap size={16} />, end: true },
-      { to: "/adm/avaliacao/pontuacao", label: "Pontuação & IPI", icon: <LineChart size={16} />, end: true },
       { to: "/adm/avaliacao/avaliadores", label: "Avaliadores", icon: <Users size={16} />, end: true },
+      { to: "/adm/avaliacao/distribuicao", label: "Distribuição de Avaliações", icon: <GitBranch size={16} />, end: true },
+      { to: "/adm/avaliacao/consolidacao", label: "Consolidação de Avaliações", icon: <ClipboardCheck size={16} />, end: true },
+      { to: "/adm/avaliacao/ipi", label: "Relatório IPI", icon: <FileText size={16} />, end: true },
+    ],
+    "/adm/resultados/ranking": [
+      { to: "/adm/resultados/ranking", label: "Ranking Final", icon: <Award size={16} />, end: true },
+      { to: "/adm/resultados/quotas", label: "Cotas", icon: <ShieldCheck size={16} />, end: true },
+      { to: "/adm/resultados/recursos", label: "Recursos", icon: <Gavel size={16} />, end: true },
     ],
     "/adm/monitoring/replacements": [
       // { to: "/adm/monitoring", label: "Overview", icon: <BadgeCheck size={16} />, end: true },
@@ -574,11 +607,10 @@ export default function AppHeader() {
     ],
     "/adm/calls/CreateCall": [
       //{ to: "/adm/calls", label: "Overview", icon: <FolderKanban size={16} />, end: true },
-      { to: "/adm/calls/CreateCall", label: "Criar Edital", icon: <Notebook size={16} />, end: true },
+      { to: "/adm/calls/CreateCall", label: "Novo Edital", icon: <Notebook size={16} />, end: true },
       { to: "/adm/calls/Manage", label: "Alterar/Remover", icon: <Pencil size={16} />, end: true },
       { to: "/adm/calls/CallSchedule", label: "Cronograma", icon: <ClipboardList size={16} />, end: true },
       { to: "/adm/calls/CallWorkflow", label: "Workflow", icon: <LineChart size={16} />, end: true },
-      { to: "/adm/calls/quotas", label: "Cotas", icon: <ShieldCheck size={16} />, end: true },
     ],
     "/adm/settings/scholarships": [
       //{ to: "/adm/settings", label: "Overview", icon: <Settings size={16} />, end: true },

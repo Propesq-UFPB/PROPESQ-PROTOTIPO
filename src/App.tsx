@@ -29,9 +29,10 @@ import Login from "./pages/Login"
 // admin pages
 import Dashboard from "./pages/adm/Dashboard"
 import EvaluationScore from "./pages/adm/avaliacao/EvaluationScore"
-import Classification from "./pages/adm/avaliacao/Classification"
-import IPIScore from "./pages/adm/avaliacao/IPIScore"
 import Evaluators from "./pages/adm/avaliacao/Evaluators"
+import AdminEvaluationDistribution from "./pages/adm/avaliacao/AdminEvaluationDistribution"
+import EvaluationConsolidation from "./pages/adm/avaliacao/EvaluationConsolidation";
+import AdminIPIReport from "./pages/adm/avaliacao/AdminIPIReport"
 
 import MonitoringCertification from "./pages/adm/monitoring/MonitoringCertification"
 import StudentReplacements from "./pages/adm/monitoring/StudentReplacements"
@@ -43,7 +44,10 @@ import CreateCall from "./pages/adm/calls/CreateCall"
 import CallSchedule from "./pages/adm/calls/CallSchedule"
 import CallWorkflow from "./pages/adm/calls/CallWorkflow"
 import AdmCallsManage from "./pages/adm/calls/Manage"
-import AdmCallQuotas from "./pages/adm/calls/Quotas"
+
+import AdmCallQuotas from "./pages/adm/resultados/Quotas"
+import AdminAppeals from "./pages/adm/resultados/Appeals"
+import AdminFinalRanking from "./pages/adm/resultados/AdminFinalRanking"
 
 import GlobalSettings from "./pages/adm/settings/GlobalSettings"
 import ScholarshipEntities from "./pages/adm/settings/ScholarshipEntities"
@@ -113,6 +117,7 @@ import DisSettings from "./pages/discente/DisSettings"
 import CoordinatorProjects from "./pages/coordenador/projetos/CoordinatorProjects"
 import CoordinatorProjectForm from "./pages/coordenador/projetos/CoordinatorProjectForm"
 import CoordinatorProjectView from "./pages/coordenador/projetos/CoordinatorProjectView"
+import CoordinatorProjectEdit from "./pages/coordenador/projetos/CoordinatorProjectEdit"
 
 import CoordinatorEvaluations from "./pages/coordenador/avaliacoes/CoordinatorEvaluations"
 import CoordinatorEvaluationDetail from "./pages/coordenador/avaliacoes/CoordinatorEvaluationDetail"
@@ -217,9 +222,14 @@ export default function App() {
         {/* SISTEMA */}
         <Route path="/dashboard" element={<Protected><Shell><Dashboard /></Shell></Protected>} />
         <Route path="/adm/avaliacao" element={<Protected><Shell><EvaluationScore /></Shell></Protected>} />
-        <Route path="/adm/avaliacao/classificacao" element={<Protected><Shell><Classification /></Shell></Protected>} />
-        <Route path="/adm/avaliacao/pontuacao" element={<Protected><Shell><IPIScore /></Shell></Protected>} />
         <Route path="/adm/avaliacao/avaliadores" element={<Protected><Shell><Evaluators /></Shell></Protected>} />
+        <Route path="/adm/avaliacao/distribuicao" element={<Protected><Shell><AdminEvaluationDistribution /></Shell></Protected>} />
+        <Route path="/adm/avaliacao/consolidacao" element={<Protected><Shell><EvaluationConsolidation /></Shell></Protected>} />
+        <Route path="/adm/avaliacao/ipi" element={<Protected><Shell><AdminIPIReport /></Shell></Protected>} />
+
+        <Route path="/adm/resultados/ranking" element={<Protected><Shell><AdminFinalRanking /></Shell></Protected>} />
+        <Route path="/adm/resultados/quotas" element={<Protected><Shell><AdmCallQuotas /></Shell></Protected>} />
+        <Route path="/adm/resultados/recursos" element={<Protected><Shell><AdminAppeals /></Shell></Protected>} />
 
         <Route path="/adm/monitoring" element={<Protected><Shell><MonitoringCertification /></Shell></Protected>} />
         <Route path="/adm/monitoring/replacements" element={<Protected><Shell><StudentReplacements /></Shell></Protected>} />
@@ -231,7 +241,6 @@ export default function App() {
         <Route path="/adm/calls/Manage" element={<Protected><Shell><AdmCallsManage /></Shell></Protected>} />
         <Route path="/adm/calls/CallSchedule" element={<Protected><Shell><CallSchedule /></Shell></Protected>} />
         <Route path="/adm/calls/CallWorkflow" element={<Protected><Shell><CallWorkflow /></Shell></Protected>} />
-        <Route path="/adm/calls/quotas" element={<Protected><Shell><AdmCallQuotas /></Shell></Protected>} />
 
         <Route path="/adm/settings" element={<Protected><Shell><GlobalSettings /></Shell></Protected>} />
         <Route path="/adm/settings/scholarships" element={<Protected><Shell><ScholarshipEntities /></Shell></Protected>} />
@@ -299,6 +308,7 @@ export default function App() {
         <Route path="/coordenador/projetos" element={<Protected><Shell><CoordinatorProjects /></Shell></Protected>} />
         <Route path="/coordenador/projetos/novo" element={<Protected><Shell><CoordinatorProjectForm /></Shell></Protected>} />
         <Route path="/coordenador/projetos/:id" element={<Protected><Shell><CoordinatorProjectView /></Shell></Protected>} />
+        <Route path="/coordenador/projetos/:id/editar" element={<Protected><Shell><CoordinatorProjectEdit /></Shell></Protected>} />
     
         <Route path="/coordenador/avaliacoes" element={<Protected><Shell><CoordinatorEvaluations /></Shell></Protected>} />
         <Route path="/coordenador/avaliacoes/:id" element={<Protected><Shell><CoordinatorEvaluationDetail /></Shell></Protected>} />

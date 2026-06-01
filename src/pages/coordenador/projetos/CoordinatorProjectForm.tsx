@@ -653,24 +653,6 @@ function CronogramaPicker({
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => applyModelo(modeloCronograma6Meses)}
-          className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:border-primary/30"
-        >
-          <CalendarDays size={14} />
-          Usar modelo 6 meses
-        </button>
-
-        <button
-          type="button"
-          onClick={() => applyModelo(modeloCronograma12Meses)}
-          className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:border-primary/30"
-        >
-          <CalendarDays size={14} />
-          Usar modelo 12 meses
-        </button>
-
-        <button
-          type="button"
           onClick={() => onChange([])}
           disabled={value.length === 0}
           className={cx(

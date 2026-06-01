@@ -415,7 +415,7 @@ export default function CoordinatorProjects() {
                     </th>
 
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Nota do projeto — NP
+                      Nota do projeto(NP)
                     </th>
 
                     <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral">
