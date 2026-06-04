@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowLeft,
+  BarChart3,
   CheckCircle2,
   CircleAlert,
   Clock3,
@@ -11,14 +12,21 @@ import {
   Send,
   ShieldAlert,
   Shuffle,
+  SlidersHorizontal,
   UserCheck,
   Users,
   XCircle,
 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import { Link } from "react-router-dom"
 
-type ProjectStatus = "SUBMETIDO" | "DISTRIBUIDO" | "PENDENTE" | "RECUSADO"
+type ProjectStatus =
+  | "SUBMETIDO"
+  | "DISTRIBUIDO"
+  | "PENDENTE"
+  | "RECUSADO"
+  | "INCOMPLETO"
+
 type AssignmentStatus = "PENDENTE" | "ACEITO" | "RECUSADO"
 
 type Project = {
@@ -54,6 +62,25 @@ type Assignment = {
   status: AssignmentStatus
   reason?: string
   sentAt: string
+}
+
+type DraftAssignment = {
+  id: number
+  projectId: number
+  evaluatorId: number
+  score: number
+  generatedBy: "AUTO"
+}
+
+type DistributionIssue = {
+  projectId: number
+  missing: number
+  reason: string
+}
+
+type DistributionPreview = {
+  draftAssignments: DraftAssignment[]
+  issues: DistributionIssue[]
 }
 
 const MIN_EVALUATORS_PER_PROJECT = 2
@@ -106,6 +133,18 @@ const projectsMock: Project[] = [
     subarea: "Políticas Educacionais",
     especialidade: "Avaliação Institucional",
     status: "RECUSADO",
+  },
+  {
+    id: 5,
+    code: "PVH-2026-005",
+    title: "Sistemas inteligentes aplicados à análise de dados públicos",
+    coordinator: "Dra. Juliana Freitas",
+    unit: "CI",
+    grandeArea: "Ciências Exatas e da Terra",
+    area: "Ciência da Computação",
+    subarea: "Sistemas de Informação",
+    especialidade: "Mineração de Dados",
+    status: "PENDENTE",
   },
 ]
 
@@ -210,6 +249,7 @@ function statusLabel(status: ProjectStatus) {
     DISTRIBUIDO: "Distribuído",
     PENDENTE: "Pendente",
     RECUSADO: "Com recusa",
+    INCOMPLETO: "Incompleto",
   }
 
   return map[status]
@@ -231,6 +271,7 @@ function statusClass(status: ProjectStatus) {
     DISTRIBUIDO: "border-emerald-200 bg-emerald-50 text-emerald-700",
     PENDENTE: "border-amber-200 bg-amber-50 text-amber-700",
     RECUSADO: "border-red-200 bg-red-50 text-red-700",
+    INCOMPLETO: "border-neutral/20 bg-neutral-light text-neutral",
   }
 
   return map[status]
@@ -250,10 +291,6 @@ function hasConflict(project: Project, evaluator: Evaluator) {
   return project.unit === evaluator.unit || project.coordinator === evaluator.name
 }
 
-function hasCapacity(evaluator: Evaluator) {
-  return evaluator.currentAssignments < evaluator.maxAssignments && !evaluator.unavailable
-}
-
 function affinityScore(project: Project, evaluator: Evaluator) {
   let score = 0
 
@@ -264,11 +301,218 @@ function affinityScore(project: Project, evaluator: Evaluator) {
   return score
 }
 
-function canEvaluate(project: Project, evaluator: Evaluator) {
-  return !hasConflict(project, evaluator) && hasCapacity(evaluator) && affinityScore(project, evaluator) > 0
+function activeAssignmentsByProject(projectId: number, assignments: Assignment[]) {
+  return assignments.filter(
+    (assignment) =>
+      assignment.projectId === projectId && assignment.status !== "RECUSADO",
+  )
 }
 
-function PageHeader() {
+function getProjectActiveCount(
+  projectId: number,
+  assignments: Assignment[],
+  draftAssignments: DraftAssignment[],
+) {
+  const active = activeAssignmentsByProject(projectId, assignments).length
+  const drafted = draftAssignments.filter(
+    (assignment) => assignment.projectId === projectId,
+  ).length
+
+  return active + drafted
+}
+
+function getEvaluatorProjectedLoad(
+  evaluatorId: number,
+  evaluators: Evaluator[],
+  draftAssignments: DraftAssignment[],
+) {
+  const evaluator = evaluators.find((item) => item.id === evaluatorId)
+
+  if (!evaluator) return 0
+
+  return (
+    evaluator.currentAssignments +
+    draftAssignments.filter((assignment) => assignment.evaluatorId === evaluatorId)
+      .length
+  )
+}
+
+function canEvaluateWithProjectedLoad({
+  project,
+  evaluator,
+  evaluators,
+  draftAssignments,
+}: {
+  project: Project
+  evaluator: Evaluator
+  evaluators: Evaluator[]
+  draftAssignments: DraftAssignment[]
+}) {
+  const projectedLoad = getEvaluatorProjectedLoad(
+    evaluator.id,
+    evaluators,
+    draftAssignments,
+  )
+
+  return (
+    !evaluator.unavailable &&
+    !hasConflict(project, evaluator) &&
+    affinityScore(project, evaluator) > 0 &&
+    projectedLoad < evaluator.maxAssignments
+  )
+}
+
+function smartScore({
+  project,
+  evaluator,
+  evaluators,
+  draftAssignments,
+}: {
+  project: Project
+  evaluator: Evaluator
+  evaluators: Evaluator[]
+  draftAssignments: DraftAssignment[]
+}) {
+  const affinity = affinityScore(project, evaluator)
+  const projectedLoad = getEvaluatorProjectedLoad(
+    evaluator.id,
+    evaluators,
+    draftAssignments,
+  )
+
+  const loadRatio = projectedLoad / evaluator.maxAssignments
+
+  // Pontuação:
+  // - afinidade pesa mais;
+  // - avaliador com carga menor ganha prioridade;
+  // - isso evita concentrar muitos projetos nos mesmos avaliadores.
+  return affinity * 100 - loadRatio * 30
+}
+
+function buildSmartDistribution({
+  projects,
+  evaluators,
+  assignments,
+}: {
+  projects: Project[]
+  evaluators: Evaluator[]
+  assignments: Assignment[]
+}): DistributionPreview {
+  const draftAssignments: DraftAssignment[] = []
+  const issues: DistributionIssue[] = []
+
+  const projectsToDistribute = projects
+    .filter((project) => project.status !== "DISTRIBUIDO")
+    .sort((a, b) => {
+      const aCandidates = evaluators.filter((evaluator) => {
+        return (
+          !evaluator.unavailable &&
+          !hasConflict(a, evaluator) &&
+          affinityScore(a, evaluator) > 0
+        )
+      }).length
+
+      const bCandidates = evaluators.filter((evaluator) => {
+        return (
+          !evaluator.unavailable &&
+          !hasConflict(b, evaluator) &&
+          affinityScore(b, evaluator) > 0
+        )
+      }).length
+
+      // Distribui primeiro os projetos com menos avaliadores possíveis.
+      // Isso reduz o risco de deixar os casos difíceis para o final.
+      return aCandidates - bCandidates
+    })
+
+  projectsToDistribute.forEach((project) => {
+    const activeAssignments = activeAssignmentsByProject(project.id, assignments)
+
+    let missing = Math.max(
+      MIN_EVALUATORS_PER_PROJECT - activeAssignments.length,
+      0,
+    )
+
+    const alreadyAssignedIds = new Set([
+      ...activeAssignments.map((assignment) => assignment.evaluatorId),
+      ...draftAssignments
+        .filter((assignment) => assignment.projectId === project.id)
+        .map((assignment) => assignment.evaluatorId),
+    ])
+
+    while (missing > 0) {
+      const candidates = evaluators
+        .filter((evaluator) => {
+          return (
+            !alreadyAssignedIds.has(evaluator.id) &&
+            canEvaluateWithProjectedLoad({
+              project,
+              evaluator,
+              evaluators,
+              draftAssignments,
+            })
+          )
+        })
+        .sort((a, b) => {
+          return (
+            smartScore({
+              project,
+              evaluator: b,
+              evaluators,
+              draftAssignments,
+            }) -
+            smartScore({
+              project,
+              evaluator: a,
+              evaluators,
+              draftAssignments,
+            })
+          )
+        })
+
+      const selected = candidates[0]
+
+      if (!selected) {
+        issues.push({
+          projectId: project.id,
+          missing,
+          reason:
+            "Não há avaliadores elegíveis suficientes com afinidade, sem conflito e com carga disponível.",
+        })
+        break
+      }
+
+      alreadyAssignedIds.add(selected.id)
+
+      draftAssignments.push({
+        id: Date.now() + draftAssignments.length + selected.id,
+        projectId: project.id,
+        evaluatorId: selected.id,
+        score: affinityScore(project, selected),
+        generatedBy: "AUTO",
+      })
+
+      missing -= 1
+    }
+  })
+
+  return {
+    draftAssignments,
+    issues,
+  }
+}
+
+function PageHeader({
+  totalProjects,
+  pendingProjects,
+  distributedProjects,
+  issueCount,
+}: {
+  totalProjects: number
+  pendingProjects: number
+  distributedProjects: number
+  issueCount: number
+}) {
   return (
     <section className="rounded-3xl border border-neutral/10 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -284,26 +528,27 @@ function PageHeader() {
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
               <GitBranch size={14} />
-              Distribuição de avaliações
+              Distribuição inteligente
             </div>
 
             <h1 className="text-2xl font-bold text-neutral-dark">
-              Distribuição de Projetos e Planos para Avaliação
+              Distribuição de Projetos para Avaliação
             </h1>
 
             <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
-              Tela operacional para atribuir projetos submetidos aos coordenadores
-              avaliadores, garantindo no mínimo dois avaliadores por projeto,
-              evitando conflitos de interesse e acompanhando aceite, recusa e
-              redistribuição.
+              Em vez de distribuir projeto por projeto, gere uma prévia automática
+              para todo o edital. O sistema prioriza afinidade, evita conflitos,
+              controla a carga dos avaliadores e destaca apenas os casos que
+              precisam de intervenção manual.
             </p>
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3 lg:w-[460px]">
-          <SummaryCard label="Projetos" value="4" icon={<GitBranch size={18} />} />
-          <SummaryCard label="Pendentes" value="2" icon={<Clock3 size={18} />} />
-          <SummaryCard label="Recusas" value="1" icon={<XCircle size={18} />} />
+        <div className="grid gap-3 sm:grid-cols-4 lg:w-[620px]">
+          <SummaryCard label="Projetos" value={totalProjects} icon={<GitBranch size={18} />} />
+          <SummaryCard label="Pendentes" value={pendingProjects} icon={<Clock3 size={18} />} />
+          <SummaryCard label="Distribuídos" value={distributedProjects} icon={<CheckCircle2 size={18} />} />
+          <SummaryCard label="Ajustes" value={issueCount} icon={<AlertTriangle size={18} />} />
         </div>
       </div>
     </section>
@@ -316,8 +561,8 @@ function SummaryCard({
   icon,
 }: {
   label: string
-  value: string
-  icon: React.ReactNode
+  value: number
+  icon: ReactNode
 }) {
   return (
     <div className="rounded-2xl border border-neutral/10 bg-neutral-light/60 p-4">
@@ -335,7 +580,7 @@ function SectionTitle({
   title,
   subtitle,
 }: {
-  icon: React.ReactNode
+  icon: ReactNode
   title: string
   subtitle?: string
 }) {
@@ -357,16 +602,50 @@ export default function AdminEvaluationDistribution() {
   const [projects, setProjects] = useState<Project[]>(projectsMock)
   const [evaluators, setEvaluators] = useState<Evaluator[]>(evaluatorsMock)
   const [assignments, setAssignments] = useState<Assignment[]>(assignmentsMock)
+  const [preview, setPreview] = useState<DistributionPreview | null>(null)
 
-  const [selectedProjectId, setSelectedProjectId] = useState(projectsMock[0].id)
   const [search, setSearch] = useState("")
   const [areaFilter, setAreaFilter] = useState("TODAS")
-
-  const selectedProject = projects.find((project) => project.id === selectedProjectId)
+  const [selectedIssueProjectId, setSelectedIssueProjectId] = useState<number | null>(
+    null,
+  )
 
   const availableAreas = useMemo(() => {
     return ["TODAS", ...Array.from(new Set(projects.map((project) => project.area)))]
   }, [projects])
+
+  const pendingProjects = projects.filter(
+    (project) => project.status !== "DISTRIBUIDO",
+  )
+
+  const distributedProjects = projects.filter(
+    (project) => project.status === "DISTRIBUIDO",
+  )
+
+  const issueProjects = useMemo(() => {
+    if (!preview) return []
+
+    return preview.issues
+      .map((issue) => {
+        const project = projects.find((item) => item.id === issue.projectId)
+
+        if (!project) return null
+
+        return {
+          issue,
+          project,
+        }
+      })
+      .filter(Boolean) as {
+      issue: DistributionIssue
+      project: Project
+    }[]
+  }, [preview, projects])
+
+  const selectedIssueProject =
+    projects.find((project) => project.id === selectedIssueProjectId) ??
+    issueProjects[0]?.project ??
+    null
 
   const filteredProjects = useMemo(() => {
     return projects.filter((project) => {
@@ -381,196 +660,210 @@ export default function AdminEvaluationDistribution() {
     })
   }, [projects, search, areaFilter])
 
-  const selectedAssignments = useMemo(() => {
-    if (!selectedProject) return []
+  const previewByProject = useMemo(() => {
+    const map = new Map<number, DraftAssignment[]>()
 
-    return assignments.filter(
-      (assignment) => assignment.projectId === selectedProject.id,
-    )
-  }, [assignments, selectedProject])
-
-  const selectedEvaluatorIds = selectedAssignments.map(
-    (assignment) => assignment.evaluatorId,
-  )
-
-  const assignedEvaluators = selectedAssignments
-    .map((assignment) => {
-      const evaluator = evaluators.find((item) => item.id === assignment.evaluatorId)
-
-      if (!evaluator) return null
-
-      return {
-        assignment,
-        evaluator,
-      }
+    preview?.draftAssignments.forEach((assignment) => {
+      const current = map.get(assignment.projectId) ?? []
+      map.set(assignment.projectId, [...current, assignment])
     })
-    .filter(Boolean) as {
-    assignment: Assignment
-    evaluator: Evaluator
-  }[]
 
-  const eligibleEvaluators = useMemo(() => {
-    if (!selectedProject) return []
+    return map
+  }, [preview])
 
+  const totalDraftAssignments = preview?.draftAssignments.length ?? 0
+
+  const projectsCompletedInPreview = useMemo(() => {
+    if (!preview) return 0
+
+    return pendingProjects.filter((project) => {
+      const activeCount = getProjectActiveCount(
+        project.id,
+        assignments,
+        preview.draftAssignments,
+      )
+
+      return activeCount >= MIN_EVALUATORS_PER_PROJECT
+    }).length
+  }, [preview, pendingProjects, assignments])
+
+  const projectedEvaluatorLoads = useMemo(() => {
     return evaluators
-      .map((evaluator) => ({
-        ...evaluator,
-        conflict: hasConflict(selectedProject, evaluator),
-        capacityAvailable: hasCapacity(evaluator),
-        score: affinityScore(selectedProject, evaluator),
-        alreadyAssigned: selectedEvaluatorIds.includes(evaluator.id),
-      }))
-      .sort((a, b) => b.score - a.score)
-  }, [evaluators, selectedProject, selectedEvaluatorIds])
+      .map((evaluator) => {
+        const added =
+          preview?.draftAssignments.filter(
+            (assignment) => assignment.evaluatorId === evaluator.id,
+          ).length ?? 0
 
-  const acceptedCount = selectedAssignments.filter(
-    (assignment) => assignment.status === "ACEITO",
-  ).length
+        return {
+          evaluator,
+          added,
+          projected: evaluator.currentAssignments + added,
+        }
+      })
+      .sort((a, b) => b.projected - a.projected)
+  }, [evaluators, preview])
 
-  const pendingCount = selectedAssignments.filter(
-    (assignment) => assignment.status === "PENDENTE",
-  ).length
+  function handleGenerateSmartPreview() {
+    const nextPreview = buildSmartDistribution({
+      projects,
+      evaluators,
+      assignments,
+    })
 
-  const declinedCount = selectedAssignments.filter(
-    (assignment) => assignment.status === "RECUSADO",
-  ).length
+    setPreview(nextPreview)
 
-  function handleSelectProject(projectId: number) {
-    setSelectedProjectId(projectId)
+    if (nextPreview.issues.length > 0) {
+      setSelectedIssueProjectId(nextPreview.issues[0].projectId)
+    } else {
+      setSelectedIssueProjectId(null)
+    }
   }
 
-  function handleAutoDistribution() {
-    if (!selectedProject) return
+  function handleConfirmPreview() {
+    if (!preview) return
 
-    const alreadyAssigned = assignments.filter(
-      (assignment) => assignment.projectId === selectedProject.id,
+    const today = new Date().toISOString().slice(0, 10)
+
+    const newAssignments: Assignment[] = preview.draftAssignments.map(
+      (assignment, index) => ({
+        id: Date.now() + index,
+        projectId: assignment.projectId,
+        evaluatorId: assignment.evaluatorId,
+        status: "PENDENTE",
+        sentAt: today,
+      }),
     )
 
-    const activeAssigned = alreadyAssigned.filter(
-      (assignment) => assignment.status !== "RECUSADO",
-    )
-
-    const missing = Math.max(
-      MIN_EVALUATORS_PER_PROJECT - activeAssigned.length,
-      0,
-    )
-
-    if (missing === 0) return
-
-    const candidates = evaluators
-      .filter((evaluator) => {
-        const already = activeAssigned.some(
-          (assignment) => assignment.evaluatorId === evaluator.id,
-        )
-
-        return !already && canEvaluate(selectedProject, evaluator)
-      })
-      .sort(
-        (a, b) =>
-          affinityScore(selectedProject, b) - affinityScore(selectedProject, a),
-      )
-      .slice(0, missing)
-
-    if (candidates.length === 0) return
-
-    const nextAssignments: Assignment[] = candidates.map((evaluator) => ({
-      id: Date.now() + evaluator.id,
-      projectId: selectedProject.id,
-      evaluatorId: evaluator.id,
-      status: "PENDENTE",
-      sentAt: new Date().toISOString().slice(0, 10),
-    }))
-
-    setAssignments((current) => [...current, ...nextAssignments])
+    setAssignments((current) => [...current, ...newAssignments])
 
     setEvaluators((current) =>
       current.map((evaluator) => {
-        const wasSelected = candidates.some((item) => item.id === evaluator.id)
-
-        if (!wasSelected) return evaluator
+        const added = preview.draftAssignments.filter(
+          (assignment) => assignment.evaluatorId === evaluator.id,
+        ).length
 
         return {
           ...evaluator,
-          currentAssignments: evaluator.currentAssignments + 1,
+          currentAssignments: evaluator.currentAssignments + added,
         }
       }),
     )
 
     setProjects((current) =>
-      current.map((project) =>
-        project.id === selectedProject.id
-          ? {
-              ...project,
-              status: "DISTRIBUIDO",
-            }
-          : project,
-      ),
+      current.map((project) => {
+        const activeCount = getProjectActiveCount(
+          project.id,
+          assignments,
+          preview.draftAssignments,
+        )
+
+        if (activeCount >= MIN_EVALUATORS_PER_PROJECT) {
+          return {
+            ...project,
+            status: "DISTRIBUIDO",
+          }
+        }
+
+        if (preview.issues.some((issue) => issue.projectId === project.id)) {
+          return {
+            ...project,
+            status: "INCOMPLETO",
+          }
+        }
+
+        return project
+      }),
     )
+
+    setPreview(null)
+    setSelectedIssueProjectId(null)
   }
 
-  function handleManualToggle(evaluatorId: number) {
-    if (!selectedProject) return
+  function handleClearPreview() {
+    setPreview(null)
+    setSelectedIssueProjectId(null)
+  }
 
-    const existing = assignments.find(
-      (assignment) =>
-        assignment.projectId === selectedProject.id &&
-        assignment.evaluatorId === evaluatorId,
-    )
+  function handleManualAddForIssue(evaluatorId: number) {
+    if (!selectedIssueProject || !preview) return
 
-    if (existing) {
-      setAssignments((current) =>
-        current.filter((assignment) => assignment.id !== existing.id),
+    const evaluator = evaluators.find((item) => item.id === evaluatorId)
+
+    if (!evaluator) return
+
+    const activeIds = activeAssignmentsByProject(
+      selectedIssueProject.id,
+      assignments,
+    ).map((assignment) => assignment.evaluatorId)
+
+    const draftIds = preview.draftAssignments
+      .filter((assignment) => assignment.projectId === selectedIssueProject.id)
+      .map((assignment) => assignment.evaluatorId)
+
+    const alreadyAssigned = [...activeIds, ...draftIds].includes(evaluator.id)
+
+    if (alreadyAssigned) {
+      const nextDraftAssignments = preview.draftAssignments.filter(
+        (assignment) =>
+          !(
+            assignment.projectId === selectedIssueProject.id &&
+            assignment.evaluatorId === evaluator.id
+          ),
       )
 
-      setEvaluators((current) =>
-        current.map((evaluator) =>
-          evaluator.id === evaluatorId
-            ? {
-                ...evaluator,
-                currentAssignments: Math.max(evaluator.currentAssignments - 1, 0),
-              }
-            : evaluator,
-        ),
-      )
+      setPreview({
+        draftAssignments: nextDraftAssignments,
+        issues: preview.issues,
+      })
 
       return
     }
 
-    const evaluator = evaluators.find((item) => item.id === evaluatorId)
-
-    if (!evaluator || !canEvaluate(selectedProject, evaluator)) return
-
-    const newAssignment: Assignment = {
-      id: Date.now(),
-      projectId: selectedProject.id,
-      evaluatorId,
-      status: "PENDENTE",
-      sentAt: new Date().toISOString().slice(0, 10),
+    if (
+      !canEvaluateWithProjectedLoad({
+        project: selectedIssueProject,
+        evaluator,
+        evaluators,
+        draftAssignments: preview.draftAssignments,
+      })
+    ) {
+      return
     }
 
-    setAssignments((current) => [...current, newAssignment])
+    const newDraftAssignment: DraftAssignment = {
+      id: Date.now(),
+      projectId: selectedIssueProject.id,
+      evaluatorId: evaluator.id,
+      score: affinityScore(selectedIssueProject, evaluator),
+      generatedBy: "AUTO",
+    }
 
-    setEvaluators((current) =>
-      current.map((item) =>
-        item.id === evaluatorId
-          ? {
-              ...item,
-              currentAssignments: item.currentAssignments + 1,
-            }
-          : item,
-      ),
+    const nextDraftAssignments = [...preview.draftAssignments, newDraftAssignment]
+
+    const activeCount = getProjectActiveCount(
+      selectedIssueProject.id,
+      assignments,
+      nextDraftAssignments,
     )
 
-    setProjects((current) =>
-      current.map((project) =>
-        project.id === selectedProject.id
-          ? {
-              ...project,
-              status: "DISTRIBUIDO",
-            }
-          : project,
-      ),
-    )
+    const nextIssues =
+      activeCount >= MIN_EVALUATORS_PER_PROJECT
+        ? preview.issues.filter(
+            (issue) => issue.projectId !== selectedIssueProject.id,
+          )
+        : preview.issues
+
+    setPreview({
+      draftAssignments: nextDraftAssignments,
+      issues: nextIssues,
+    })
+
+    if (nextIssues.length > 0) {
+      setSelectedIssueProjectId(nextIssues[0].projectId)
+    } else {
+      setSelectedIssueProjectId(null)
+    }
   }
 
   function handleResendDeclined(assignmentId: number) {
@@ -578,13 +871,16 @@ export default function AdminEvaluationDistribution() {
       (assignment) => assignment.id === assignmentId,
     )
 
-    if (!declinedAssignment || !selectedProject) return
+    const project = projects.find(
+      (item) => item.id === declinedAssignment?.projectId,
+    )
+
+    if (!declinedAssignment || !project) return
 
     const alreadyAssignedIds = assignments
       .filter(
         (assignment) =>
-          assignment.projectId === selectedProject.id &&
-          assignment.status !== "RECUSADO",
+          assignment.projectId === project.id && assignment.status !== "RECUSADO",
       )
       .map((assignment) => assignment.evaluatorId)
 
@@ -593,19 +889,24 @@ export default function AdminEvaluationDistribution() {
         return (
           !alreadyAssignedIds.includes(evaluator.id) &&
           evaluator.id !== declinedAssignment.evaluatorId &&
-          canEvaluate(selectedProject, evaluator)
+          !evaluator.unavailable &&
+          !hasConflict(project, evaluator) &&
+          affinityScore(project, evaluator) > 0 &&
+          evaluator.currentAssignments < evaluator.maxAssignments
         )
       })
-      .sort(
-        (a, b) =>
-          affinityScore(selectedProject, b) - affinityScore(selectedProject, a),
-      )[0]
+      .sort((a, b) => {
+        const aLoad = a.currentAssignments / a.maxAssignments
+        const bLoad = b.currentAssignments / b.maxAssignments
+
+        return affinityScore(project, b) - affinityScore(project, a) || aLoad - bLoad
+      })[0]
 
     if (!replacement) return
 
     const newAssignment: Assignment = {
       id: Date.now(),
-      projectId: selectedProject.id,
+      projectId: project.id,
       evaluatorId: replacement.id,
       status: "PENDENTE",
       sentAt: new Date().toISOString().slice(0, 10),
@@ -625,115 +926,218 @@ export default function AdminEvaluationDistribution() {
     )
   }
 
+  const manualCandidatesForIssue = useMemo(() => {
+    if (!selectedIssueProject || !preview) return []
+
+    const activeIds = activeAssignmentsByProject(
+      selectedIssueProject.id,
+      assignments,
+    ).map((assignment) => assignment.evaluatorId)
+
+    const draftIds = preview.draftAssignments
+      .filter((assignment) => assignment.projectId === selectedIssueProject.id)
+      .map((assignment) => assignment.evaluatorId)
+
+    return evaluators
+      .map((evaluator) => {
+        const score = affinityScore(selectedIssueProject, evaluator)
+        const projectedLoad = getEvaluatorProjectedLoad(
+          evaluator.id,
+          evaluators,
+          preview.draftAssignments,
+        )
+
+        const alreadyAssigned = [...activeIds, ...draftIds].includes(evaluator.id)
+
+        const blocked =
+          !alreadyAssigned &&
+          (!canEvaluateWithProjectedLoad({
+            project: selectedIssueProject,
+            evaluator,
+            evaluators,
+            draftAssignments: preview.draftAssignments,
+          }) ||
+            evaluator.unavailable)
+
+        return {
+          evaluator,
+          score,
+          projectedLoad,
+          alreadyAssigned,
+          blocked,
+          conflict: hasConflict(selectedIssueProject, evaluator),
+        }
+      })
+      .sort((a, b) => {
+        return b.score - a.score || a.projectedLoad - b.projectedLoad
+      })
+  }, [selectedIssueProject, preview, assignments, evaluators])
+
   return (
     <div className="min-h-screen bg-neutral-light">
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="space-y-6">
-          <PageHeader />
+          <PageHeader
+            totalProjects={projects.length}
+            pendingProjects={pendingProjects.length}
+            distributedProjects={distributedProjects.length}
+            issueCount={preview?.issues.length ?? 0}
+          />
 
-          <section className="grid gap-6 xl:grid-cols-[420px_1fr]">
+          <section className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <SectionTitle
+                icon={<Shuffle size={18} />}
+                title="Distribuição em lote"
+                subtitle="Gere uma prévia para todos os projetos pendentes antes de enviar os convites."
+              />
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={handleGenerateSmartPreview}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark"
+                >
+                  <Shuffle size={16} />
+                  Gerar prévia inteligente
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!preview || totalDraftAssignments === 0}
+                  onClick={handleConfirmPreview}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:border-neutral/10 disabled:bg-neutral-light disabled:text-neutral/50"
+                >
+                  <Send size={16} />
+                  Confirmar e enviar
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!preview}
+                  onClick={handleClearPreview}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/15 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-dark transition hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:text-neutral/40"
+                >
+                  <RefreshCcw size={16} />
+                  Limpar prévia
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-4">
+              <MetricCard
+                label="Projetos analisados"
+                value={pendingProjects.length}
+                icon={<GitBranch size={18} />}
+              />
+              <MetricCard
+                label="Atribuições sugeridas"
+                value={totalDraftAssignments}
+                icon={<UserCheck size={18} />}
+              />
+              <MetricCard
+                label="Projetos completos"
+                value={projectsCompletedInPreview}
+                icon={<CheckCircle2 size={18} />}
+              />
+              <MetricCard
+                label="Exigem ajuste"
+                value={preview?.issues.length ?? 0}
+                icon={<AlertTriangle size={18} />}
+                warning={Boolean(preview && preview.issues.length > 0)}
+              />
+            </div>
+
+            {preview ? (
+              <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                <div className="flex gap-3">
+                  <CircleAlert
+                    size={18}
+                    className="mt-0.5 shrink-0 text-blue-700"
+                  />
+                  <div>
+                    <h3 className="text-sm font-semibold text-blue-800">
+                      Prévia gerada
+                    </h3>
+                    <p className="mt-1 text-sm leading-6 text-blue-800">
+                      Nenhum convite foi enviado ainda. Revise os projetos com
+                      alerta, ajuste manualmente se necessário e depois clique em
+                      “Confirmar e enviar”.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-6">
               <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
                 <SectionTitle
-                  icon={<Filter size={18} />}
-                  title="Projetos submetidos"
-                  subtitle="Selecione um projeto para visualizar os avaliadores elegíveis."
+                  icon={<BarChart3 size={18} />}
+                  title="Carga projetada dos avaliadores"
+                  subtitle="Ajuda a verificar se a distribuição ficou equilibrada."
                 />
 
                 <div className="space-y-3">
-                  <div className="relative">
-                    <Search
-                      size={16}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral"
-                    />
-                    <input
-                      value={search}
-                      onChange={(event) => setSearch(event.target.value)}
-                      placeholder="Buscar por código, título ou coordenador"
-                      className="w-full rounded-xl border border-neutral/15 bg-white py-2.5 pl-9 pr-3 text-sm outline-none transition placeholder:text-neutral/60 focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
-                    />
-                  </div>
-
-                  <select
-                    value={areaFilter}
-                    onChange={(event) => setAreaFilter(event.target.value)}
-                    className="w-full rounded-xl border border-neutral/15 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
-                  >
-                    {availableAreas.map((area) => (
-                      <option key={area} value={area}>
-                        {area === "TODAS" ? "Todas as áreas" : area}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mt-5 space-y-3">
-                  {filteredProjects.map((project) => {
-                    const projectAssignments = assignments.filter(
-                      (assignment) => assignment.projectId === project.id,
+                  {projectedEvaluatorLoads.map(({ evaluator, added, projected }) => {
+                    const percent = Math.min(
+                      Math.round((projected / evaluator.maxAssignments) * 100),
+                      100,
                     )
-
-                    const activeAssignments = projectAssignments.filter(
-                      (assignment) => assignment.status !== "RECUSADO",
-                    )
-
-                    const isSelected = selectedProjectId === project.id
 
                     return (
-                      <button
-                        key={project.id}
-                        type="button"
-                        onClick={() => handleSelectProject(project.id)}
-                        className={`w-full rounded-2xl border p-4 text-left transition ${
-                          isSelected
-                            ? "border-primary/30 bg-primary/5 shadow-sm"
-                            : "border-neutral/10 bg-white hover:border-primary/20 hover:bg-primary/5"
-                        }`}
+                      <div
+                        key={evaluator.id}
+                        className="rounded-2xl border border-neutral/10 bg-white p-4"
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                           <div>
-                            <p className="text-xs font-semibold text-primary">
-                              {project.code}
-                            </p>
-                            <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-neutral-dark">
-                              {project.title}
+                            <h3 className="text-sm font-semibold text-neutral-dark">
+                              {evaluator.name}
                             </h3>
+                            <p className="mt-1 text-xs text-neutral">
+                              {evaluator.unit} · {evaluator.email}
+                            </p>
                           </div>
 
-                          <span
-                            className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusClass(
-                              project.status,
-                            )}`}
-                          >
-                            {statusLabel(project.status)}
-                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {added > 0 ? (
+                              <SmallBadge className="bg-primary/10 text-primary">
+                                +{added} na prévia
+                              </SmallBadge>
+                            ) : null}
+
+                            {evaluator.unavailable ? (
+                              <SmallBadge className="bg-neutral-light text-neutral">
+                                Indisponível
+                              </SmallBadge>
+                            ) : null}
+                          </div>
                         </div>
 
-                        <div className="mt-3 grid gap-2 text-xs text-neutral">
-                          <p>
-                            <strong>Área:</strong> {project.area}
-                          </p>
-                          <p>
-                            <strong>Unidade:</strong> {project.unit}
-                          </p>
-                        </div>
+                        <div className="mt-4">
+                          <div className="mb-1 flex justify-between text-xs text-neutral">
+                            <span>
+                              Carga: {projected}/{evaluator.maxAssignments}
+                            </span>
+                            <span>{percent}%</span>
+                          </div>
 
-                        <div className="mt-3 flex items-center gap-2 text-xs">
-                          {activeAssignments.length >= MIN_EVALUATORS_PER_PROJECT ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 font-medium text-emerald-700">
-                              <CheckCircle2 size={13} />
-                              {activeAssignments.length} avaliadores
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 font-medium text-amber-700">
-                              <AlertTriangle size={13} />
-                              Faltam{" "}
-                              {MIN_EVALUATORS_PER_PROJECT -
-                                activeAssignments.length}
-                            </span>
-                          )}
+                          <div className="h-2 overflow-hidden rounded-full bg-neutral-light">
+                            <div
+                              className={`h-full rounded-full ${
+                                percent >= 100
+                                  ? "bg-red-500"
+                                  : percent >= 80
+                                    ? "bg-amber-500"
+                                    : "bg-primary"
+                              }`}
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
                         </div>
-                      </button>
+                      </div>
                     )
                   })}
                 </div>
@@ -741,243 +1145,243 @@ export default function AdminEvaluationDistribution() {
             </div>
 
             <div className="space-y-6">
-              {selectedProject ? (
-                <>
-                  <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <SectionTitle
-                        icon={<GitBranch size={18} />}
-                        title="Projeto selecionado"
-                        subtitle="Dados usados para encontrar avaliadores compatíveis."
-                      />
+              <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
+                <SectionTitle
+                  icon={<AlertTriangle size={18} />}
+                  title="Fila de exceções"
+                  subtitle="O gestor só precisa atuar nos casos que o algoritmo não conseguiu resolver."
+                />
 
-                      <div className="flex flex-wrap gap-2">
+                {issueProjects.length > 0 ? (
+                  <div className="space-y-3">
+                    {issueProjects.map(({ issue, project }) => {
+                      const isSelected = selectedIssueProject?.id === project.id
+
+                      return (
                         <button
+                          key={project.id}
                           type="button"
-                          onClick={handleAutoDistribution}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark"
+                          onClick={() => setSelectedIssueProjectId(project.id)}
+                          className={`w-full rounded-2xl border p-4 text-left transition ${
+                            isSelected
+                              ? "border-red-200 bg-red-50"
+                              : "border-neutral/10 bg-white hover:border-red-200 hover:bg-red-50"
+                          }`}
                         >
-                          <Shuffle size={16} />
-                          Distribuir automaticamente
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-xs font-semibold text-primary">
+                                {project.code}
+                              </p>
+                              <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-neutral-dark">
+                                {project.title}
+                              </h3>
+                            </div>
+
+                            <SmallBadge className="bg-red-100 text-red-700">
+                              Faltam {issue.missing}
+                            </SmallBadge>
+                          </div>
+
+                          <p className="mt-3 text-xs leading-5 text-red-700">
+                            {issue.reason}
+                          </p>
                         </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-neutral/20 bg-neutral-light/60 p-6 text-center">
+                    <CheckCircle2 className="mx-auto text-emerald-600" size={28} />
+                    <h3 className="mt-3 text-sm font-semibold text-neutral-dark">
+                      Nenhuma exceção pendente
+                    </h3>
+                    <p className="mt-1 text-sm text-neutral">
+                      Quando a prévia for gerada, os problemas aparecerão aqui.
+                    </p>
+                  </div>
+                )}
+              </div>
 
-                        <button
-                          type="button"
-                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/15 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-dark transition hover:border-primary/30 hover:text-primary"
-                        >
-                          <Send size={16} />
-                          Enviar convites
-                        </button>
-                      </div>
-                    </div>
+              {selectedIssueProject && preview ? (
+                <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
+                  <SectionTitle
+                    icon={<SlidersHorizontal size={18} />}
+                    title="Ajuste manual da exceção"
+                    subtitle="Use apenas quando a distribuição automática não encontrar avaliadores suficientes."
+                  />
 
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      <InfoItem label="Código" value={selectedProject.code} />
-                      <InfoItem label="Coordenador" value={selectedProject.coordinator} />
-                      <InfoItem label="Grande área" value={selectedProject.grandeArea} />
-                      <InfoItem label="Área" value={selectedProject.area} />
-                      <InfoItem label="Subárea" value={selectedProject.subarea} />
-                      <InfoItem
-                        label="Especialidade"
-                        value={selectedProject.especialidade}
-                      />
-                    </div>
-
-                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                      <DistributionIndicator
-                        label="Aceites"
-                        value={acceptedCount}
-                        icon={<CheckCircle2 size={17} />}
-                        className="bg-emerald-50 text-emerald-700"
-                      />
-                      <DistributionIndicator
-                        label="Pendentes"
-                        value={pendingCount}
-                        icon={<Clock3 size={17} />}
-                        className="bg-amber-50 text-amber-700"
-                      />
-                      <DistributionIndicator
-                        label="Recusas"
-                        value={declinedCount}
-                        icon={<XCircle size={17} />}
-                        className="bg-red-50 text-red-700"
-                      />
-                    </div>
+                  <div className="mb-4 rounded-2xl border border-neutral/10 bg-neutral-light/60 p-4">
+                    <p className="text-xs font-semibold text-primary">
+                      {selectedIssueProject.code}
+                    </p>
+                    <h3 className="mt-1 text-sm font-semibold text-neutral-dark">
+                      {selectedIssueProject.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-neutral">
+                      {selectedIssueProject.area} · {selectedIssueProject.subarea}
+                    </p>
                   </div>
 
-                  <div className="grid gap-6 xl:grid-cols-2">
-                    <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
-                      <SectionTitle
-                        icon={<Users size={18} />}
-                        title="Avaliadores disponíveis"
-                        subtitle="Atribuição manual com validação de conflito e limite."
-                      />
-
-                      <div className="space-y-3">
-                        {eligibleEvaluators.map((evaluator) => {
-                          const blocked =
-                            evaluator.conflict ||
-                            !evaluator.capacityAvailable ||
-                            evaluator.score === 0
-
-                          return (
-                            <div
-                              key={evaluator.id}
-                              className="rounded-2xl border border-neutral/10 bg-white p-4"
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <h3 className="text-sm font-semibold text-neutral-dark">
-                                    {evaluator.name}
-                                  </h3>
-                                  <p className="mt-1 text-xs text-neutral">
-                                    {evaluator.unit} · {evaluator.email}
-                                  </p>
-                                </div>
-
-                                <button
-                                  type="button"
-                                  disabled={blocked && !evaluator.alreadyAssigned}
-                                  onClick={() => handleManualToggle(evaluator.id)}
-                                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                                    evaluator.alreadyAssigned
-                                      ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-                                      : blocked
-                                        ? "cursor-not-allowed border border-neutral/10 bg-neutral-light text-neutral/50"
-                                        : "border border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
-                                  }`}
-                                >
-                                  {evaluator.alreadyAssigned
-                                    ? "Remover"
-                                    : "Atribuir"}
-                                </button>
-                              </div>
-
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                <SmallBadge>
-                                  Afinidade: {evaluator.score}/6
-                                </SmallBadge>
-
-                                <SmallBadge>
-                                  Carga: {evaluator.currentAssignments}/
-                                  {evaluator.maxAssignments}
-                                </SmallBadge>
-
-                                {evaluator.conflict ? (
-                                  <SmallBadge className="bg-red-50 text-red-700">
-                                    <ShieldAlert size={13} />
-                                    Conflito
-                                  </SmallBadge>
-                                ) : null}
-
-                                {!evaluator.capacityAvailable ? (
-                                  <SmallBadge className="bg-amber-50 text-amber-700">
-                                    <CircleAlert size={13} />
-                                    Sem capacidade
-                                  </SmallBadge>
-                                ) : null}
-
-                                {evaluator.unavailable ? (
-                                  <SmallBadge className="bg-neutral-light text-neutral">
-                                    Indisponível
-                                  </SmallBadge>
-                                ) : null}
-                              </div>
+                  <div className="space-y-3">
+                    {manualCandidatesForIssue.map(
+                      ({
+                        evaluator,
+                        score,
+                        projectedLoad,
+                        alreadyAssigned,
+                        blocked,
+                        conflict,
+                      }) => (
+                        <div
+                          key={evaluator.id}
+                          className="rounded-2xl border border-neutral/10 bg-white p-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <h3 className="text-sm font-semibold text-neutral-dark">
+                                {evaluator.name}
+                              </h3>
+                              <p className="mt-1 text-xs text-neutral">
+                                {evaluator.unit} · {evaluator.email}
+                              </p>
                             </div>
-                          )
-                        })}
-                      </div>
-                    </div>
 
-                    <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
-                      <SectionTitle
-                        icon={<UserCheck size={18} />}
-                        title="Distribuição atual"
-                        subtitle="Acompanhamento de aceite, recusa e redistribuição."
-                      />
-
-                      {assignedEvaluators.length > 0 ? (
-                        <div className="space-y-3">
-                          {assignedEvaluators.map(({ assignment, evaluator }) => (
-                            <div
-                              key={assignment.id}
-                              className="rounded-2xl border border-neutral/10 bg-white p-4"
+                            <button
+                              type="button"
+                              disabled={blocked && !alreadyAssigned}
+                              onClick={() => handleManualAddForIssue(evaluator.id)}
+                              className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                                alreadyAssigned
+                                  ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                                  : blocked
+                                    ? "cursor-not-allowed border border-neutral/10 bg-neutral-light text-neutral/50"
+                                    : "border border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+                              }`}
                             >
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <h3 className="text-sm font-semibold text-neutral-dark">
-                                    {evaluator.name}
-                                  </h3>
-                                  <p className="mt-1 text-xs text-neutral">
-                                    Enviado em {assignment.sentAt}
-                                  </p>
-                                </div>
+                              {alreadyAssigned ? "Remover" : "Adicionar"}
+                            </button>
+                          </div>
 
-                                <span
-                                  className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${assignmentStatusClass(
-                                    assignment.status,
-                                  )}`}
-                                >
-                                  {assignmentStatusLabel(assignment.status)}
-                                </span>
-                              </div>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <SmallBadge>Afinidade: {score}/6</SmallBadge>
 
-                              {assignment.reason ? (
-                                <div className="mt-3 rounded-xl border border-red-100 bg-red-50 p-3 text-xs leading-5 text-red-700">
-                                  <strong>Justificativa:</strong>{" "}
-                                  {assignment.reason}
-                                </div>
-                              ) : null}
+                            <SmallBadge>
+                              Carga: {projectedLoad}/{evaluator.maxAssignments}
+                            </SmallBadge>
 
-                              {assignment.status === "RECUSADO" ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleResendDeclined(assignment.id)}
-                                  className="mt-3 inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/10"
-                                >
-                                  <RefreshCcw size={14} />
-                                  Reenviar para novo avaliador
-                                </button>
-                              ) : null}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="rounded-2xl border border-dashed border-neutral/20 bg-neutral-light/60 p-6 text-center">
-                          <Clock3 className="mx-auto text-neutral" size={28} />
-                          <h3 className="mt-3 text-sm font-semibold text-neutral-dark">
-                            Nenhuma distribuição realizada
-                          </h3>
-                          <p className="mt-1 text-sm text-neutral">
-                            Use a distribuição automática ou atribua avaliadores
-                            manualmente.
-                          </p>
-                        </div>
-                      )}
+                            {conflict ? (
+                              <SmallBadge className="bg-red-50 text-red-700">
+                                <ShieldAlert size={13} />
+                                Conflito
+                              </SmallBadge>
+                            ) : null}
 
-                      <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4">
-                        <div className="flex gap-3">
-                          <AlertTriangle
-                            size={18}
-                            className="mt-0.5 shrink-0 text-amber-700"
-                          />
-                          <div>
-                            <h3 className="text-sm font-semibold text-amber-800">
-                              Regra mínima
-                            </h3>
-                            <p className="mt-1 text-sm leading-6 text-amber-800">
-                              Cada projeto deve possuir pelo menos{" "}
-                              {MIN_EVALUATORS_PER_PROJECT} avaliadores ativos.
-                              Avaliadores com recusa justificada não contam para
-                              esse mínimo.
-                            </p>
+                            {projectedLoad >= evaluator.maxAssignments ? (
+                              <SmallBadge className="bg-amber-50 text-amber-700">
+                                <CircleAlert size={13} />
+                                Sem capacidade
+                              </SmallBadge>
+                            ) : null}
+
+                            {evaluator.unavailable ? (
+                              <SmallBadge className="bg-neutral-light text-neutral">
+                                Indisponível
+                              </SmallBadge>
+                            ) : null}
                           </div>
                         </div>
-                      </div>
-                    </div>
+                      ),
+                    )}
                   </div>
-                </>
+                </div>
               ) : null}
+
+              <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
+                <SectionTitle
+                  icon={<UserCheck size={18} />}
+                  title="Distribuições existentes"
+                  subtitle="Acompanhamento de aceite, recusa e redistribuição."
+                />
+
+                <div className="space-y-3">
+                  {assignments.map((assignment) => {
+                    const project = projects.find(
+                      (item) => item.id === assignment.projectId,
+                    )
+
+                    const evaluator = evaluators.find(
+                      (item) => item.id === assignment.evaluatorId,
+                    )
+
+                    if (!project || !evaluator) return null
+
+                    return (
+                      <div
+                        key={assignment.id}
+                        className="rounded-2xl border border-neutral/10 bg-white p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold text-primary">
+                              {project.code}
+                            </p>
+                            <h3 className="mt-1 text-sm font-semibold text-neutral-dark">
+                              {evaluator.name}
+                            </h3>
+                            <p className="mt-1 text-xs text-neutral">
+                              Enviado em {assignment.sentAt}
+                            </p>
+                          </div>
+
+                          <span
+                            className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${assignmentStatusClass(
+                              assignment.status,
+                            )}`}
+                          >
+                            {assignmentStatusLabel(assignment.status)}
+                          </span>
+                        </div>
+
+                        {assignment.reason ? (
+                          <div className="mt-3 rounded-xl border border-red-100 bg-red-50 p-3 text-xs leading-5 text-red-700">
+                            <strong>Justificativa:</strong> {assignment.reason}
+                          </div>
+                        ) : null}
+
+                        {assignment.status === "RECUSADO" ? (
+                          <button
+                            type="button"
+                            onClick={() => handleResendDeclined(assignment.id)}
+                            className="mt-3 inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/10"
+                          >
+                            <RefreshCcw size={14} />
+                            Redistribuir automaticamente
+                          </button>
+                        ) : null}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
+            <div className="flex gap-3">
+              <AlertTriangle size={20} className="mt-0.5 shrink-0 text-amber-700" />
+              <div>
+                <h3 className="text-sm font-semibold text-amber-800">
+                  Regra operacional recomendada para produção
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-amber-800">
+                  O gestor não deve escolher avaliadores manualmente para todos os
+                  projetos. A página deve gerar uma distribuição automática por
+                  lote, permitir conferência por indicadores e exigir ação manual
+                  somente em exceções: falta de avaliador, conflito de interesse,
+                  sobrecarga, recusa ou ausência de afinidade suficiente.
+                </p>
+              </div>
             </div>
           </section>
         </div>
@@ -986,33 +1390,30 @@ export default function AdminEvaluationDistribution() {
   )
 }
 
-function InfoItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-neutral/10 bg-neutral-light/60 p-4">
-      <p className="text-xs font-medium text-neutral">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-neutral-dark">{value}</p>
-    </div>
-  )
-}
-
-function DistributionIndicator({
+function MetricCard({
   label,
   value,
   icon,
-  className,
+  warning,
 }: {
   label: string
   value: number
-  icon: React.ReactNode
-  className?: string
+  icon: ReactNode
+  warning?: boolean
 }) {
   return (
-    <div className={`rounded-2xl p-4 ${className}`}>
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-semibold">{label}</span>
+    <div
+      className={`rounded-2xl border p-4 ${
+        warning
+          ? "border-amber-100 bg-amber-50 text-amber-800"
+          : "border-neutral/10 bg-neutral-light/60 text-neutral-dark"
+      }`}
+    >
+      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/70 text-primary">
         {icon}
       </div>
-      <p className="mt-2 text-2xl font-bold">{value}</p>
+      <p className="text-xs font-medium">{label}</p>
+      <p className="mt-1 text-2xl font-bold">{value}</p>
     </div>
   )
 }
@@ -1021,7 +1422,7 @@ function SmallBadge({
   children,
   className = "bg-neutral-light text-neutral",
 }: {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }) {
   return (
