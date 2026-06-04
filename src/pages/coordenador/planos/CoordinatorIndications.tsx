@@ -6,15 +6,11 @@ import {
   CheckCircle2,
   ClipboardList,
   ExternalLink,
-  Eye,
   Filter,
-  Info,
   Notebook,
-  RefreshCcw,
   Search,
   ShieldCheck,
   UserCheck,
-  UserPlus,
   Users,
   XCircle,
 } from "lucide-react"
@@ -353,9 +349,7 @@ function getSigaaStatusClass(status: Candidate["sigaaStatus"]) {
   }
 }
 
-export default function CoordinatorWorkPlans() {
-  const [plans, setPlans] = useState<IndicationPlan[]>(initialPlans)
-
+export default function CoordinatorIndication() {
   const [search, setSearch] = useState("")
   const [selectedEdital, setSelectedEdital] = useState("Todos")
   const [selectedStatus, setSelectedStatus] = useState<IndicationStatus | "Todos">("Todos")
@@ -363,18 +357,10 @@ export default function CoordinatorWorkPlans() {
   const [selectedTermStatus, setSelectedTermStatus] = useState<CommitmentTermStatus | "Todos">("Todos")
   const [selectedYear, setSelectedYear] = useState("Todos")
 
-  const [activePlanId, setActivePlanId] = useState<number | null>(null)
-  const [selectedCandidateId, setSelectedCandidateId] = useState<number | null>(null)
-  const [selectedIndicationType, setSelectedIndicationType] = useState<"Bolsista" | "Voluntário">("Bolsista")
-  const [bankName, setBankName] = useState("")
-  const [bankAgency, setBankAgency] = useState("")
-  const [bankAccount, setBankAccount] = useState("")
-  const [lastAction, setLastAction] = useState<"saved" | "substituted" | "invalid" | null>(null)
-
   const filteredPlans = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
 
-    return plans.filter((plan) => {
+    return initialPlans.filter((plan) => {
       const matchesSearch =
         !normalizedSearch ||
         plan.planTitle.toLowerCase().includes(normalizedSearch) ||
@@ -393,21 +379,22 @@ export default function CoordinatorWorkPlans() {
       const matchesEdital = selectedEdital === "Todos" || plan.edital === selectedEdital
       const matchesStatus = selectedStatus === "Todos" || plan.status === selectedStatus
       const matchesModality = selectedModality === "Todos" || plan.modality === selectedModality
-      const matchesTerm = selectedTermStatus === "Todos" || plan.commitmentTermStatus === selectedTermStatus
+      const matchesTerm =
+        selectedTermStatus === "Todos" || plan.commitmentTermStatus === selectedTermStatus
       const matchesYear = selectedYear === "Todos" || plan.ano === selectedYear
 
       return matchesSearch && matchesEdital && matchesStatus && matchesModality && matchesTerm && matchesYear
     })
-  }, [plans, search, selectedEdital, selectedStatus, selectedModality, selectedTermStatus, selectedYear])
+  }, [search, selectedEdital, selectedStatus, selectedModality, selectedTermStatus, selectedYear])
 
   const summary = useMemo(() => {
-    const totalPlans = plans.length
-    const pending = plans.filter((plan) => plan.status === "Pendente de indicação").length
-    const indicated = plans.filter((plan) => plan.indicatedStudent).length
-    const acceptedTerms = plans.filter(
+    const totalPlans = initialPlans.length
+    const pending = initialPlans.filter((plan) => plan.status === "Pendente de indicação").length
+    const indicated = initialPlans.filter((plan) => plan.indicatedStudent).length
+    const acceptedTerms = initialPlans.filter(
       (plan) => plan.commitmentTermStatus === "Aceito na Plataforma Carlos Chagas"
     ).length
-    const totalCandidates = plans.reduce((acc, plan) => acc + plan.candidates.length, 0)
+    const totalCandidates = initialPlans.reduce((acc, plan) => acc + plan.candidates.length, 0)
 
     return {
       totalPlans,
@@ -416,15 +403,7 @@ export default function CoordinatorWorkPlans() {
       acceptedTerms,
       totalCandidates,
     }
-  }, [plans])
-
-  const activePlan = useMemo(() => {
-    return plans.find((plan) => plan.id === activePlanId) ?? null
-  }, [plans, activePlanId])
-
-  const selectedCandidate = useMemo(() => {
-    return activePlan?.candidates.find((candidate) => candidate.id === selectedCandidateId) ?? null
-  }, [activePlan, selectedCandidateId])
+  }, [])
 
   function clearFilters() {
     setSearch("")
@@ -433,75 +412,6 @@ export default function CoordinatorWorkPlans() {
     setSelectedModality("Todos")
     setSelectedTermStatus("Todos")
     setSelectedYear("Todos")
-  }
-
-  function openIndicationForm(plan: IndicationPlan, candidate?: Candidate) {
-    const candidateToUse = candidate ?? plan.indicatedStudent ?? plan.candidates[0] ?? null
-
-    setActivePlanId(plan.id)
-    setSelectedCandidateId(candidateToUse?.id ?? null)
-    setSelectedIndicationType(plan.indicationType ?? (plan.modality === "Voluntário" ? "Voluntário" : "Bolsista"))
-    setBankName(plan.bankData?.bankName ?? "")
-    setBankAgency(plan.bankData?.agency ?? "")
-    setBankAccount(plan.bankData?.account ?? "")
-    setLastAction(null)
-  }
-
-  function closeIndicationForm() {
-    setActivePlanId(null)
-    setSelectedCandidateId(null)
-    setSelectedIndicationType("Bolsista")
-    setBankName("")
-    setBankAgency("")
-    setBankAccount("")
-  }
-
-  function saveIndication(action: "saved" | "substituted" = "saved") {
-    const needsBankData = selectedIndicationType === "Bolsista"
-
-    const hasRequiredFields =
-      activePlan &&
-      selectedCandidate &&
-      (!needsBankData ||
-        (bankName.trim().length > 0 &&
-          bankAgency.trim().length > 0 &&
-          bankAccount.trim().length > 0))
-
-    if (!hasRequiredFields || !activePlan || !selectedCandidate) {
-      setLastAction("invalid")
-      return
-    }
-
-    setPlans((current) =>
-      current.map((plan) =>
-        plan.id === activePlan.id
-          ? {
-              ...plan,
-              indicatedStudent: selectedCandidate,
-              indicationType: selectedIndicationType,
-              bankData:
-                selectedIndicationType === "Bolsista"
-                  ? {
-                      bankName: bankName.trim(),
-                      agency: bankAgency.trim(),
-                      account: bankAccount.trim(),
-                    }
-                  : null,
-              status:
-                plan.status === "Indicação aprovada"
-                  ? "Aguardando validação"
-                  : "Discente indicado",
-              commitmentTermStatus:
-                selectedIndicationType === "Bolsista"
-                  ? "Aguardando aceite"
-                  : "Não enviado",
-            }
-          : plan
-      )
-    )
-
-    setLastAction(action)
-    closeIndicationForm()
   }
 
   return (
@@ -519,8 +429,8 @@ export default function CoordinatorWorkPlans() {
             </h1>
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
-              Acompanhe os planos aprovados, visualize os discentes interessados via SIGAA e registre indicações ou
-              substituições.
+              Acompanhe os planos aprovados, veja os discentes interessados via SIGAA e acesse a página de detalhes para
+              confirmar indicação ou substituição.
             </p>
           </div>
 
@@ -534,12 +444,12 @@ export default function CoordinatorWorkPlans() {
             </p>
 
             <p className="mt-1 text-xs text-neutral">
-              de {plans.length} plano(s)
+              de {initialPlans.length} plano(s)
             </p>
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
           <SummaryCard
             label="Planos"
             value={summary.totalPlans}
@@ -565,6 +475,14 @@ export default function CoordinatorWorkPlans() {
           />
 
           <SummaryCard
+            label="Indicados"
+            value={summary.indicated}
+            description="Com discente vinculado"
+            icon={<UserCheck size={20} />}
+            iconClassName="bg-blue-50 text-blue-700"
+          />
+
+          <SummaryCard
             label="Termos aceitos"
             value={summary.acceptedTerms}
             description="Plataforma Carlos Chagas"
@@ -572,30 +490,6 @@ export default function CoordinatorWorkPlans() {
             iconClassName="bg-emerald-50 text-emerald-700"
           />
         </section>
-
-        {lastAction === "saved" && (
-          <AlertBox
-            type="success"
-            title="Indicação registrada"
-            description="A indicação foi registrada no protótipo e ficará aguardando validação."
-          />
-        )}
-
-        {lastAction === "substituted" && (
-          <AlertBox
-            type="info"
-            title="Substituição registrada"
-            description="A substituição foi registrada no protótipo."
-          />
-        )}
-
-        {lastAction === "invalid" && (
-          <AlertBox
-            type="warning"
-            title="Campos obrigatórios pendentes"
-            description="Selecione um candidato e preencha os dados necessários antes de confirmar."
-          />
-        )}
 
         <section className="rounded-2xl border border-neutral/30 bg-white p-6">
           <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -606,7 +500,7 @@ export default function CoordinatorWorkPlans() {
               </div>
 
               <p className="mt-1 text-xs text-neutral">
-                Filtre por edital, situação, modalidade, termo, ano ou candidato.
+                Filtre por edital, situação, modalidade, termo, ano, plano ou discente.
               </p>
             </div>
 
@@ -635,13 +529,18 @@ export default function CoordinatorWorkPlans() {
                   type="text"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Plano, projeto, área, matrícula ou candidato..."
+                  placeholder="Plano, projeto, área, matrícula ou discente..."
                   className="w-full rounded-xl border border-neutral/30 bg-white py-2.5 pl-10 pr-3 text-sm text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
                 />
               </div>
             </div>
 
-            <FilterSelect label="Edital" value={selectedEdital} onChange={setSelectedEdital} options={editalOptions} />
+            <FilterSelect
+              label="Edital"
+              value={selectedEdital}
+              onChange={setSelectedEdital}
+              options={editalOptions}
+            />
 
             <FilterSelect
               label="Situação"
@@ -666,7 +565,12 @@ export default function CoordinatorWorkPlans() {
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-6">
-            <FilterSelect label="Ano" value={selectedYear} onChange={setSelectedYear} options={yearOptions} />
+            <FilterSelect
+              label="Ano"
+              value={selectedYear}
+              onChange={setSelectedYear}
+              options={yearOptions}
+            />
 
             <div className="flex items-end lg:col-span-5">
               <div className="w-full rounded-xl border border-neutral/20 bg-neutral/5 px-4 py-3 text-sm text-neutral">
@@ -679,410 +583,230 @@ export default function CoordinatorWorkPlans() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_390px]">
-          <div className="space-y-5">
-            <section className="rounded-2xl border border-neutral/30 bg-white">
-              <div className="flex flex-col gap-3 border-b border-neutral/20 p-6 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h2 className="text-base font-semibold text-primary">
-                    Planos aprovados e candidatos interessados
-                  </h2>
+        <section className="rounded-2xl border border-neutral/30 bg-white">
+          <div className="flex flex-col gap-3 border-b border-neutral/20 p-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-primary">
+                Planos aprovados e discentes interessados
+              </h2>
 
-                  <p className="mt-1 text-sm text-neutral">
-                    Veja os candidatos do SIGAA e realize a indicação.
-                  </p>
-                </div>
+              <p className="mt-1 text-sm text-neutral">
+                A indicação agora é feita em uma página própria com os dados completos do discente.
+              </p>
+            </div>
 
-                <Link
-                  to="/coordenador/projetos"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                >
-                  Ver projetos
-                  <ArrowUpRight size={16} />
-                </Link>
-              </div>
-
-              {filteredPlans.length > 0 ? (
-                <div className="divide-y divide-neutral/10">
-                  {filteredPlans.map((plan) => (
-                    <article key={plan.id} className="p-6 transition hover:bg-neutral/5">
-                      <div className="flex flex-col gap-5">
-                        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                          <div className="max-w-3xl">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                                <Notebook size={14} />
-                                Plano aprovado
-                              </span>
-
-                              <span
-                                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClass(
-                                  plan.status
-                                )}`}
-                              >
-                                {getStatusIcon(plan.status)}
-                                {plan.status}
-                              </span>
-
-                              <span
-                                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getModalityClass(
-                                  plan.modality
-                                )}`}
-                              >
-                                {plan.modality}
-                              </span>
-
-                              <span
-                                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getTermClass(
-                                  plan.commitmentTermStatus
-                                )}`}
-                              >
-                                <ShieldCheck size={14} />
-                                {plan.commitmentTermStatus}
-                              </span>
-                            </div>
-
-                            <h3 className="mt-3 text-base font-semibold leading-6 text-primary">
-                              {plan.planTitle}
-                            </h3>
-
-                            <p className="mt-2 text-sm leading-6 text-neutral">
-                              Projeto vinculado:{" "}
-                              <span className="font-medium text-primary">
-                                {plan.projectTitle}
-                              </span>
-                            </p>
-
-                            <div className="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
-                              <MiniInfo label="Edital" value={`${plan.edital} • ${plan.ano}`} />
-                              <MiniInfo label="Área" value={plan.area} />
-                              <MiniInfo label="Carga semanal" value={`${plan.workload}h`} />
-                            </div>
-
-                            <div className="mt-3 grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
-                              <MiniInfo label="Vigência" value={`${plan.validityStart} a ${plan.validityEnd}`} />
-                              <MiniInfo label="Prazo indicação" value={plan.indicationDeadline} />
-                              <MiniInfo label="Prazo substituição" value={plan.substitutionDeadline} />
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
-                            <Link
-                              to={`/coordenador/projetos/${plan.projectId}`}
-                              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                            >
-                              <Eye size={16} />
-                              Ver projeto
-                            </Link>
-
-                            <button
-                              type="button"
-                              onClick={() => openIndicationForm(plan)}
-                              className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
-                            >
-                              <UserPlus size={16} />
-                              {plan.indicatedStudent ? "Alterar indicação" : "Indicar discente"}
-                            </button>
-
-                            {plan.indicatedStudent && (
-                              <button
-                                type="button"
-                                onClick={() => openIndicationForm(plan)}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                              >
-                                <RefreshCcw size={16} />
-                                Substituir discente
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-                          <p className="text-sm font-semibold text-primary">
-                            Discente indicado
-                          </p>
-
-                          {plan.indicatedStudent ? (
-                            <div className="mt-3 flex flex-col gap-3 rounded-xl border border-neutral/20 bg-white p-4 md:flex-row md:items-center md:justify-between">
-                              <div>
-                                <p className="text-sm font-semibold text-primary">
-                                  {plan.indicatedStudent.name}
-                                </p>
-
-                                <p className="mt-1 text-xs leading-5 text-neutral">
-                                  {plan.indicatedStudent.registration} • {plan.indicatedStudent.course} •{" "}
-                                  {plan.indicatedStudent.semester} • CRA {plan.indicatedStudent.cra}
-                                </p>
-                              </div>
-
-                              {plan.indicationType && (
-                                <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                                  <UserCheck size={14} />
-                                  {plan.indicationType}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <p className="mt-2 text-sm leading-6 text-neutral">
-                              Nenhum discente indicado para este plano.
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="border-t border-neutral/10 pt-4">
-                          <div className="mb-2 flex items-center justify-between gap-3">
-                            <p className="text-sm font-semibold text-primary">
-                              Candidatos interessados via SIGAA
-                            </p>
-
-                            <span className="text-xs text-neutral">
-                              {plan.candidates.length} candidato(s)
-                            </span>
-                          </div>
-
-                          <ul className="divide-y divide-neutral/10 rounded-xl border border-neutral/10 bg-white">
-                            {plan.candidates.map((candidate) => (
-                              <CandidateCard
-                                key={candidate.id}
-                                candidate={candidate}
-                                onIndicate={() => openIndicationForm(plan, candidate)}
-                              />
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral/10 text-neutral">
-                    <Search size={24} />
-                  </div>
-
-                  <h3 className="mt-4 text-base font-semibold text-primary">
-                    Nenhum plano encontrado
-                  </h3>
-
-                  <p className="mt-1 max-w-md text-sm leading-6 text-neutral">
-                    Tente limpar os filtros ou alterar os critérios de busca.
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    className="mt-5 inline-flex items-center justify-center rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                  >
-                    Limpar filtros
-                  </button>
-                </div>
-              )}
-            </section>
+            <Link
+              to="/coordenador/projetos"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+            >
+              Ver projetos
+              <ArrowUpRight size={16} />
+            </Link>
           </div>
 
-          <aside className="space-y-6">
-            <section className="rounded-2xl border border-neutral/30 bg-white p-6">
-              <div className="mb-5 flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <UserPlus size={20} />
-                </div>
-
-                <div>
-                  <h2 className="text-base font-semibold text-primary">
-                    {activePlan ? "Registrar indicação" : "Selecione um plano"}
-                  </h2>
-
-                  <p className="mt-1 text-sm leading-6 text-neutral">
-                    {activePlan
-                      ? "Escolha um candidato, defina a modalidade e informe os dados necessários."
-                      : "Clique em “Indicar discente” em um plano aprovado."}
-                  </p>
-                </div>
-              </div>
-
-              {activePlan ? (
-                <div className="space-y-4">
-                  <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
-                      Plano selecionado
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold leading-6 text-primary">
-                      {activePlan.planTitle}
-                    </p>
-
-                    <p className="mt-1 text-xs text-neutral">
-                      {activePlan.edital} • {activePlan.modality}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className={labelClassName}>
-                      Candidato interessado
-                    </label>
-
-                    <select
-                      value={selectedCandidateId ?? ""}
-                      onChange={(event) => setSelectedCandidateId(Number(event.target.value))}
-                      className={inputClassName}
-                    >
-                      {activePlan.candidates.map((candidate) => (
-                        <option key={candidate.id} value={candidate.id}>
-                          {candidate.name} — {candidate.registration}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {selectedCandidate && (
-                    <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-                      <p className="text-sm font-semibold text-primary">
-                        {selectedCandidate.name}
-                      </p>
-
-                      <p className="mt-1 text-xs leading-5 text-neutral">
-                        {selectedCandidate.registration} • {selectedCandidate.course}
-                      </p>
-
-                      <p className="mt-1 text-xs leading-5 text-neutral">
-                        CRA {selectedCandidate.cra} • {selectedCandidate.completedCredits} créditos •{" "}
-                        {selectedCandidate.failures} reprovação(ões)
-                      </p>
-
-                      <a
-                        href={selectedCandidate.lattesUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary transition hover:text-primary/80"
-                      >
-                        Ver Currículo Lattes
-                        <ExternalLink size={13} />
-                      </a>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className={labelClassName}>
-                      Tipo de indicação
-                    </label>
-
-                    <select
-                      value={selectedIndicationType}
-                      onChange={(event) =>
-                        setSelectedIndicationType(event.target.value as "Bolsista" | "Voluntário")
-                      }
-                      className={inputClassName}
-                    >
-                      {(activePlan.modality === "Bolsista" ||
-                        activePlan.modality === "Bolsista ou Voluntário") && (
-                        <option value="Bolsista">
-                          Bolsista
-                        </option>
-                      )}
-
-                      {(activePlan.modality === "Voluntário" ||
-                        activePlan.modality === "Bolsista ou Voluntário") && (
-                        <option value="Voluntário">
-                          Voluntário
-                        </option>
-                      )}
-                    </select>
-                  </div>
-
-                  {selectedIndicationType === "Bolsista" && (
-                    <div className="space-y-3 rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-                      <p className="text-sm font-semibold text-primary">
-                        Dados bancários
-                      </p>
-
-                      <div>
-                        <label className={labelClassName}>
-                          Banco <span className="text-red-500">*</span>
-                        </label>
-
-                        <input
-                          type="text"
-                          value={bankName}
-                          onChange={(event) => setBankName(event.target.value)}
-                          placeholder="Ex.: Banco do Brasil"
-                          className={inputClassName}
-                        />
-                      </div>
-
-                      <div>
-                        <label className={labelClassName}>
-                          Agência <span className="text-red-500">*</span>
-                        </label>
-
-                        <input
-                          type="text"
-                          value={bankAgency}
-                          onChange={(event) => setBankAgency(event.target.value)}
-                          placeholder="Ex.: 1234-5"
-                          className={inputClassName}
-                        />
-                      </div>
-
-                      <div>
-                        <label className={labelClassName}>
-                          Conta <span className="text-red-500">*</span>
-                        </label>
-
-                        <input
-                          type="text"
-                          value={bankAccount}
-                          onChange={(event) => setBankAccount(event.target.value)}
-                          placeholder="Ex.: 98765-4"
-                          className={inputClassName}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedIndicationType === "Bolsista" && (
-                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-                      <div className="flex gap-3">
-                        <Info size={18} className="mt-0.5 shrink-0 text-blue-700" />
-
-                        <p className="text-sm leading-6 text-blue-700">
-                          Para bolsista, o termo de compromisso CNPq deve ser aceito na Plataforma Carlos Chagas.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={() => saveIndication(activePlan.indicatedStudent ? "substituted" : "saved")}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
-                    >
-                      {activePlan.indicatedStudent ? <RefreshCcw size={16} /> : <UserCheck size={16} />}
-                      {activePlan.indicatedStudent ? "Confirmar substituição" : "Confirmar indicação"}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={closeIndicationForm}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-                  <p className="text-sm leading-6 text-neutral">
-                    Selecione um plano aprovado para visualizar os candidatos interessados via SIGAA e registrar a
-                    indicação.
-                  </p>
-                </div>
-              )}
-            </section>
-          </aside>
+          {filteredPlans.length > 0 ? (
+            <div className="divide-y divide-neutral/10">
+              {filteredPlans.map((plan) => (
+                <PlanCard key={plan.id} plan={plan} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState onClearFilters={clearFilters} />
+          )}
         </section>
       </div>
     </main>
+  )
+}
+
+function PlanCard({ plan }: { plan: IndicationPlan }) {
+  const mainActionLabel = plan.indicatedStudent ? "Ver / alterar indicação" : "Indicar discente"
+
+  return (
+    <article className="p-6 transition hover:bg-neutral/5">
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-4xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <Notebook size={14} />
+                Plano aprovado
+              </span>
+
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getModalityClass(
+                  plan.modality
+                )}`}
+              >
+                {plan.modality}
+              </span>
+
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClass(
+                  plan.status
+                )}`}
+              >
+                {getStatusIcon(plan.status)}
+                {plan.status}
+              </span>
+            </div>
+
+            <h3 className="mt-3 text-base font-semibold leading-6 text-primary">
+              {plan.planTitle}
+            </h3>
+
+            <p className="mt-2 text-sm leading-6 text-neutral">
+              Projeto vinculado:{" "}
+              <span className="font-medium text-primary">
+                {plan.projectTitle}
+              </span>
+            </p>
+          </div>
+
+          <Link
+            to={`/coordenador/planos/indicacoes/${plan.id}`}
+            className="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+          >
+            <UserCheck size={16} />
+            {mainActionLabel}
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
+          <MiniInfo label="Edital" value={`${plan.edital} • ${plan.ano}`} />
+          <MiniInfo label="Área" value={plan.area} />
+          <MiniInfo label="Carga semanal" value={`${plan.workload}h`} />
+          <MiniInfo label="Vigência" value={`${plan.validityStart} a ${plan.validityEnd}`} />
+          <MiniInfo label="Prazo indicação" value={plan.indicationDeadline} />
+          <MiniInfo label="Prazo substituição" value={plan.substitutionDeadline} />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1.2fr]">
+          <section className="rounded-2xl border border-neutral/20 bg-neutral/5 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
+                  Discente indicado
+                </p>
+
+                {plan.indicatedStudent ? (
+                  <>
+                    <p className="mt-2 text-sm font-semibold text-primary">
+                      {plan.indicatedStudent.name}
+                    </p>
+
+                    <p className="mt-1 text-xs leading-5 text-neutral">
+                      {plan.indicatedStudent.registration} • {plan.indicatedStudent.course}
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-2 text-sm leading-6 text-neutral">
+                    Nenhum discente indicado até o momento.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col items-start gap-2 sm:items-end">
+                {plan.indicationType ? (
+                  <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                    {plan.indicationType}
+                  </span>
+                ) : null}
+
+                <span
+                  className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getTermClass(
+                    plan.commitmentTermStatus
+                  )}`}
+                >
+                  {plan.commitmentTermStatus}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-neutral/20 bg-neutral/5 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
+                Discentes interessados via SIGAA
+              </p>
+
+              <span className="text-xs font-medium text-neutral">
+                {plan.candidates.length} candidato(s)
+              </span>
+            </div>
+
+            <ul className="divide-y divide-neutral/10 rounded-xl border border-neutral/10 bg-white">
+              {plan.candidates.map((candidate) => (
+                <CandidateRow
+                  key={candidate.id}
+                  planId={plan.id}
+                  candidate={candidate}
+                />
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+function CandidateRow({
+  planId,
+  candidate,
+}: {
+  planId: number
+  candidate: Candidate
+}) {
+  return (
+    <li className="flex flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-semibold text-primary">
+            {candidate.name}
+          </p>
+
+          <span
+            className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${getSigaaStatusClass(
+              candidate.sigaaStatus
+            )}`}
+          >
+            {candidate.sigaaStatus}
+          </span>
+        </div>
+
+        <p className="mt-1 text-xs leading-5 text-neutral">
+          {candidate.registration} • {candidate.course} • {candidate.semester}
+        </p>
+
+        <p className="mt-0.5 text-xs leading-5 text-neutral">
+          CRA {candidate.cra} • {candidate.academicStatus}
+        </p>
+
+        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs">
+          <span className="text-neutral">
+            Interesse em {candidate.interestRegisteredAt}
+          </span>
+
+          <a
+            href={candidate.lattesUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 font-semibold text-primary transition hover:text-primary/80"
+          >
+            Ver Lattes
+            <ExternalLink size={12} />
+          </a>
+        </div>
+      </div>
+
+      <Link
+        to={`/coordenador/planos/indicacoes/${planId}?candidateId=${candidate.id}`}
+        className="inline-flex w-fit items-center justify-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition hover:bg-primary/90"
+      >
+        Indicar
+      </Link>
+    </li>
   )
 }
 
@@ -1124,60 +848,6 @@ function SummaryCard({
   )
 }
 
-function AlertBox({
-  type,
-  title,
-  description,
-}: {
-  type: "success" | "info" | "warning"
-  title: string
-  description: string
-}) {
-  const styles = {
-    success: {
-      wrapper: "border-emerald-200 bg-emerald-50",
-      icon: "text-emerald-700",
-      title: "text-emerald-800",
-      description: "text-emerald-700",
-      iconNode: <CheckCircle2 size={18} />,
-    },
-    info: {
-      wrapper: "border-blue-200 bg-blue-50",
-      icon: "text-blue-700",
-      title: "text-blue-800",
-      description: "text-blue-700",
-      iconNode: <Info size={18} />,
-    },
-    warning: {
-      wrapper: "border-amber-200 bg-amber-50",
-      icon: "text-amber-700",
-      title: "text-amber-800",
-      description: "text-amber-700",
-      iconNode: <AlertCircle size={18} />,
-    },
-  }[type]
-
-  return (
-    <section className={`rounded-2xl border px-5 py-4 ${styles.wrapper}`}>
-      <div className="flex gap-3">
-        <div className={`mt-0.5 ${styles.icon}`}>
-          {styles.iconNode}
-        </div>
-
-        <div>
-          <p className={`text-sm font-semibold ${styles.title}`}>
-            {title}
-          </p>
-
-          <p className={`mt-1 text-sm leading-6 ${styles.description}`}>
-            {description}
-          </p>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function FilterSelect({
   label,
   value,
@@ -1212,75 +882,40 @@ function FilterSelect({
 
 function MiniInfo({ label, value }: { label: string; value: string }) {
   return (
-    <div>
+    <div className="rounded-xl border border-neutral/20 bg-white px-4 py-3">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral">
         {label}
       </p>
 
-      <p className="mt-1 text-sm font-medium text-primary">
+      <p className="mt-1 text-sm font-medium leading-5 text-primary">
         {value}
       </p>
     </div>
   )
 }
 
-function CandidateCard({
-  candidate,
-  onIndicate,
-}: {
-  candidate: Candidate
-  onIndicate: () => void
-}) {
+function EmptyState({ onClearFilters }: { onClearFilters: () => void }) {
   return (
-    <li className="flex flex-col gap-3 px-4 py-3 transition hover:bg-neutral/5 md:flex-row md:items-center md:justify-between">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-semibold text-primary">
-            {candidate.name}
-          </p>
-
-          <span
-            className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${getSigaaStatusClass(
-              candidate.sigaaStatus
-            )}`}
-          >
-            {candidate.sigaaStatus}
-          </span>
-        </div>
-
-        <p className="mt-1 text-xs leading-5 text-neutral">
-          {candidate.registration} • {candidate.course} • {candidate.semester}
-        </p>
-
-        <p className="mt-0.5 text-xs leading-5 text-neutral">
-          CRA {candidate.cra} • {candidate.completedCredits} créditos •{" "}
-          {candidate.failures} reprovação(ões) • {candidate.academicStatus}
-        </p>
-
-        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs">
-          <span className="text-neutral">
-            Interesse em {candidate.interestRegisteredAt}
-          </span>
-
-          <a
-            href={candidate.lattesUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 font-semibold text-primary transition hover:text-primary/80"
-          >
-            Ver Lattes
-            <ExternalLink size={12} />
-          </a>
-        </div>
+    <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral/10 text-neutral">
+        <Search size={24} />
       </div>
+
+      <h3 className="mt-4 text-base font-semibold text-primary">
+        Nenhum plano encontrado
+      </h3>
+
+      <p className="mt-1 max-w-md text-sm leading-6 text-neutral">
+        Tente limpar os filtros ou alterar os critérios de busca.
+      </p>
 
       <button
         type="button"
-        onClick={onIndicate}
-        className="inline-flex w-fit items-center justify-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition hover:bg-primary/90"
+        onClick={onClearFilters}
+        className="mt-5 inline-flex items-center justify-center rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
       >
-        Indicar
+        Limpar filtros
       </button>
-    </li>
+    </div>
   )
 }
