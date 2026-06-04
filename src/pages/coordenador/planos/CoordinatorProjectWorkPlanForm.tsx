@@ -1,7 +1,7 @@
 // src/pages/coordenador/planos/CoordinatorProjectWorkPlanForm.tsx
 
-import React, { useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   AlertCircle,
   ArrowLeft,
@@ -11,7 +11,6 @@ import {
   Copy,
   FileText,
   Filter,
-  GraduationCap,
   Hash,
   ListChecks,
   Plus,
@@ -19,56 +18,60 @@ import {
   Save,
   Search,
   Trash2,
-} from "lucide-react"
+} from "lucide-react";
 
 /* ================= TIPOS ================= */
 
-type ProjectStatus = "APROVADO" | "VALIDADO" | "SUBMETIDO" | "EM ANÁLISE" | "REPROVADO"
+type ProjectStatus =
+  | "APROVADO"
+  | "VALIDADO"
+  | "SUBMETIDO"
+  | "EM ANÁLISE"
+  | "REPROVADO";
 
-type WorkPlanModalidade = "PIBIC" | "PIBIC-AF" | "PIBITI" | "PIVIC" | "PIVITI"
+type WorkPlanModalidade = "PIBIC" | "PIBIC-AF" | "PIBITI" | "PIVIC" | "PIVITI";
 
 type Project = {
-  id: string
-  codigo: string
-  titulo: string
-  edital: string
-  coordenador: string
-  unidade: string
-  centro: string
-  periodo: string
-  status: ProjectStatus
-  modalidadeBolsa: WorkPlanModalidade
-  totalPlanos: number
-}
+  id: string;
+  codigo: string;
+  titulo: string;
+  edital: string;
+  coordenador: string;
+  unidade: string;
+  centro: string;
+  periodo: string;
+  status: ProjectStatus;
+  modalidadeBolsa: WorkPlanModalidade;
+  totalPlanos: number;
+};
 
 type CronogramaItem = {
-  id: string
-  mes: string
-  atividade: string
-}
+  id: string;
+  atividade: string;
+  mesInicio: number;
+  mesFim: number;
+};
 
 type WorkPlan = {
-  id: string
-  modalidade: WorkPlanModalidade | ""
-  titulo: string
-  title: string
-  discenteNome: string
-  discenteMatricula: string
-  solicitarCotaBolsa: boolean
-  periodoIni: string
-  periodoFim: string
-  introducaoJustificativa: string
-  objetivos: string
-  metodologia: string
-  cronogramaAtividades: CronogramaItem[]
-  referencias: string
-}
+  id: string;
+  modalidade: WorkPlanModalidade | "";
+  titulo: string;
+  title: string;
+  solicitarAcaoAfirmativa: boolean;
+  periodoIni: string;
+  periodoFim: string;
+  introducaoJustificativa: string;
+  objetivos: string;
+  metodologia: string;
+  cronogramaAtividades: CronogramaItem[];
+  referencias: string;
+};
 
 /* ================= CONSTANTES ================= */
 
-const MAX_PLANOS_POR_PROJETO = 6
-const MAX_CHARS_ANEXO_II = 9000
-const PROJECT_ALLOWED_STATUSES: ProjectStatus[] = ["APROVADO", "VALIDADO"]
+const MAX_PLANOS_POR_ANO = 6;
+const MAX_CHARS_ANEXO_II = 9000;
+const PROJECT_ALLOWED_STATUSES: ProjectStatus[] = ["APROVADO", "VALIDADO"];
 
 const modalidadesPlano: WorkPlanModalidade[] = [
   "PIBIC",
@@ -76,24 +79,9 @@ const modalidadesPlano: WorkPlanModalidade[] = [
   "PIBITI",
   "PIVIC",
   "PIVITI",
-]
+];
 
-const modalidadesFiltro = ["Todas", ...modalidadesPlano] as const
-
-const mesesCronograma = [
-  "Mês 1",
-  "Mês 2",
-  "Mês 3",
-  "Mês 4",
-  "Mês 5",
-  "Mês 6",
-  "Mês 7",
-  "Mês 8",
-  "Mês 9",
-  "Mês 10",
-  "Mês 11",
-  "Mês 12",
-]
+const modalidadesFiltro = ["Todas", ...modalidadesPlano] as const;
 
 /* ================= MOCKS ================= */
 
@@ -127,7 +115,8 @@ const projectsMock: Project[] = [
   {
     id: "3",
     codigo: "PROPESQ-2026-027",
-    titulo: "Estudo interdisciplinar sobre acessibilidade e tecnologia assistiva",
+    titulo:
+      "Estudo interdisciplinar sobre acessibilidade e tecnologia assistiva",
     edital: "PIVIC 2026",
     coordenador: "Profa. Ana Costa",
     unidade: "Programa Y",
@@ -137,7 +126,7 @@ const projectsMock: Project[] = [
     modalidadeBolsa: "PIVIC",
     totalPlanos: 1,
   },
-]
+];
 
 const initialPlansByProject: Record<string, WorkPlan[]> = {
   "1": [
@@ -146,9 +135,7 @@ const initialPlansByProject: Record<string, WorkPlan[]> = {
       modalidade: "PIBIC",
       titulo: "Análise de requisitos e validação do sistema de acompanhamento",
       title: "Requirements Analysis and Validation of the Monitoring System",
-      discenteNome: "Ana Beatriz Lima",
-      discenteMatricula: "202600001",
-      solicitarCotaBolsa: true,
+      solicitarAcaoAfirmativa: true,
       periodoIni: "2026-08-01",
       periodoFim: "2027-07-31",
       introducaoJustificativa:
@@ -160,13 +147,15 @@ const initialPlansByProject: Record<string, WorkPlan[]> = {
       cronogramaAtividades: [
         {
           id: "cronograma-existente-1",
-          mes: "Mês 1",
           atividade: "Revisão bibliográfica e alinhamento metodológico.",
+          mesInicio: 1,
+          mesFim: 1,
         },
         {
           id: "cronograma-existente-2",
-          mes: "Mês 2",
           atividade: "Definição dos instrumentos e organização dos dados.",
+          mesInicio: 2,
+          mesFim: 2,
         },
       ],
       referencias: "Referências cadastradas no plano inicial.",
@@ -176,11 +165,10 @@ const initialPlansByProject: Record<string, WorkPlan[]> = {
     {
       id: "plano-existente-2",
       modalidade: "PIBITI",
-      titulo: "Prototipação de módulos computacionais para ambientes educacionais",
+      titulo:
+        "Prototipação de módulos computacionais para ambientes educacionais",
       title: "Prototyping Computational Modules for Educational Environments",
-      discenteNome: "Carlos Eduardo Santos",
-      discenteMatricula: "202600002",
-      solicitarCotaBolsa: true,
+      solicitarAcaoAfirmativa: true,
       periodoIni: "2026-08-01",
       periodoFim: "2027-07-31",
       introducaoJustificativa: "Plano cadastrado no fluxo inicial.",
@@ -189,8 +177,9 @@ const initialPlansByProject: Record<string, WorkPlan[]> = {
       cronogramaAtividades: [
         {
           id: "cronograma-existente-3",
-          mes: "Mês 1",
           atividade: "Levantamento de requisitos e revisão técnica.",
+          mesInicio: 1,
+          mesFim: 1,
         },
       ],
       referencias: "Referências técnicas do projeto.",
@@ -200,9 +189,7 @@ const initialPlansByProject: Record<string, WorkPlan[]> = {
       modalidade: "PIBITI",
       titulo: "Avaliação experimental de modelos de visão computacional",
       title: "Experimental Evaluation of Computer Vision Models",
-      discenteNome: "Maria Clara Oliveira",
-      discenteMatricula: "202600003",
-      solicitarCotaBolsa: false,
+      solicitarAcaoAfirmativa: false,
       periodoIni: "2026-08-01",
       periodoFim: "2027-07-31",
       introducaoJustificativa: "Plano complementar já cadastrado.",
@@ -211,23 +198,22 @@ const initialPlansByProject: Record<string, WorkPlan[]> = {
       cronogramaAtividades: [
         {
           id: "cronograma-existente-4",
-          mes: "Mês 1",
           atividade: "Preparação do ambiente e bases de teste.",
+          mesInicio: 1,
+          mesFim: 1,
         },
       ],
       referencias: "Referências complementares.",
     },
   ],
-}
+};
 
 const emptyWorkPlan: WorkPlan = {
   id: "",
   modalidade: "",
   titulo: "",
   title: "",
-  discenteNome: "",
-  discenteMatricula: "",
-  solicitarCotaBolsa: false,
+  solicitarAcaoAfirmativa: false,
   periodoIni: "",
   periodoFim: "",
   introducaoJustificativa: "",
@@ -235,32 +221,38 @@ const emptyWorkPlan: WorkPlan = {
   metodologia: "",
   cronogramaAtividades: [],
   referencias: "",
-}
+};
 
 /* ================= UTIL/UI ================= */
 
 function cx(...arr: Array<string | false | null | undefined>) {
-  return arr.filter(Boolean).join(" ")
+  return arr.filter(Boolean).join(" ");
 }
 
 const inputClassName =
-  "w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
+  "w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10";
 
 const selectClassName =
-  "w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+  "w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10";
 
 const textareaClassName =
-  "min-h-[120px] w-full resize-y rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm leading-6 text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
+  "min-h-[120px] w-full resize-y rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm leading-6 text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10";
 
 function createId(prefix: string) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function formatCronogramaDuration(mesInicio: number, mesFim: number) {
+  if (mesInicio === mesFim) return `Mês ${mesInicio}`;
+
+  return `Mês ${mesInicio} ao mês ${mesFim}`;
 }
 
 function createEmptyDraft() {
   return {
     ...emptyWorkPlan,
     id: createId("plano"),
-  }
+  };
 }
 
 function Field({
@@ -269,10 +261,10 @@ function Field({
   children,
   required,
 }: {
-  label: string
-  hint?: string
-  required?: boolean
-  children: React.ReactNode
+  label: string;
+  hint?: string;
+  required?: boolean;
+  children: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -284,7 +276,7 @@ function Field({
 
       {hint && <p className="text-[11px] text-neutral">{hint}</p>}
     </div>
-  )
+  );
 }
 
 function Card({
@@ -293,10 +285,10 @@ function Card({
   icon,
   children,
 }: {
-  title: string
-  subtitle?: string
-  icon?: React.ReactNode
-  children: React.ReactNode
+  title: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
     <section className="rounded-2xl border border-neutral/30 bg-white shadow-sm">
@@ -314,7 +306,7 @@ function Card({
 
       <div className="p-6">{children}</div>
     </section>
-  )
+  );
 }
 
 function Info({
@@ -322,40 +314,37 @@ function Info({
   value,
   preWrap,
 }: {
-  label: string
-  value: string
-  preWrap?: boolean
+  label: string;
+  value: string;
+  preWrap?: boolean;
 }) {
   return (
     <div>
       <p className="text-[11px] font-bold uppercase text-neutral">{label}</p>
 
       <p
-        className={cx(
-          "text-sm text-neutral",
-          preWrap && "whitespace-pre-wrap"
-        )}
+        className={cx("text-sm text-neutral", preWrap && "whitespace-pre-wrap")}
       >
         {value || "—"}
       </p>
     </div>
-  )
+  );
 }
 
 function CharacterCounter({ value }: { value: string }) {
-  const remaining = MAX_CHARS_ANEXO_II - value.length
-  const nearLimit = remaining <= 500
+  const remaining = MAX_CHARS_ANEXO_II - value.length;
+  const nearLimit = remaining <= 500;
 
   return (
     <p
       className={cx(
         "text-right text-[11px]",
-        nearLimit ? "font-semibold text-amber-700" : "text-neutral"
+        nearLimit ? "font-semibold text-amber-700" : "text-neutral",
       )}
     >
       {value.length}/{MAX_CHARS_ANEXO_II} caracteres
     </p>
-  )
+  );
 }
 
 function AnexoTextarea({
@@ -363,9 +352,9 @@ function AnexoTextarea({
   onChange,
   placeholder,
 }: {
-  value: string
-  onChange: (value: string) => void
-  placeholder: string
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
 }) {
   return (
     <div className="space-y-1">
@@ -379,101 +368,163 @@ function AnexoTextarea({
 
       <CharacterCounter value={value} />
     </div>
-  )
+  );
 }
 
 /* ================= PÁGINA ================= */
 
 export default function CoordinatorProjectWorkPlanForm() {
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [selectedProjectId, setSelectedProjectId] = useState("")
-  const [plansByProject, setPlansByProject] =
-    useState<Record<string, WorkPlan[]>>(initialPlansByProject)
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [plansByProject, setPlansByProject] = useState<
+    Record<string, WorkPlan[]>
+  >(initialPlansByProject);
 
-  const [draft, setDraft] = useState<WorkPlan>(createEmptyDraft())
-  const [cronogramaMes, setCronogramaMes] = useState("")
-  const [cronogramaAtividade, setCronogramaAtividade] = useState("")
+  const [draft, setDraft] = useState<WorkPlan>(createEmptyDraft());
+  const [cronogramaAtividade, setCronogramaAtividade] = useState("");
+  const [cronogramaMesInicio, setCronogramaMesInicio] = useState(1);
+  const [cronogramaMesFim, setCronogramaMesFim] = useState(1);
 
   const [filters, setFilters] = useState({
     codigo: "",
     nome: "",
     modalidade: "Todas",
-  })
+  });
 
   const selectedProject = useMemo(() => {
-    return projectsMock.find((project) => project.id === selectedProjectId) || null
-  }, [selectedProjectId])
+    return (
+      projectsMock.find((project) => project.id === selectedProjectId) || null
+    );
+  }, [selectedProjectId]);
 
   const existingPlans = selectedProject
     ? plansByProject[selectedProject.id] || []
-    : []
+    : [];
 
-  const limitePlanosAtingido = existingPlans.length >= MAX_PLANOS_POR_PROJETO
+  const selectedProjectYear = useMemo(() => {
+    if (!selectedProject) return "";
 
-  const discenteJaPossuiPlano = useMemo(() => {
-    const matricula = draft.discenteMatricula.trim()
+    const editalYear = selectedProject.edital.match(/\d{4}/)?.[0];
+    const codigoYear = selectedProject.codigo.match(/\d{4}/)?.[0];
+    const periodoYear = selectedProject.periodo.match(/\d{4}/)?.[0];
 
-    if (!matricula) return false
+    return editalYear || codigoYear || periodoYear || "";
+  }, [selectedProject]);
 
-    return existingPlans.some(
-      (plan) =>
-        plan.discenteMatricula.trim().toLowerCase() === matricula.toLowerCase()
-    )
-  }, [draft.discenteMatricula, existingPlans])
+  const totalPlanosCoordenadorNoAno = useMemo(() => {
+    if (!selectedProject || !selectedProjectYear) return 0;
+
+    return projectsMock
+      .filter((project) => {
+        const projectYear =
+          project.edital.match(/\d{4}/)?.[0] ||
+          project.codigo.match(/\d{4}/)?.[0] ||
+          project.periodo.match(/\d{4}/)?.[0] ||
+          "";
+
+        return (
+          project.coordenador === selectedProject.coordenador &&
+          projectYear === selectedProjectYear
+        );
+      })
+      .reduce((total, project) => {
+        return (
+          total + (plansByProject[project.id]?.length || project.totalPlanos)
+        );
+      }, 0);
+  }, [plansByProject, selectedProject, selectedProjectYear]);
+
+  const limitePlanosAtingido =
+    totalPlanosCoordenadorNoAno >= MAX_PLANOS_POR_ANO;
+
+  const duracaoPeriodoMeses = useMemo(() => {
+    if (!draft.periodoIni || !draft.periodoFim) return 0;
+
+    const inicio = new Date(`${draft.periodoIni}T00:00:00`);
+    const fim = new Date(`${draft.periodoFim}T00:00:00`);
+
+    if (Number.isNaN(inicio.getTime()) || Number.isNaN(fim.getTime())) return 0;
+    if (fim < inicio) return 0;
+
+    const meses =
+      (fim.getFullYear() - inicio.getFullYear()) * 12 +
+      (fim.getMonth() - inicio.getMonth()) +
+      1;
+
+    return Math.max(1, meses);
+  }, [draft.periodoFim, draft.periodoIni]);
+
+  const mesesCronogramaDisponiveis = useMemo(() => {
+    return Array.from({ length: duracaoPeriodoMeses }, (_, index) => index + 1);
+  }, [duracaoPeriodoMeses]);
 
   const filteredProjects = useMemo(() => {
-    const codigo = filters.codigo.trim().toLowerCase()
-    const nome = filters.nome.trim().toLowerCase()
-    const modalidade = filters.modalidade
+    const codigo = filters.codigo.trim().toLowerCase();
+    const nome = filters.nome.trim().toLowerCase();
+    const modalidade = filters.modalidade;
 
     return projectsMock.filter((project) => {
-      const statusPermitido = PROJECT_ALLOWED_STATUSES.includes(project.status)
+      const statusPermitido = PROJECT_ALLOWED_STATUSES.includes(project.status);
 
       const matchCodigo = codigo
         ? project.codigo.toLowerCase().includes(codigo)
-        : true
+        : true;
 
       const matchNome = nome
         ? project.titulo.toLowerCase().includes(nome)
-        : true
+        : true;
 
       const matchModalidade =
-        modalidade === "Todas" ? true : project.modalidadeBolsa === modalidade
+        modalidade === "Todas" ? true : project.modalidadeBolsa === modalidade;
 
-      return statusPermitido && matchCodigo && matchNome && matchModalidade
-    })
-  }, [filters])
+      return statusPermitido && matchCodigo && matchNome && matchModalidade;
+    });
+  }, [filters]);
 
   const canAddCronogramaItem = Boolean(
-    cronogramaMes.trim() && cronogramaAtividade.trim()
-  )
+    cronogramaAtividade.trim() &&
+      duracaoPeriodoMeses > 0 &&
+      cronogramaMesInicio >= 1 &&
+      cronogramaMesFim >= cronogramaMesInicio &&
+      cronogramaMesFim <= duracaoPeriodoMeses,
+  );
+
+  const cronogramaDentroDoPeriodo = useMemo(() => {
+    if (duracaoPeriodoMeses === 0) return false;
+
+    return draft.cronogramaAtividades.every(
+      (item) =>
+        item.mesInicio >= 1 &&
+        item.mesFim >= item.mesInicio &&
+        item.mesFim <= duracaoPeriodoMeses,
+    );
+  }, [draft.cronogramaAtividades, duracaoPeriodoMeses]);
 
   const canSavePlan = useMemo(() => {
     return Boolean(
       selectedProject &&
-        !limitePlanosAtingido &&
-        !discenteJaPossuiPlano &&
-        draft.modalidade &&
-        draft.titulo.trim() &&
-        draft.title.trim() &&
-        draft.discenteNome.trim() &&
-        draft.discenteMatricula.trim() &&
-        draft.periodoIni &&
-        draft.periodoFim &&
-        draft.introducaoJustificativa.trim() &&
-        draft.objetivos.trim() &&
-        draft.metodologia.trim() &&
-        draft.cronogramaAtividades.length > 0 &&
-        draft.referencias.trim()
-    )
-  }, [discenteJaPossuiPlano, draft, limitePlanosAtingido, selectedProject])
+      !limitePlanosAtingido &&
+      draft.modalidade &&
+      draft.titulo.trim() &&
+      draft.title.trim() &&
+      draft.periodoIni &&
+      draft.periodoFim &&
+      draft.introducaoJustificativa.trim() &&
+      draft.objetivos.trim() &&
+      draft.metodologia.trim() &&
+      draft.cronogramaAtividades.length > 0 &&
+      cronogramaDentroDoPeriodo &&
+      draft.referencias.trim(),
+    );
+  }, [cronogramaDentroDoPeriodo, draft, limitePlanosAtingido, selectedProject]);
 
   function resetDraft() {
-    setDraft(createEmptyDraft())
-    setCronogramaMes("")
-    setCronogramaAtividade("")
-    setSaved(false)
+    setDraft(createEmptyDraft());
+    setCronogramaAtividade("");
+    setCronogramaMesInicio(1);
+    setCronogramaMesFim(1);
+    setSaved(false);
   }
 
   function clearFilters() {
@@ -481,37 +532,35 @@ export default function CoordinatorProjectWorkPlanForm() {
       codigo: "",
       nome: "",
       modalidade: "Todas",
-    })
+    });
   }
 
   function selectProject(projectId: string) {
-    setSelectedProjectId(projectId)
-    resetDraft()
+    setSelectedProjectId(projectId);
+    resetDraft();
   }
 
   function duplicateLastPlan() {
-    const lastPlan = existingPlans[existingPlans.length - 1]
-    if (!lastPlan) return
+    const lastPlan = existingPlans[existingPlans.length - 1];
+    if (!lastPlan) return;
 
     setDraft({
       ...lastPlan,
       id: createId("plano"),
       titulo: "",
       title: "",
-      discenteNome: "",
-      discenteMatricula: "",
-      solicitarCotaBolsa: false,
+      solicitarAcaoAfirmativa: false,
       cronogramaAtividades: lastPlan.cronogramaAtividades.map((item) => ({
         ...item,
         id: createId("cronograma"),
       })),
-    })
+    });
 
-    setSaved(false)
+    setSaved(false);
   }
 
   function addCronogramaItem() {
-    if (!canAddCronogramaItem) return
+    if (!canAddCronogramaItem) return;
 
     setDraft((current) => ({
       ...current,
@@ -519,79 +568,38 @@ export default function CoordinatorProjectWorkPlanForm() {
         ...current.cronogramaAtividades,
         {
           id: createId("cronograma"),
-          mes: cronogramaMes,
-          atividade: cronogramaAtividade,
+          atividade: cronogramaAtividade.trim(),
+          mesInicio: cronogramaMesInicio,
+          mesFim: cronogramaMesFim,
         },
       ],
-    }))
+    }));
 
-    setCronogramaMes("")
-    setCronogramaAtividade("")
-    setSaved(false)
+    setCronogramaAtividade("");
+    setCronogramaMesInicio(1);
+    setCronogramaMesFim(1);
+    setSaved(false);
   }
 
   function removeCronogramaItem(cronogramaId: string) {
     setDraft((current) => ({
       ...current,
       cronogramaAtividades: current.cronogramaAtividades.filter(
-        (item) => item.id !== cronogramaId
+        (item) => item.id !== cronogramaId,
       ),
-    }))
+    }));
 
-    setSaved(false)
+    setSaved(false);
   }
 
-  function updateCronogramaItem(
-    cronogramaId: string,
-    field: keyof Pick<CronogramaItem, "mes" | "atividade">,
-    value: string
-  ) {
-    setDraft((current) => ({
-      ...current,
-      cronogramaAtividades: current.cronogramaAtividades.map((item) =>
-        item.id === cronogramaId ? { ...item, [field]: value } : item
-      ),
-    }))
-
-    setSaved(false)
-  }
-
-  function applyCronogramaTemplate(totalMeses: 6 | 12) {
-    const baseActivities = [
-      "Revisão bibliográfica e alinhamento metodológico.",
-      "Definição dos instrumentos, bases e materiais de pesquisa.",
-      "Coleta, organização ou preparação dos dados.",
-      "Execução dos experimentos, análises ou desenvolvimento.",
-      "Validação dos resultados e ajustes metodológicos.",
-      "Redação de relatório, sistematização e divulgação dos resultados.",
-    ]
-
-    const template = Array.from({ length: totalMeses }, (_, index) => ({
-      id: createId("cronograma"),
-      mes: `Mês ${index + 1}`,
-      atividade:
-        totalMeses === 6
-          ? baseActivities[index]
-          : baseActivities[
-              Math.min(Math.floor(index / 2), baseActivities.length - 1)
-            ],
-    }))
-
-    setDraft((current) => ({
-      ...current,
-      cronogramaAtividades: template,
-    }))
-
-    setSaved(false)
-  }
 
   async function savePlan() {
-    if (!selectedProject || !canSavePlan) return
+    if (!selectedProject || !canSavePlan) return;
 
-    setSaving(true)
+    setSaving(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 700))
+      await new Promise((resolve) => setTimeout(resolve, 700));
 
       setPlansByProject((current) => ({
         ...current,
@@ -602,14 +610,15 @@ export default function CoordinatorProjectWorkPlanForm() {
             id: draft.id || createId("plano"),
           },
         ],
-      }))
+      }));
 
-      setSaved(true)
-      setDraft(createEmptyDraft())
-      setCronogramaMes("")
-      setCronogramaAtividade("")
+      setSaved(true);
+      setDraft(createEmptyDraft());
+      setCronogramaAtividade("");
+      setCronogramaMesInicio(1);
+    setCronogramaMesFim(1);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
@@ -638,10 +647,9 @@ export default function CoordinatorProjectWorkPlanForm() {
             </h1>
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
-              Selecione um projeto aprovado ou validado e cadastre o plano com os
-              campos exigidos pelo Anexo II. O sistema limita até{" "}
-              {MAX_PLANOS_POR_PROJETO} planos por projeto e permite no máximo 1
-              plano por discente.
+              Selecione um projeto aprovado ou validado e cadastre o plano com
+              os campos exigidos pelo Anexo II. O sistema limita até{" "}
+              {MAX_PLANOS_POR_ANO} planos por coordenador a cada ano.
             </p>
           </div>
 
@@ -743,22 +751,26 @@ export default function CoordinatorProjectWorkPlanForm() {
             ) : (
               <div className="divide-y divide-neutral/20">
                 {filteredProjects.map((project) => {
-                  const selected = project.id === selectedProjectId
+                  const selected = project.id === selectedProjectId;
                   const totalPlanos =
-                    plansByProject[project.id]?.length || project.totalPlanos
-                  const projectLimitReached = totalPlanos >= MAX_PLANOS_POR_PROJETO
-
+                    plansByProject[project.id]?.length || project.totalPlanos;
                   return (
                     <div
                       key={project.id}
                       className={cx(
                         "grid grid-cols-12 gap-3 px-4 py-4 text-sm transition",
-                        selected ? "bg-primary/5" : "bg-white hover:bg-neutral/5"
+                        selected
+                          ? "bg-primary/5"
+                          : "bg-white hover:bg-neutral/5",
                       )}
                     >
                       <div className="col-span-3">
-                        <p className="font-bold text-primary">{project.codigo}</p>
-                        <p className="mt-1 text-xs text-neutral">{project.edital}</p>
+                        <p className="font-bold text-primary">
+                          {project.codigo}
+                        </p>
+                        <p className="mt-1 text-xs text-neutral">
+                          {project.edital}
+                        </p>
                         <span className="mt-2 inline-flex rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[11px] font-bold text-green-700">
                           {project.status}
                         </span>
@@ -781,12 +793,10 @@ export default function CoordinatorProjectWorkPlanForm() {
 
                       <div className="col-span-2 text-neutral">
                         <p className="font-semibold text-primary">
-                          {totalPlanos}/{MAX_PLANOS_POR_PROJETO}
+                          {totalPlanos}
                         </p>
                         <p className="mt-1 text-xs">
-                          {projectLimitReached
-                            ? "limite atingido"
-                            : "já vinculado(s)"}
+                          vinculado(s) neste projeto
                         </p>
                       </div>
 
@@ -798,7 +808,7 @@ export default function CoordinatorProjectWorkPlanForm() {
                             "inline-flex h-fit items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition",
                             selected
                               ? "bg-primary text-white"
-                              : "border border-neutral/20 bg-white text-primary hover:border-primary/30"
+                              : "border border-neutral/20 bg-white text-primary hover:border-primary/30",
                           )}
                         >
                           {selected ? (
@@ -812,7 +822,7 @@ export default function CoordinatorProjectWorkPlanForm() {
                         </button>
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             )}
@@ -834,8 +844,15 @@ export default function CoordinatorProjectWorkPlanForm() {
                 <Info label="Código" value={selectedProject.codigo} />
                 <Info label="Status" value={selectedProject.status} />
                 <Info label="Edital" value={selectedProject.edital} />
-                <Info label="Modalidade" value={selectedProject.modalidadeBolsa} />
+                <Info
+                  label="Modalidade"
+                  value={selectedProject.modalidadeBolsa}
+                />
                 <Info label="Coordenador" value={selectedProject.coordenador} />
+                <Info
+                  label="Uso anual do coordenador"
+                  value={`${totalPlanosCoordenadorNoAno}/${MAX_PLANOS_POR_ANO} planos em ${selectedProjectYear || "ano vigente"}`}
+                />
                 <Info label="Período" value={selectedProject.periodo} />
                 <Info label="Centro" value={selectedProject.centro} />
                 <Info label="Unidade" value={selectedProject.unidade} />
@@ -844,7 +861,7 @@ export default function CoordinatorProjectWorkPlanForm() {
 
             <Card
               title="Planos já vinculados"
-              subtitle={`Limite: até ${MAX_PLANOS_POR_PROJETO} planos no total, com no máximo 1 plano por discente.`}
+              subtitle={`Planos já vinculados a este projeto. Regra geral: até ${MAX_PLANOS_POR_ANO} planos por coordenador no ano.`}
               icon={<ListChecks size={18} className="text-primary" />}
             >
               {existingPlans.length === 0 ? (
@@ -881,19 +898,14 @@ export default function CoordinatorProjectWorkPlanForm() {
                             </span>
 
                             <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
-                              <GraduationCap size={12} />
-                              {plan.discenteNome} • {plan.discenteMatricula}
-                            </span>
-
-                            <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
                               <CalendarDays size={12} />
                               {plan.periodoIni} → {plan.periodoFim}
                             </span>
 
-                            {plan.solicitarCotaBolsa && (
+                            {plan.solicitarAcaoAfirmativa && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 font-semibold text-primary">
                                 <Hash size={12} />
-                                Solicita cota
+                                Solicita ação afirmativa
                               </span>
                             )}
                           </div>
@@ -922,9 +934,10 @@ export default function CoordinatorProjectWorkPlanForm() {
                   <p className="text-sm font-bold">Regras do cadastro</p>
 
                   <p className="mt-1 text-xs leading-5 text-neutral">
-                    Este projeto possui {existingPlans.length}/
-                    {MAX_PLANOS_POR_PROJETO} planos. Cada discente pode ter no
-                    máximo 1 plano vinculado a este projeto.
+                    Este coordenador possui {totalPlanosCoordenadorNoAno}/
+                    {MAX_PLANOS_POR_ANO} planos no ano{" "}
+                    {selectedProjectYear || "vigente"}. O limite é anual por
+                    coordenador, independentemente do projeto selecionado.
                   </p>
                 </div>
               </div>
@@ -936,8 +949,10 @@ export default function CoordinatorProjectWorkPlanForm() {
                   </p>
 
                   <p className="mt-1 text-xs text-red-800/80">
-                    Não é possível adicionar mais planos a este projeto, pois o
-                    limite de {MAX_PLANOS_POR_PROJETO} planos já foi alcançado.
+                    Não é possível adicionar mais planos para este coordenador
+                    no ano
+                    {selectedProjectYear || "vigente"}, pois o limite de{" "}
+                    {MAX_PLANOS_POR_ANO} planos anuais já foi alcançado.
                   </p>
                 </div>
               )}
@@ -957,12 +972,14 @@ export default function CoordinatorProjectWorkPlanForm() {
                   <button
                     type="button"
                     onClick={duplicateLastPlan}
-                    disabled={existingPlans.length === 0 || limitePlanosAtingido}
+                    disabled={
+                      existingPlans.length === 0 || limitePlanosAtingido
+                    }
                     className={cx(
                       "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
                       existingPlans.length === 0 || limitePlanosAtingido
                         ? "cursor-not-allowed border-neutral/10 bg-neutral/10 text-neutral"
-                        : "border-neutral/20 bg-white text-primary hover:border-primary/30"
+                        : "border-neutral/20 bg-white text-primary hover:border-primary/30",
                     )}
                   >
                     <Copy size={14} />
@@ -1003,39 +1020,36 @@ export default function CoordinatorProjectWorkPlanForm() {
                 </Field>
 
                 <Field
-                  label="Solicitar Cota de Bolsa"
-                  hint="Marque esta opção quando desejar solicitar cota de bolsa para o plano."
+                  label="Solicitar Ação Afirmativa"
+                  hint="Marque esta opção quando desejar solicitar ação afirmativa para o plano."
                 >
                   <label
                     className={cx(
                       "flex min-h-[42px] items-center gap-3 rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary",
-                      limitePlanosAtingido && "opacity-60"
+                      limitePlanosAtingido && "opacity-60",
                     )}
                   >
                     <input
                       type="checkbox"
-                      checked={draft.solicitarCotaBolsa}
+                      checked={draft.solicitarAcaoAfirmativa}
                       disabled={limitePlanosAtingido}
                       onChange={(event) =>
                         setDraft((current) => ({
                           ...current,
-                          solicitarCotaBolsa: event.target.checked,
+                          solicitarAcaoAfirmativa: event.target.checked,
                         }))
                       }
                       className="h-4 w-4 rounded border-neutral/30 text-primary focus:ring-primary"
                     />
 
                     <span className="font-semibold">
-                      Solicitar cota de bolsa para este plano
+                      Solicitar ação afirmativa para este plano
                     </span>
                   </label>
                 </Field>
 
                 <div className="md:col-span-2">
-                  <Field
-                    label="Título"
-                    required
-                  >
+                  <Field label="Título" required>
                     <input
                       value={draft.titulo}
                       disabled={limitePlanosAtingido}
@@ -1055,10 +1069,7 @@ export default function CoordinatorProjectWorkPlanForm() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <Field
-                    label="Title"
-                    required
-                  >
+                  <Field label="Title" required>
                     <input
                       value={draft.title}
                       disabled={limitePlanosAtingido}
@@ -1077,50 +1088,11 @@ export default function CoordinatorProjectWorkPlanForm() {
                   </Field>
                 </div>
 
-                <Field label="Nome do discente" required>
-                  <input
-                    value={draft.discenteNome}
-                    disabled={limitePlanosAtingido}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        discenteNome: event.target.value,
-                      }))
-                    }
-                    className={inputClassName}
-                    placeholder="Nome completo do discente"
-                  />
-                </Field>
-
                 <Field
-                  label="Matrícula do discente"
+                  label="Período"
                   required
+                  hint="Defina início e fim do plano."
                 >
-                  <input
-                    value={draft.discenteMatricula}
-                    disabled={limitePlanosAtingido}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        discenteMatricula: event.target.value,
-                      }))
-                    }
-                    className={cx(
-                      inputClassName,
-                      discenteJaPossuiPlano &&
-                        "border-red-300 focus:border-red-500 focus:ring-red-100"
-                    )}
-                    placeholder="Ex.: 202600001"
-                  />
-
-                  {discenteJaPossuiPlano && (
-                    <p className="text-[11px] font-semibold text-red-700">
-                      Este discente já possui um plano vinculado a este projeto.
-                    </p>
-                  )}
-                </Field>
-
-                <Field label="Período" required hint="Defina início e fim do plano.">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <input
                       type="date"
@@ -1199,78 +1171,90 @@ export default function CoordinatorProjectWorkPlanForm() {
                   <Field
                     label="Cronograma"
                     required
-                    hint="Adicione pelo menos uma atividade. Os modelos podem ser editados antes de salvar."
+                    hint="Informe a atividade, selecione o mês de início e o mês de fim dentro do período definido para o plano."
                   >
-                    <div className="rounded-2xl border border-neutral/20 p-4">
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          disabled={limitePlanosAtingido}
-                          onClick={() => applyCronogramaTemplate(6)}
-                          className={cx(
-                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
-                            limitePlanosAtingido
-                              ? "cursor-not-allowed border-neutral/10 bg-neutral/10 text-neutral"
-                              : "border-neutral/20 bg-white text-primary hover:border-primary/30"
-                          )}
-                        >
-                          <CalendarDays size={14} />
-                          Modelo 6 meses
-                        </button>
+                    <div className="rounded-2xl border border-neutral/20 bg-neutral/5 p-4">
+                      {duracaoPeriodoMeses === 0 && (
+                        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                          <p className="text-xs font-semibold text-amber-800">
+                            Informe primeiro o período do plano para liberar o
+                            cronograma.
+                          </p>
+                        </div>
+                      )}
 
-                        <button
-                          type="button"
-                          disabled={limitePlanosAtingido}
-                          onClick={() => applyCronogramaTemplate(12)}
-                          className={cx(
-                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
-                            limitePlanosAtingido
-                              ? "cursor-not-allowed border-neutral/10 bg-neutral/10 text-neutral"
-                              : "border-neutral/20 bg-white text-primary hover:border-primary/30"
-                          )}
-                        >
-                          <CalendarDays size={14} />
-                          Modelo 12 meses
-                        </button>
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[180px_1fr_auto]">
-                        <select
-                          value={cronogramaMes}
-                          disabled={limitePlanosAtingido}
-                          onChange={(event) =>
-                            setCronogramaMes(event.target.value)
-                          }
-                          className={selectClassName}
-                        >
-                          <option value="">Mês</option>
-                          {mesesCronograma.map((item) => (
-                            <option key={item} value={item}>
-                              {item}
-                            </option>
-                          ))}
-                        </select>
-
+                      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_170px_170px_auto]">
                         <input
                           value={cronogramaAtividade}
-                          disabled={limitePlanosAtingido}
+                          disabled={
+                            limitePlanosAtingido || duracaoPeriodoMeses === 0
+                          }
                           maxLength={MAX_CHARS_ANEXO_II}
                           onChange={(event) =>
                             setCronogramaAtividade(event.target.value)
                           }
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              addCronogramaItem();
+                            }
+                          }}
                           className={inputClassName}
-                          placeholder="Descreva a atividade desse mês"
+                          placeholder="Atividade"
                         />
+
+                        <select
+                          value={cronogramaMesInicio}
+                          disabled={
+                            limitePlanosAtingido || duracaoPeriodoMeses === 0
+                          }
+                          onChange={(event) => {
+                            const nextMesInicio = Number(event.target.value);
+                            setCronogramaMesInicio(nextMesInicio);
+
+                            if (cronogramaMesFim < nextMesInicio) {
+                              setCronogramaMesFim(nextMesInicio);
+                            }
+                          }}
+                          className={selectClassName}
+                        >
+                          {mesesCronogramaDisponiveis.map((mes) => (
+                            <option key={mes} value={mes}>
+                              Início: mês {mes}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={cronogramaMesFim}
+                          disabled={
+                            limitePlanosAtingido || duracaoPeriodoMeses === 0
+                          }
+                          onChange={(event) =>
+                            setCronogramaMesFim(Number(event.target.value))
+                          }
+                          className={selectClassName}
+                        >
+                          {mesesCronogramaDisponiveis
+                            .filter((mes) => mes >= cronogramaMesInicio)
+                            .map((mes) => (
+                              <option key={mes} value={mes}>
+                                Fim: mês {mes}
+                              </option>
+                            ))}
+                        </select>
 
                         <button
                           type="button"
                           onClick={addCronogramaItem}
-                          disabled={!canAddCronogramaItem || limitePlanosAtingido}
+                          disabled={
+                            !canAddCronogramaItem || limitePlanosAtingido
+                          }
                           className={cx(
                             "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
                             canAddCronogramaItem && !limitePlanosAtingido
                               ? "bg-primary text-white hover:bg-primary/90"
-                              : "cursor-not-allowed bg-neutral/10 text-neutral"
+                              : "cursor-not-allowed bg-neutral/10 text-neutral",
                           )}
                         >
                           <Plus size={16} />
@@ -1278,80 +1262,93 @@ export default function CoordinatorProjectWorkPlanForm() {
                         </button>
                       </div>
 
+                      <p className="mt-2 text-[11px] text-neutral">
+                        A duração deve ficar entre o mês 1 e o mês {duracaoPeriodoMeses || 0},
+                        conforme o período informado para o plano.
+                      </p>
+
+                      {draft.cronogramaAtividades.length > 0 &&
+                        !cronogramaDentroDoPeriodo && (
+                          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3">
+                            <p className="text-xs font-semibold text-red-800">
+                              Há atividade fora do período do plano. Ajuste o
+                              mês de início ou fim para conseguir salvar.
+                            </p>
+                          </div>
+                        )}
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDraft((current) => ({
+                              ...current,
+                              cronogramaAtividades: [],
+                            }));
+                            setSaved(false);
+                          }}
+                          disabled={
+                            draft.cronogramaAtividades.length === 0 ||
+                            limitePlanosAtingido
+                          }
+                          className={cx(
+                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
+                            draft.cronogramaAtividades.length === 0 ||
+                              limitePlanosAtingido
+                              ? "cursor-not-allowed border-neutral/20 bg-neutral/5 text-neutral"
+                              : "border-neutral/20 bg-white text-primary hover:border-primary/30",
+                          )}
+                        >
+                          <RefreshCcw size={14} />
+                          Limpar cronograma
+                        </button>
+                      </div>
+
                       <div className="mt-4 space-y-2">
                         {draft.cronogramaAtividades.length === 0 ? (
-                          <div className="rounded-xl border border-dashed border-neutral/30 bg-neutral/5 p-4 text-center">
+                          <div className="rounded-xl border border-dashed border-neutral/30 bg-white p-4 text-center">
                             <p className="text-sm font-semibold text-primary">
-                              Nenhuma atividade adicionada.
+                              Nenhuma atividade adicionada ao cronograma.
                             </p>
 
                             <p className="mt-1 text-xs text-neutral">
-                              Selecione um mês, descreva a atividade e clique em
-                              adicionar.
+                              Informe a atividade, selecione a duração e clique
+                              em adicionar.
                             </p>
                           </div>
                         ) : (
-                          draft.cronogramaAtividades.map((item, index) => (
+                          draft.cronogramaAtividades.map((item) => (
                             <div
                               key={item.id}
-                              className="grid grid-cols-1 gap-3 rounded-xl border border-neutral/20 bg-white p-3 md:grid-cols-[160px_1fr_auto] md:items-start"
+                              className="flex flex-col gap-3 rounded-xl border border-neutral/20 bg-white p-3 md:flex-row md:items-center md:justify-between"
                             >
-                              <Field label={`Item ${index + 1}`}>
-                                <select
-                                  value={item.mes}
-                                  disabled={limitePlanosAtingido}
-                                  onChange={(event) =>
-                                    updateCronogramaItem(
-                                      item.id,
-                                      "mes",
-                                      event.target.value
-                                    )
-                                  }
-                                  className={selectClassName}
-                                >
-                                  {mesesCronograma.map((mes) => (
-                                    <option key={mes} value={mes}>
-                                      {mes}
-                                    </option>
-                                  ))}
-                                </select>
-                              </Field>
-
-                              <Field label="Atividade do cronograma">
-                                <textarea
-                                  value={item.atividade}
-                                  disabled={limitePlanosAtingido}
-                                  maxLength={MAX_CHARS_ANEXO_II}
-                                  onChange={(event) =>
-                                    updateCronogramaItem(
-                                      item.id,
-                                      "atividade",
-                                      event.target.value
-                                    )
-                                  }
-                                  className="min-h-[88px] w-full resize-y rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm leading-6 text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                  placeholder="Edite o texto sugerido pelo modelo"
-                                />
-
-                                <CharacterCounter value={item.atividade} />
-                              </Field>
-
-                              <div className="flex md:pt-6">
-                                <button
-                                  type="button"
-                                  disabled={limitePlanosAtingido}
-                                  onClick={() => removeCronogramaItem(item.id)}
-                                  className={cx(
-                                    "inline-flex w-fit items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
-                                    limitePlanosAtingido
-                                      ? "cursor-not-allowed border-neutral/10 bg-neutral/10 text-neutral"
-                                      : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-wide text-neutral">
+                                  {formatCronogramaDuration(
+                                    item.mesInicio,
+                                    item.mesFim,
                                   )}
-                                >
-                                  <Trash2 size={14} />
-                                  Remover
-                                </button>
+                                </p>
+
+                                <p className="mt-1 text-sm leading-6 text-primary">
+                                  {item.atividade}
+                                </p>
                               </div>
+
+                              <button
+                                type="button"
+                                disabled={limitePlanosAtingido}
+                                onClick={() => removeCronogramaItem(item.id)}
+                                className={cx(
+                                  "inline-flex w-fit items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
+                                  limitePlanosAtingido
+                                    ? "cursor-not-allowed border-neutral/10 bg-neutral/10 text-neutral"
+                                    : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+                                )}
+                              >
+                                <Trash2 size={14} />
+                                Remover
+                              </button>
                             </div>
                           ))
                         )}
@@ -1405,7 +1402,7 @@ export default function CoordinatorProjectWorkPlanForm() {
                     "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
                     saving || !canSavePlan
                       ? "cursor-not-allowed bg-neutral/10 text-neutral"
-                      : "bg-primary text-white hover:bg-primary/90"
+                      : "bg-primary text-white hover:bg-primary/90",
                   )}
                 >
                   <Save size={16} />
@@ -1444,5 +1441,5 @@ export default function CoordinatorProjectWorkPlanForm() {
         </div>
       </div>
     </main>
-  )
+  );
 }

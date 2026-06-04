@@ -674,8 +674,8 @@ export default function AppHeader() {
 
   const coordinatorPrimary: NavItem[] = [
     { to: "/coordenador/projetos", label: "Projetos", icon: <FolderKanban size={16} /> },
-    { to: "/coordenador/avaliacoes", label: "Avaliações", icon: <FileSignature size={16} /> },
     { to: "/coordenador/planos/indicacoes", label: "Planos", icon: <Notebook size={16} /> },
+    { to: "/coordenador/avaliacoes", label: "Avaliações", icon: <FileSignature size={16} /> },
     { to: "/coordenador/relatorios", label: "Relatórios", icon: <FileText size={16} /> },
     { to: "/coordenador/producao/ipi", label: "Produção", icon: <Award size={16} /> },
   ]
@@ -687,14 +687,14 @@ export default function AppHeader() {
       //{to: "/coordenador/projetos/1", label: "Visualizar Projeto", icon: <Eye size={16} />, end: true,},
     ],
 
-    "/coordenador/avaliacoes": [
-      { to: "/coordenador/avaliacoes", label: "Lista de Avaliações", icon: <ClipboardList size={16} />, end: true },
-      //{to: "/coordenador/avaliacoes/1", label: "Detalhe da Avaliação", icon: <Eye size={16} />, end: true,},
-    ],
-
     "/coordenador/planos/indicacoes": [
       { to: "/coordenador/planos/indicacoes", label: "Indicações para Plano de Trabalho", icon: <Users size={16} />, end: true },
       { to: "/coordenador/planos/novo", label: "Adicionar Plano de Trabalho", icon: <Notebook size={16} />, end: true },
+    ],
+
+    "/coordenador/avaliacoes": [
+      { to: "/coordenador/avaliacoes", label: "Lista de Avaliações", icon: <ClipboardList size={16} />, end: true },
+      //{to: "/coordenador/avaliacoes/1", label: "Detalhe da Avaliação", icon: <Eye size={16} />, end: true,},
     ],
 
     "/coordenador/relatorios": [

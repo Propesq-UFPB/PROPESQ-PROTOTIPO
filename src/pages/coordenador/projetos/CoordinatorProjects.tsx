@@ -194,7 +194,7 @@ export default function CoordinatorProjects() {
             </h1>
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
-              Acompanhe os projetos cadastrados, consulte avaliações, edite propostas dentro do prazo e cancele
+              Acompanhe os projetos cadastrados, consulte avaliações, edite propostas dentro do prazo e finalize
               submissões quando necessário.
             </p>
           </div>
@@ -554,7 +554,7 @@ export default function CoordinatorProjects() {
                             className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
                           >
                             <Ban size={15} />
-                            Cancelar
+                            Finalizar
                           </button>
                         </div>
                       </td>

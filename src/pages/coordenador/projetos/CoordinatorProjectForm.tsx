@@ -35,17 +35,16 @@ type ODS = {
 
 type CronogramaItem = {
   id: string
-  mes: string
   atividade: string
+  mesInicio: number
+  mesFim: number
 }
 
 type MemberRole =
   | "Coordenador"
-  | "Vice-coordenador"
+  | "Coordenador Adjunto"
   | "Pesquisador"
-  | "Discente"
-  | "Colaborador externo"
-  | "Técnico"
+  | "Colaborador"
 
 type ProjectMember = {
   id: string
@@ -146,38 +145,996 @@ const editais = [
   "PROBEX 2026",
 ]
 
-const areaConhecimentoOptions = [
-  "Ciência da Computação",
-  "Engenharias",
-  "Saúde",
-  "Humanas",
-  "Linguística/Artes",
-  "Outra",
+type CnpqSubarea = {
+  codigo: string
+  nome: string
+}
+
+type CnpqArea = {
+  codigo: string
+  nome: string
+  subareas: CnpqSubarea[]
+}
+
+type CnpqGrandeArea = {
+  codigo: string
+  nome: string
+  areas: CnpqArea[]
+}
+
+const cnpqAreasConhecimento: CnpqGrandeArea[] = [
+  {
+    codigo: "10000003",
+    nome: "Ciências Exatas e da Terra",
+    areas: [
+      {
+        codigo: "10100008",
+        nome: "Matemática",
+        subareas: [
+          { codigo: "10101004", nome: "Álgebra" },
+          { codigo: "10102000", nome: "Análise" },
+          { codigo: "10103007", nome: "Geometria e Topologia" },
+          { codigo: "10104003", nome: "Matemática Aplicada" },
+        ],
+      },
+      {
+        codigo: "10200002",
+        nome: "Probabilidade e Estatística",
+        subareas: [
+          { codigo: "10201009", nome: "Probabilidade" },
+          { codigo: "10202005", nome: "Estatística" },
+          { codigo: "10203001", nome: "Probabilidade e Estatística Aplicadas" },
+        ],
+      },
+      {
+        codigo: "10300007",
+        nome: "Ciência da Computação",
+        subareas: [
+          { codigo: "10301003", nome: "Teoria da Computação" },
+          { codigo: "10302000", nome: "Matemática da Computação" },
+          { codigo: "10303006", nome: "Metodologia e Técnicas da Computação" },
+          { codigo: "10304002", nome: "Sistemas de Computação" },
+        ],
+      },
+      {
+        codigo: "10400001",
+        nome: "Astronomia",
+        subareas: [
+          { codigo: "10401008", nome: "Astronomia de Posição e Mecânica Celeste" },
+          { codigo: "10402004", nome: "Astrofísica Estelar" },
+          { codigo: "10403000", nome: "Astrofísica do Meio Interestelar" },
+          { codigo: "10404007", nome: "Astrofísica Extragalactica" },
+          { codigo: "10405003", nome: "Astrofísica do Sistema Solar" },
+          { codigo: "10406000", nome: "Instrumentação Astronômica" },
+        ],
+      },
+      {
+        codigo: "10500006",
+        nome: "Física",
+        subareas: [
+          { codigo: "10501002", nome: "Física Geral" },
+          { codigo: "10502009", nome: "Áreas Clássicas de Fenomenologia e suas Aplicações" },
+          { codigo: "10503005", nome: "Física das Partículas Elementares e Campos" },
+          { codigo: "10504001", nome: "Física Nuclear" },
+          { codigo: "10505008", nome: "Física Atômica e Molecular" },
+          { codigo: "10506004", nome: "Física dos Fluídos, Física de Plasmas e Descargas Elétricas" },
+          { codigo: "10507000", nome: "Física da Matéria Condensada" },
+        ],
+      },
+      {
+        codigo: "10600000",
+        nome: "Química",
+        subareas: [
+          { codigo: "10601007", nome: "Química Orgânica" },
+          { codigo: "10602003", nome: "Química Inorgânica" },
+          { codigo: "10603000", nome: "Físico-Química" },
+          { codigo: "10604006", nome: "Química Analítica" },
+        ],
+      },
+      {
+        codigo: "10700005",
+        nome: "Geociências",
+        subareas: [
+          { codigo: "10701001", nome: "Geologia" },
+          { codigo: "10702008", nome: "Geofísica" },
+          { codigo: "10703004", nome: "Meteorologia" },
+          { codigo: "10704000", nome: "Geodésia" },
+          { codigo: "10705007", nome: "Geografia Física" },
+        ],
+      },
+      {
+        codigo: "10800000",
+        nome: "Oceanografia",
+        subareas: [
+          { codigo: "10801006", nome: "Oceanografia Biológica" },
+          { codigo: "10802002", nome: "Oceanografia Física" },
+          { codigo: "10803009", nome: "Oceanografia Química" },
+          { codigo: "10804005", nome: "Oceanografia Geológica" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "20000006",
+    nome: "Ciências Biológicas",
+    areas: [
+      {
+        codigo: "20100000",
+        nome: "Biologia Geral",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "20200005",
+        nome: "Genética",
+        subareas: [
+          { codigo: "20201001", nome: "Genética Quantitativa" },
+          { codigo: "20202008", nome: "Genética Molecular e de Microorganismos" },
+          { codigo: "20203004", nome: "Genética Vegetal" },
+          { codigo: "20204000", nome: "Genética Animal" },
+          { codigo: "20205007", nome: "Genética Humana e Médica" },
+          { codigo: "20206003", nome: "Mutagênese" },
+        ],
+      },
+      {
+        codigo: "20300000",
+        nome: "Botânica",
+        subareas: [
+          { codigo: "20301006", nome: "Paleobotânica" },
+          { codigo: "20302002", nome: "Morfologia Vegetal" },
+          { codigo: "20303009", nome: "Fisiologia Vegetal" },
+          { codigo: "20304005", nome: "Taxonomia Vegetal" },
+          { codigo: "20305001", nome: "Fitogeografia" },
+          { codigo: "20306008", nome: "Botânica Aplicada" },
+        ],
+      },
+      {
+        codigo: "20400004",
+        nome: "Zoologia",
+        subareas: [
+          { codigo: "20401000", nome: "Paleozoologia" },
+          { codigo: "20402007", nome: "Morfologia dos Grupos Recentes" },
+          { codigo: "20403003", nome: "Fisiologia dos Grupos Recentes" },
+          { codigo: "20404000", nome: "Comportamento Animal" },
+          { codigo: "20405006", nome: "Taxonomia dos Grupos Recentes" },
+          { codigo: "20406002", nome: "Zoologia Aplicada" },
+        ],
+      },
+      {
+        codigo: "20500009",
+        nome: "Ecologia",
+        subareas: [
+          { codigo: "20501005", nome: "Ecologia Teórica" },
+          { codigo: "20502001", nome: "Ecologia de Ecossistemas" },
+          { codigo: "20503008", nome: "Ecologia Aplicada" },
+        ],
+      },
+      {
+        codigo: "20600003",
+        nome: "Morfologia",
+        subareas: [
+          { codigo: "20601000", nome: "Citologia e Biologia Celular" },
+          { codigo: "20602006", nome: "Embriologia" },
+          { codigo: "20603002", nome: "Histologia" },
+          { codigo: "20604009", nome: "Anatomia" },
+        ],
+      },
+      {
+        codigo: "20700008",
+        nome: "Fisiologia",
+        subareas: [
+          { codigo: "20701004", nome: "Fisiologia Geral" },
+          { codigo: "20702000", nome: "Fisiologia de Órgãos e Sistemas" },
+          { codigo: "20703007", nome: "Fisiologia do Esforço" },
+          { codigo: "20704003", nome: "Fisiologia Comparada" },
+        ],
+      },
+      {
+        codigo: "20800002",
+        nome: "Bioquímica",
+        subareas: [
+          { codigo: "20801009", nome: "Química de Macromoléculas" },
+          { codigo: "20802005", nome: "Bioquímica dos Microorganismos" },
+          { codigo: "20803001", nome: "Metabolismo e Bioenergética" },
+          { codigo: "20804008", nome: "Biologia Molecular" },
+          { codigo: "20805004", nome: "Enzimologia" },
+        ],
+      },
+      {
+        codigo: "20900007",
+        nome: "Biofísica",
+        subareas: [
+          { codigo: "20901003", nome: "Biofísica Molecular" },
+          { codigo: "20902000", nome: "Biofísica Celular" },
+          { codigo: "20903006", nome: "Biofísica de Processos e Sistemas" },
+          { codigo: "20904002", nome: "Radiologia e Fotobiologia" },
+        ],
+      },
+      {
+        codigo: "21000000",
+        nome: "Farmacologia",
+        subareas: [
+          { codigo: "21001006", nome: "Farmacologia Geral" },
+          { codigo: "21002002", nome: "Farmacologia Autonômica" },
+          { codigo: "21003009", nome: "Neuropsicofarmacologia" },
+          { codigo: "21004005", nome: "Farmacologia Cardiorenal" },
+          { codigo: "21005001", nome: "Farmacologia Bioquímica e Molecular" },
+          { codigo: "21006008", nome: "Etnofarmacologia" },
+          { codigo: "21007004", nome: "Toxicologia" },
+          { codigo: "21008000", nome: "Farmacologia Clínica" },
+        ],
+      },
+      {
+        codigo: "21100004",
+        nome: "Imunologia",
+        subareas: [
+          { codigo: "21101000", nome: "Imunoquímica" },
+          { codigo: "21102007", nome: "Imunologia Celular" },
+          { codigo: "21103003", nome: "Imunogenética" },
+          { codigo: "21104000", nome: "Imunologia Aplicada" },
+        ],
+      },
+      {
+        codigo: "21200009",
+        nome: "Microbiologia",
+        subareas: [
+          { codigo: "21201005", nome: "Biologia e Fisiologia dos Microorganismos" },
+          { codigo: "21202001", nome: "Microbiologia Aplicada" },
+        ],
+      },
+      {
+        codigo: "21300003",
+        nome: "Parasitologia",
+        subareas: [
+          { codigo: "21301000", nome: "Protozoologia de Parasitos" },
+          { codigo: "21302006", nome: "Helmintologia de Parasitos" },
+          { codigo: "21303002", nome: "Entomologia e Malacologia de Parasitos e Vetores" },
+        ],
+      },
+      {
+        codigo: "21400008",
+        nome: "Biotecnologia",
+        subareas: [
+          { codigo: "21401004", nome: "Biotecnologia em Saúde Humana e Animal" },
+          { codigo: "21402000", nome: "Biotecnologia Industrial" },
+          { codigo: "21403007", nome: "Biotecnologia Vegetal" },
+          { codigo: "21404003", nome: "Biotecnologia Ambiental e Recursos Naturais" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "30000009",
+    nome: "Engenharias",
+    areas: [
+      {
+        codigo: "30100003",
+        nome: "Engenharia Civil",
+        subareas: [
+          { codigo: "30101000", nome: "Construção Civil" },
+          { codigo: "30102006", nome: "Estruturas" },
+          { codigo: "30103002", nome: "Geotécnica" },
+          { codigo: "30104009", nome: "Engenharia Hidráulica" },
+          { codigo: "30105005", nome: "Infra-Estrutura de Transportes" },
+        ],
+      },
+      {
+        codigo: "30200008",
+        nome: "Engenharia de Minas",
+        subareas: [
+          { codigo: "30201004", nome: "Pesquisa Mineral" },
+          { codigo: "30202000", nome: "Lavra" },
+          { codigo: "30203007", nome: "Tratamento de Minérios" },
+        ],
+      },
+      {
+        codigo: "30300002",
+        nome: "Engenharia de Materiais e Metalúrgica",
+        subareas: [
+          { codigo: "30301009", nome: "Instalações e Equipamentos Metalúrgicos" },
+          { codigo: "30302005", nome: "Metalurgia Extrativa" },
+          { codigo: "30303001", nome: "Metalurgia de Transformação" },
+          { codigo: "30304008", nome: "Metalurgia Física" },
+          { codigo: "30305004", nome: "Materiais Não-Metálicos" },
+        ],
+      },
+      {
+        codigo: "30400007",
+        nome: "Engenharia Elétrica",
+        subareas: [
+          { codigo: "30401003", nome: "Materiais Elétricos" },
+          { codigo: "30402000", nome: "Medidas Elétricas, Magnéticas e Eletrônicas; Instrumentação" },
+          { codigo: "30403006", nome: "Circuitos Elétricos, Magnéticos e Eletrônicos" },
+          { codigo: "30404002", nome: "Sistemas Elétricos de Potência" },
+          { codigo: "30405009", nome: "Eletrônica Industrial, Sistemas e Controles Eletrônicos" },
+          { codigo: "30406005", nome: "Telecomunicações" },
+        ],
+      },
+      {
+        codigo: "30500001",
+        nome: "Engenharia Mecânica",
+        subareas: [
+          { codigo: "30501008", nome: "Fenômenos de Transporte" },
+          { codigo: "30502004", nome: "Engenharia Térmica" },
+          { codigo: "30503000", nome: "Mecânica dos Sólidos" },
+          { codigo: "30504007", nome: "Projetos de Máquinas" },
+          { codigo: "30505003", nome: "Processos de Fabricação" },
+        ],
+      },
+      {
+        codigo: "30600006",
+        nome: "Engenharia Química",
+        subareas: [
+          { codigo: "30604001", nome: "Engenharia de Reações Químicas e Catálise" },
+          { codigo: "30605008", nome: "Engenharia de Separações e Termodinâmica" },
+          { codigo: "30606004", nome: "Fenômenos de Transporte, Materiais e Particulados" },
+          { codigo: "30607000", nome: "Modelagem, Simulação, Síntese, Otimização e Controle de Processos" },
+          { codigo: "30608007", nome: "Processos Ambientais e Tecnologias Limpas" },
+          { codigo: "30609003", nome: "Processos Biotecnológicos e Alimentos" },
+        ],
+      },
+      {
+        codigo: "30700000",
+        nome: "Engenharia Sanitária",
+        subareas: [
+          { codigo: "30701007", nome: "Recursos Hídricos" },
+          { codigo: "30702003", nome: "Tratamento de Águas de Abastecimento e Residuárias" },
+          { codigo: "30703000", nome: "Saneamento Básico" },
+          { codigo: "30704006", nome: "Saneamento Ambiental" },
+        ],
+      },
+      {
+        codigo: "30800005",
+        nome: "Engenharia de Produção",
+        subareas: [
+          { codigo: "30801001", nome: "Gerência de Produção" },
+          { codigo: "30802008", nome: "Pesquisa Operacional" },
+          { codigo: "30803004", nome: "Engenharia do Produto" },
+          { codigo: "30804000", nome: "Engenharia Econômica" },
+        ],
+      },
+      {
+        codigo: "30900000",
+        nome: "Engenharia Nuclear",
+        subareas: [
+          { codigo: "30901006", nome: "Aplicações de Radioisótopos" },
+          { codigo: "30902002", nome: "Fusão Controlada" },
+          { codigo: "30903009", nome: "Combustível Nuclear" },
+          { codigo: "30904005", nome: "Tecnologia dos Reatores" },
+        ],
+      },
+      {
+        codigo: "31000002",
+        nome: "Engenharia de Transportes",
+        subareas: [
+          { codigo: "31001009", nome: "Planejamento de Transportes" },
+          { codigo: "31002005", nome: "Veículos e Equipamentos de Controle" },
+          { codigo: "31003001", nome: "Operações de Transportes" },
+        ],
+      },
+      {
+        codigo: "31100007",
+        nome: "Engenharia Naval e Oceânica",
+        subareas: [
+          { codigo: "31101003", nome: "Hidrodinâmica de Navios e Sistemas Oceânicos" },
+          { codigo: "31102000", nome: "Estruturas Navais e Oceânicas" },
+          { codigo: "31103006", nome: "Máquinas Marítimas" },
+          { codigo: "31104002", nome: "Projeto de Navios e de Sistemas Oceânicos" },
+          { codigo: "31105009", nome: "Tecnologia de Construção Naval e de Sistemas Oceânicos" },
+        ],
+      },
+      {
+        codigo: "31200001",
+        nome: "Engenharia Aeroespacial",
+        subareas: [
+          { codigo: "31201008", nome: "Aerodinâmica" },
+          { codigo: "31202004", nome: "Dinâmica de Voo" },
+          { codigo: "31203000", nome: "Estruturas Aeroespaciais" },
+          { codigo: "31204007", nome: "Materiais e Processos para Engenharia Aeronáutica e Aeroespacial" },
+          { codigo: "31205003", nome: "Propulsão Aeroespacial" },
+          { codigo: "31206000", nome: "Sistemas Aeroespaciais" },
+        ],
+      },
+      {
+        codigo: "31300006",
+        nome: "Engenharia Biomédica",
+        subareas: [
+          { codigo: "31301002", nome: "Bioengenharia" },
+          { codigo: "31302009", nome: "Engenharia Médica" },
+        ],
+      },
+      {
+        codigo: "31400000",
+        nome: "Engenharia de Energia",
+        subareas: [
+          { codigo: "31401007", nome: "Planejamento Energético" },
+          { codigo: "31402003", nome: "Fontes Renováveis de Energia" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "40000001",
+    nome: "Ciências da Saúde",
+    areas: [
+      {
+        codigo: "40100006",
+        nome: "Medicina",
+        subareas: [
+          { codigo: "40101002", nome: "Clínica Médica" },
+          { codigo: "40102009", nome: "Cirurgia" },
+          { codigo: "40103005", nome: "Saúde Materno-Infantil" },
+          { codigo: "40104001", nome: "Psiquiatria" },
+          { codigo: "40105008", nome: "Anatomia Patológica e Patologia Clínica" },
+          { codigo: "40106004", nome: "Radiologia Médica" },
+          { codigo: "40107000", nome: "Medicina Legal e Deontologia" },
+        ],
+      },
+      {
+        codigo: "40200000",
+        nome: "Odontologia",
+        subareas: [
+          { codigo: "40201007", nome: "Clínica Odontológica" },
+          { codigo: "40202003", nome: "Cirurgia Buco-Maxilo-Facial" },
+          { codigo: "40203000", nome: "Ortodontia" },
+          { codigo: "40204006", nome: "Odontopediatria" },
+          { codigo: "40205002", nome: "Periodontia" },
+          { codigo: "40206009", nome: "Endodontia" },
+          { codigo: "40207005", nome: "Radiologia Odontológica" },
+          { codigo: "40208001", nome: "Odontologia Social e Preventiva" },
+          { codigo: "40209008", nome: "Materiais Odontológicos" },
+        ],
+      },
+      {
+        codigo: "40300005",
+        nome: "Farmácia",
+        subareas: [
+          { codigo: "40301001", nome: "Farmacotécnica e tecnologia farmacêutica" },
+          { codigo: "40302008", nome: "Farmacognosia" },
+          { codigo: "40303004", nome: "Avaliação e analises toxicológicas" },
+          { codigo: "40304000", nome: "Garantia e controle de qualidade farmacêuticos" },
+          { codigo: "40306003", nome: "Fisiopatologia e diagnóstico laboratorial" },
+          { codigo: "40307000", nome: "Farmácia clínica, assistência e atenção farmacêuticas" },
+          { codigo: "40308006", nome: "Química Farmacêutica Medicinal" },
+        ],
+      },
+      {
+        codigo: "40400000",
+        nome: "Enfermagem",
+        subareas: [
+          { codigo: "40401006", nome: "Enfermagem em Saúde do Adulto e do Idoso" },
+          { codigo: "40402002", nome: "Enfermagem em Saúde da Mulher" },
+          { codigo: "40403009", nome: "Enfermagem em Saúde da Criança e do Adolescente" },
+          { codigo: "40404005", nome: "Enfermagem em Saúde Mental" },
+          { codigo: "40405001", nome: "Enfermagem em Doenças Emergentes, Reemergentes e Negligenciadas" },
+          { codigo: "40406008", nome: "Enfermagem em Saúde Coletiva" },
+          { codigo: "40407004", nome: "Enfermagem Fundamental" },
+          { codigo: "40408000", nome: "Enfermagem na Gestão e Gerenciamento" },
+        ],
+      },
+      {
+        codigo: "40500004",
+        nome: "Nutrição",
+        subareas: [
+          { codigo: "40505006", nome: "Alimentos e alimentação coletiva" },
+          { codigo: "40506002", nome: "Ciências humanas e sociais em alimentação e nutrição" },
+          { codigo: "40507009", nome: "Epidemiologia e políticas de alimentação e nutrição" },
+          { codigo: "40508005", nome: "Nutrição básica e experimental" },
+          { codigo: "40509001", nome: "Nutrição clínica" },
+        ],
+      },
+      {
+        codigo: "40600009",
+        nome: "Saúde Coletiva",
+        subareas: [
+          { codigo: "40601005", nome: "Epidemiologia" },
+          { codigo: "40604004", nome: "Ciências Sociais e Humanidades em Saúde" },
+          { codigo: "40605000", nome: "Política, Planejamento, Gestão e Avaliação" },
+        ],
+      },
+      {
+        codigo: "40700003",
+        nome: "Fonoaudiologia",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "40800008",
+        nome: "Fisioterapia e Terapia Ocupacional",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "40900002",
+        nome: "Educação Física",
+        subareas: [
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "50000004",
+    nome: "Ciências Agrárias",
+    areas: [
+      {
+        codigo: "50100009",
+        nome: "Agronomia",
+        subareas: [
+          { codigo: "50101005", nome: "Ciência do Solo" },
+          { codigo: "50102001", nome: "Fitossanidade" },
+          { codigo: "50103008", nome: "Fitotecnia" },
+          { codigo: "50104004", nome: "Floricultura, Parques e Jardins" },
+          { codigo: "50105000", nome: "Agrometeorologia" },
+          { codigo: "50106007", nome: "Extensão Rural" },
+        ],
+      },
+      {
+        codigo: "50200003",
+        nome: "Recursos Florestais e Engenharia Florestal",
+        subareas: [
+          { codigo: "50201000", nome: "Silvicultura" },
+          { codigo: "50202006", nome: "Manejo Florestal" },
+          { codigo: "50203002", nome: "Técnicas e Operações Florestais" },
+          { codigo: "50204009", nome: "Tecnologia e Utilização de Produtos Florestais" },
+          { codigo: "50205005", nome: "Conservação da Natureza" },
+          { codigo: "50206001", nome: "Energia de Biomassa Florestal" },
+        ],
+      },
+      {
+        codigo: "50300008",
+        nome: "Engenharia Agrícola",
+        subareas: [
+          { codigo: "50301004", nome: "Máquinas e Implementos Agrícolas" },
+          { codigo: "50302000", nome: "Engenharia de Água e Solo" },
+          { codigo: "50303007", nome: "Engenharia de Processamento de Produtos Agrícolas" },
+          { codigo: "50304003", nome: "Construções Rurais e Ambiência" },
+          { codigo: "50305000", nome: "Energização Rural" },
+        ],
+      },
+      {
+        codigo: "50400002",
+        nome: "Zootecnia",
+        subareas: [
+          { codigo: "50401009", nome: "Ecologia dos Animais Domésticos e Etologia" },
+          { codigo: "50402005", nome: "Genética e Melhoramento dos Animais Domésticos" },
+          { codigo: "50403001", nome: "Nutrição e Alimentação Animal" },
+          { codigo: "50404008", nome: "Pastagem e Forragicultura" },
+          { codigo: "50405004", nome: "Produção Animal" },
+        ],
+      },
+      {
+        codigo: "50500007",
+        nome: "Medicina Veterinária",
+        subareas: [
+          { codigo: "50501003", nome: "Clínica e Cirurgia Animal" },
+          { codigo: "50502000", nome: "Medicina Veterinária Preventiva" },
+          { codigo: "50503006", nome: "Patologia Animal" },
+          { codigo: "50504002", nome: "Reprodução Animal" },
+          { codigo: "50505009", nome: "Inspeção de Produtos de Origem Animal" },
+        ],
+      },
+      {
+        codigo: "50600001",
+        nome: "Recursos Pesqueiros e Engenharia de Pesca",
+        subareas: [
+          { codigo: "50601008", nome: "Recursos Pesqueiros Marinhos" },
+          { codigo: "50602004", nome: "Recursos Pesqueiros de Águas Interiores" },
+          { codigo: "50603000", nome: "Aqüicultura" },
+          { codigo: "50604007", nome: "Engenharia de Pesca" },
+        ],
+      },
+      {
+        codigo: "50700006",
+        nome: "Ciência e Tecnologia de Alimentos",
+        subareas: [
+          { codigo: "50701002", nome: "Ciência de Alimentos" },
+          { codigo: "50702009", nome: "Tecnologia de Alimentos" },
+          { codigo: "50703005", nome: "Engenharia de Alimentos" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "60000007",
+    nome: "Ciências Sociais Aplicadas",
+    areas: [
+      {
+        codigo: "60100001",
+        nome: "Direito",
+        subareas: [
+          { codigo: "60101008", nome: "Teoria do Direito" },
+          { codigo: "60102004", nome: "Direito Público" },
+          { codigo: "60103000", nome: "Direito Privado" },
+          { codigo: "60104007", nome: "Direitos Especiais" },
+        ],
+      },
+      {
+        codigo: "60200006",
+        nome: "Administração",
+        subareas: [
+          { codigo: "60201002", nome: "Administração de Empresas" },
+          { codigo: "60202009", nome: "Administração Pública" },
+          { codigo: "60203005", nome: "Administração de Setores Específicos" },
+          { codigo: "60204001", nome: "Ciências Contábeis" },
+        ],
+      },
+      {
+        codigo: "60300000",
+        nome: "Economia",
+        subareas: [
+          { codigo: "60301007", nome: "Teoria Econômica" },
+          { codigo: "60302003", nome: "Métodos Quantitativos em Economia" },
+          { codigo: "60303000", nome: "Economia Monetária e Fiscal" },
+          { codigo: "60304006", nome: "Crescimento, Flutuações e Planejamento Econômico" },
+          { codigo: "60305002", nome: "Economia Internacional" },
+          { codigo: "60306009", nome: "Economia dos Recursos Humanos" },
+          { codigo: "60307005", nome: "Economia Industrial" },
+          { codigo: "60308001", nome: "Economia do Bem-Estar Social" },
+          { codigo: "60309008", nome: "Economia Regional e Urbana" },
+          { codigo: "60310006", nome: "Economias Agrária e dos Recursos Naturais" },
+        ],
+      },
+      {
+        codigo: "60400005",
+        nome: "Arquitetura e Urbanismo",
+        subareas: [
+          { codigo: "60401001", nome: "Fundamentos de Arquitetura e Urbanismo" },
+          { codigo: "60402008", nome: "Projeto de Arquitetura e Urbanismo" },
+          { codigo: "60403004", nome: "Tecnologia de Arquitetura e Urbanismo" },
+          { codigo: "60404000", nome: "Paisagismo" },
+        ],
+      },
+      {
+        codigo: "60500000",
+        nome: "Planejamento Urbano e Regional",
+        subareas: [
+          { codigo: "60501006", nome: "Fundamentos do Planejamento Urbano e Regional" },
+          { codigo: "60502002", nome: "Métodos e Técnicas do Planejamento Urbano e Regional" },
+          { codigo: "60503009", nome: "Serviços Urbanos e Regionais" },
+        ],
+      },
+      {
+        codigo: "60600004",
+        nome: "Demografia",
+        subareas: [
+          { codigo: "60601000", nome: "Distribuição Espacial" },
+          { codigo: "60602007", nome: "Tendência Populacional" },
+          { codigo: "60603003", nome: "Componentes da Dinâmica Demográfica" },
+          { codigo: "60604000", nome: "Nupcialidade e Família" },
+          { codigo: "60605006", nome: "Demografia Histórica" },
+          { codigo: "60606002", nome: "Política Pública e População" },
+          { codigo: "60607009", nome: "Fontes de Dados Demográficos" },
+        ],
+      },
+      {
+        codigo: "60700009",
+        nome: "Ciência da Informação",
+        subareas: [
+          { codigo: "60701005", nome: "Teoria da Informação" },
+          { codigo: "60702001", nome: "Biblioteconomia" },
+          { codigo: "60703008", nome: "Arquivologia" },
+        ],
+      },
+      {
+        codigo: "60800003",
+        nome: "Museologia",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "60900008",
+        nome: "Comunicação",
+        subareas: [
+          { codigo: "60901004", nome: "Teoria da Comunicação" },
+          { codigo: "60902000", nome: "Jornalismo e Editoração" },
+          { codigo: "60903007", nome: "Rádio e Televisão" },
+          { codigo: "60904003", nome: "Relações Públicas e Propaganda" },
+          { codigo: "60905000", nome: "Comunicação Visual e Cinema" },
+        ],
+      },
+      {
+        codigo: "61000000",
+        nome: "Serviço Social",
+        subareas: [
+          { codigo: "61001007", nome: "Fundamentos do Serviço Social" },
+          { codigo: "61002003", nome: "Serviço Social Aplicado" },
+        ],
+      },
+      {
+        codigo: "61100005",
+        nome: "Economia Doméstica",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "61200000",
+        nome: "Desenho Industrial",
+        subareas: [
+          { codigo: "61201006", nome: "Programação Visual" },
+          { codigo: "61202002", nome: "Desenho de Produto" },
+        ],
+      },
+      {
+        codigo: "61300004",
+        nome: "Turismo",
+        subareas: [
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "70000000",
+    nome: "Ciências Humanas",
+    areas: [
+      {
+        codigo: "70100004",
+        nome: "Filosofia",
+        subareas: [
+          { codigo: "70101000", nome: "História da Filosofia" },
+          { codigo: "70102007", nome: "Metafísica" },
+          { codigo: "70103003", nome: "Lógica" },
+          { codigo: "70104000", nome: "Ética" },
+          { codigo: "70105006", nome: "Epistemologia" },
+          { codigo: "70106002", nome: "Filosofia Brasileira" },
+          { codigo: "70107009", nome: "Estética e Filosofia da Arte" },
+        ],
+      },
+      {
+        codigo: "70200009",
+        nome: "Sociologia",
+        subareas: [
+          { codigo: "70201005", nome: "Fundamentos da Sociologia" },
+          { codigo: "70202001", nome: "Sociologia do Conhecimento" },
+          { codigo: "70203008", nome: "Sociologia do Desenvolvimento" },
+          { codigo: "70204004", nome: "Sociologia Urbana" },
+          { codigo: "70205000", nome: "Sociologia Rural" },
+          { codigo: "70206007", nome: "Sociologia da Saúde" },
+          { codigo: "70207003", nome: "Outras Sociologias Específicas" },
+        ],
+      },
+      {
+        codigo: "70300003",
+        nome: "Antropologia",
+        subareas: [
+          { codigo: "70301000", nome: "Teoria Antropológica" },
+          { codigo: "70302006", nome: "Etnologia Indígena" },
+          { codigo: "70303002", nome: "Antropologia Urbana" },
+          { codigo: "70304009", nome: "Antropologia Rural" },
+          { codigo: "70305005", nome: "Antropologia das Populações Afro-Brasileiras" },
+        ],
+      },
+      {
+        codigo: "70400008",
+        nome: "Arqueologia",
+        subareas: [
+          { codigo: "70401004", nome: "Teoria e Método em Arqueologia" },
+          { codigo: "70402000", nome: "Arqueologia Pré-Histórica" },
+          { codigo: "70403007", nome: "Arqueologia Histórica" },
+        ],
+      },
+      {
+        codigo: "70500002",
+        nome: "História",
+        subareas: [
+          { codigo: "70501009", nome: "Teoria e Filosofia da História" },
+          { codigo: "70502005", nome: "História Antiga e Medieval" },
+          { codigo: "70503001", nome: "História Moderna e Contemporânea" },
+          { codigo: "70504008", nome: "História da América" },
+          { codigo: "70505004", nome: "História do Brasil" },
+          { codigo: "70506000", nome: "História das Ciências" },
+        ],
+      },
+      {
+        codigo: "70600007",
+        nome: "Geografia",
+        subareas: [
+          { codigo: "70601003", nome: "Geografia Humana" },
+          { codigo: "70602000", nome: "Geografia Regional" },
+        ],
+      },
+      {
+        codigo: "70700001",
+        nome: "Psicologia",
+        subareas: [
+          { codigo: "70701008", nome: "Fundamentos e Medidas da Psicologia" },
+          { codigo: "70702004", nome: "Psicologia Experimental" },
+          { codigo: "70703000", nome: "Psicologia Fisiológica" },
+          { codigo: "70704007", nome: "Psicologia Comparativa" },
+          { codigo: "70705003", nome: "Psicologia Social" },
+          { codigo: "70706000", nome: "Psicologia Cognitiva" },
+          { codigo: "70707006", nome: "Psicologia do Desenvolvimento Humano" },
+          { codigo: "70708002", nome: "Psicologia do Ensino e da Aprendizagem" },
+          { codigo: "70709009", nome: "Psicologia do Trabalho e Organizacional" },
+          { codigo: "70710007", nome: "Tratamento e Prevenção Psicológica" },
+        ],
+      },
+      {
+        codigo: "70800006",
+        nome: "Educação",
+        subareas: [
+          { codigo: "70801002", nome: "Fundamentos da Educação" },
+          { codigo: "70802009", nome: "Administração Educacional" },
+          { codigo: "70803005", nome: "Política, Planejamento e Avaliação Educacional" },
+          { codigo: "70804001", nome: "Ensino-Aprendizagem" },
+          { codigo: "70805008", nome: "Currículo" },
+          { codigo: "70806004", nome: "Orientação e Aconselhamento" },
+          { codigo: "70807000", nome: "Tópicos Específicos de Educação" },
+          { codigo: "70808007", nome: "Educação e Diversidade" },
+        ],
+      },
+      {
+        codigo: "70900000",
+        nome: "Ciência Política",
+        subareas: [
+          { codigo: "70901007", nome: "Teoria Política" },
+          { codigo: "70902003", nome: "Estado e Governo" },
+          { codigo: "70903000", nome: "Comportamento Político" },
+          { codigo: "70904006", nome: "Políticas Públicas" },
+          { codigo: "70905002", nome: "Política Internacional" },
+        ],
+      },
+      {
+        codigo: "71000003",
+        nome: "Teologia",
+        subareas: [
+          { codigo: "71001000", nome: "História das Teologias e Religiões" },
+          { codigo: "71004009", nome: "Teologia Prática" },
+          { codigo: "71005005", nome: "Teologia Fundamental Sistemática" },
+          { codigo: "71006001", nome: "Ciências da Religião Aplicada" },
+          { codigo: "71007008", nome: "Ciências da Linguagem Religiosa" },
+          { codigo: "71008004", nome: "Ciências Empíricas da Religião" },
+          { codigo: "71009000", nome: "Epistemologia das Ciências da Religião" },
+          { codigo: "71010009", nome: "Tradições e Escrituras Sagradas" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "80000002",
+    nome: "Linguística, Letras e Artes",
+    areas: [
+      {
+        codigo: "80100007",
+        nome: "Linguística",
+        subareas: [
+          { codigo: "80101003", nome: "Teoria e Análise Linguística" },
+          { codigo: "80102000", nome: "Filosofia da Linguagem" },
+          { codigo: "80103006", nome: "Linguística Histórica" },
+          { codigo: "80104002", nome: "Sociolinguística e Dialetologia" },
+          { codigo: "80105009", nome: "Psicolinguística" },
+          { codigo: "80106005", nome: "Linguística Aplicada" },
+        ],
+      },
+      {
+        codigo: "80200001",
+        nome: "Letras",
+        subareas: [
+          { codigo: "80201008", nome: "Língua Portuguesa" },
+          { codigo: "80202004", nome: "Línguas Estrangeiras Modernas" },
+          { codigo: "80203000", nome: "Línguas Clássicas" },
+          { codigo: "80204007", nome: "Línguas Indígenas" },
+          { codigo: "80205003", nome: "Teoria Literária" },
+          { codigo: "80206000", nome: "Literatura Brasileira" },
+          { codigo: "80207006", nome: "Outras Literaturas Vernáculas" },
+          { codigo: "80208002", nome: "Literaturas Estrangeiras Modernas" },
+          { codigo: "80209009", nome: "Literaturas Clássicas" },
+          { codigo: "80210007", nome: "Literatura Comparada" },
+        ],
+      },
+      {
+        codigo: "80300006",
+        nome: "Artes",
+        subareas: [
+          { codigo: "80301002", nome: "Fundamentos e Crítica das Artes" },
+          { codigo: "80302009", nome: "Artes Plásticas" },
+          { codigo: "80303005", nome: "Música" },
+          { codigo: "80304001", nome: "Dança" },
+          { codigo: "80305008", nome: "Teatro" },
+          { codigo: "80306004", nome: "Ópera" },
+          { codigo: "80307000", nome: "Fotografia" },
+          { codigo: "80308007", nome: "Cinema" },
+          { codigo: "80309003", nome: "Artes do Vídeo" },
+          { codigo: "80310001", nome: "Educação Artística" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "90000005",
+    nome: "Outra",
+    areas: [
+      {
+        codigo: "99900009",
+        nome: "Multidisciplinar",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "90200000",
+        nome: "Ensino",
+        subareas: [
+          { codigo: "90201000", nome: "Ensino de Ciências e Matemática" },
+        ],
+      },
+      {
+        codigo: "92300006",
+        nome: "Secretariado Executivo",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "92400000",
+        nome: "Defesa",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "92600000",
+        nome: "Bioética",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "92700004",
+        nome: "Ciências Ambientais",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "92800009",
+        nome: "Divulgação Científica",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "93200005",
+        nome: "Robótica, Mecatrônica e Automação",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "93300000",
+        nome: "Microeletrônica",
+        subareas: [
+          { codigo: "93301006", nome: "Processos de Fabricação" },
+          { codigo: "93302002", nome: "Dispositivos" },
+          { codigo: "93303009", nome: "Teste e Tolerância a Falhas" },
+          { codigo: "93304005", nome: "Projeto" },
+          { codigo: "93305001", nome: "EDA" },
+        ],
+      },
+      {
+        codigo: "93400004",
+        nome: "Segurança Contra Incêndio",
+        subareas: [
+        ],
+      },
+    ],
+  },
 ]
 
-const grandeAreas = [
-  "Ciências Exatas",
-  "Ciências Humanas",
-  "Saúde",
-  "Engenharias",
-  "Linguística, Letras e Artes",
-]
+function formatCnpqOption(item: { codigo: string; nome: string }) {
+  return `${item.codigo} — ${item.nome}`
+}
 
-const areas = [
-  "Visão Computacional",
-  "IA Aplicada",
-  "Processamento de Imagens",
-  "Sistemas Embarcados",
-  "Segurança",
-]
+const areaConhecimentoOptions = cnpqAreasConhecimento.map(formatCnpqOption)
+const grandeAreas = cnpqAreasConhecimento.map(formatCnpqOption)
 
-const subareas = [
-  "Detecção",
-  "Segmentação",
-  "Classificação",
-  "Otimização",
-  "TinyML",
-]
+function getAreasByGrandeArea(grandeArea: string) {
+  const grandeAreaSelecionada = cnpqAreasConhecimento.find(
+    (item) => formatCnpqOption(item) === grandeArea
+  )
+
+  return grandeAreaSelecionada?.areas ?? []
+}
+
+function getSubareasByArea(grandeArea: string, area: string) {
+  const areaSelecionada = getAreasByGrandeArea(grandeArea).find(
+    (item) => formatCnpqOption(item) === area
+  )
+
+  return areaSelecionada?.subareas ?? []
+}
 
 const especialidades = [
   "Especialidade A",
@@ -218,50 +1175,18 @@ const definicoesPI = [
 
 const memberRoles: MemberRole[] = [
   "Coordenador",
-  "Vice-coordenador",
+  "Coordenador Adjunto",
   "Pesquisador",
-  "Discente",
-  "Colaborador externo",
-  "Técnico",
+  "Colaborador",
 ]
 
-const cronogramaMeses = [
-  "Mês 1",
-  "Mês 2",
-  "Mês 3",
-  "Mês 4",
-  "Mês 5",
-  "Mês 6",
-  "Mês 7",
-  "Mês 8",
-  "Mês 9",
-  "Mês 10",
-  "Mês 11",
-  "Mês 12",
-]
-
-const modeloCronograma6Meses = [
-  "Mês 1 — Revisão bibliográfica e alinhamento metodológico",
-  "Mês 2 — Definição dos instrumentos, materiais ou procedimentos",
-  "Mês 3 — Coleta, organização ou preparação dos dados",
-  "Mês 4 — Execução dos experimentos, análises ou atividades principais",
-  "Mês 5 — Consolidação dos resultados e discussão parcial",
-  "Mês 6 — Elaboração do relatório, revisão final e entrega dos produtos",
-]
-
-const modeloCronograma12Meses = [
-  "Mês 1 — Revisão bibliográfica inicial e planejamento detalhado",
-  "Mês 2 — Aprofundamento teórico e definição dos procedimentos",
-  "Mês 3 — Preparação dos instrumentos, bases, materiais ou ambiente",
-  "Mês 4 — Coleta ou levantamento inicial de dados",
-  "Mês 5 — Organização, limpeza ou categorização dos dados",
-  "Mês 6 — Execução da primeira etapa de análise ou experimentação",
-  "Mês 7 — Execução da segunda etapa de análise ou experimentação",
-  "Mês 8 — Validação, comparação ou refinamento dos resultados",
-  "Mês 9 — Consolidação dos achados e discussão preliminar",
-  "Mês 10 — Escrita do relatório parcial/final e organização dos produtos",
-  "Mês 11 — Revisão, ajustes finais e preparação para apresentação",
-  "Mês 12 — Entrega final, socialização dos resultados e encerramento",
+const memberVinculos = [
+  "Docente UFPB",
+  "Técnico-administrativo UFPB",
+  "Discente UFPB",
+  "Pesquisador externo",
+  "Instituição parceira",
+  "Outro",
 ]
 
 /* ================= ESTADO INICIAL ================= */
@@ -339,6 +1264,30 @@ function cx(...arr: Array<string | false | null | undefined>) {
 
 function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function getProjectDurationInMonths(periodoIni: string, periodoFim: string) {
+  if (!periodoIni || !periodoFim) return 12
+
+  const start = new Date(`${periodoIni}T00:00:00`)
+  const end = new Date(`${periodoFim}T00:00:00`)
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+    return 12
+  }
+
+  const months =
+    (end.getFullYear() - start.getFullYear()) * 12 +
+    (end.getMonth() - start.getMonth()) +
+    1
+
+  return Math.max(1, months)
+}
+
+function formatCronogramaDuration(mesInicio: number, mesFim: number) {
+  if (mesInicio === mesFim) return `Mês ${mesInicio}`
+
+  return `Mês ${mesInicio} ao mês ${mesFim}`
 }
 
 const inputClassName =
@@ -562,14 +1511,34 @@ function OdsPicker({
 function CronogramaPicker({
   value,
   onChange,
+  periodoIni,
+  periodoFim,
 }: {
   value: CronogramaItem[]
   onChange: (value: CronogramaItem[]) => void
+  periodoIni: string
+  periodoFim: string
 }) {
-  const [mes, setMes] = useState("")
   const [atividade, setAtividade] = useState("")
+  const [mesInicio, setMesInicio] = useState(1)
+  const [mesFim, setMesFim] = useState(1)
 
-  const canAdd = Boolean(mes.trim() && atividade.trim())
+  const totalMeses = useMemo(
+    () => getProjectDurationInMonths(periodoIni, periodoFim),
+    [periodoIni, periodoFim]
+  )
+
+  const mesesDisponiveis = useMemo(
+    () => Array.from({ length: totalMeses }, (_, index) => index + 1),
+    [totalMeses]
+  )
+
+  const canAdd = Boolean(
+    atividade.trim() &&
+      mesInicio >= 1 &&
+      mesFim >= mesInicio &&
+      mesFim <= totalMeses
+  )
 
   function addLinha() {
     if (!canAdd) return
@@ -578,49 +1547,24 @@ function CronogramaPicker({
       ...value,
       {
         id: createId("cronograma"),
-        mes,
         atividade: atividade.trim(),
+        mesInicio,
+        mesFim,
       },
     ])
 
-    setMes("")
     setAtividade("")
+    setMesInicio(1)
+    setMesFim(1)
   }
 
   function removeLinha(id: string) {
     onChange(value.filter((item) => item.id !== id))
   }
 
-  function applyModelo(modelo: string[]) {
-    onChange(
-      modelo.map((linha) => {
-        const [mesModelo, ...resto] = linha.split("—")
-
-        return {
-          id: createId("cronograma"),
-          mes: mesModelo.trim(),
-          atividade: resto.join("—").trim(),
-        }
-      })
-    )
-  }
-
   return (
     <div className="rounded-2xl border border-neutral/20 bg-neutral/5 p-4">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[180px_1fr_auto]">
-        <select
-          value={mes}
-          onChange={(event) => setMes(event.target.value)}
-          className={selectClassName}
-        >
-          <option value="">Selecione o mês</option>
-          {cronogramaMeses.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_170px_170px_auto]">
         <input
           value={atividade}
           onChange={(event) => setAtividade(event.target.value)}
@@ -631,8 +1575,41 @@ function CronogramaPicker({
             }
           }}
           className={inputClassName}
-          placeholder="Descreva a atividade prevista para o período"
+          placeholder="Atividade"
         />
+
+        <select
+          value={mesInicio}
+          onChange={(event) => {
+            const nextMesInicio = Number(event.target.value)
+            setMesInicio(nextMesInicio)
+
+            if (mesFim < nextMesInicio) {
+              setMesFim(nextMesInicio)
+            }
+          }}
+          className={selectClassName}
+        >
+          {mesesDisponiveis.map((item) => (
+            <option key={item} value={item}>
+              Início: mês {item}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={mesFim}
+          onChange={(event) => setMesFim(Number(event.target.value))}
+          className={selectClassName}
+        >
+          {mesesDisponiveis
+            .filter((item) => item >= mesInicio)
+            .map((item) => (
+              <option key={item} value={item}>
+                Fim: mês {item}
+              </option>
+            ))}
+        </select>
 
         <button
           type="button"
@@ -649,6 +1626,11 @@ function CronogramaPicker({
           Adicionar
         </button>
       </div>
+
+      <p className="mt-2 text-[11px] text-neutral">
+        A duração deve ficar entre o mês 1 e o mês {totalMeses}, conforme o
+        período informado para o projeto.
+      </p>
 
       <div className="mt-3 flex flex-wrap gap-2">
         <button
@@ -675,7 +1657,7 @@ function CronogramaPicker({
             </p>
 
             <p className="mt-1 text-xs text-neutral">
-              Selecione um mês, descreva a atividade e clique em adicionar.
+              Informe a atividade, selecione a duração e clique em adicionar.
             </p>
           </div>
         ) : (
@@ -684,10 +1666,15 @@ function CronogramaPicker({
               key={item.id}
               className="flex flex-col gap-3 rounded-xl border border-neutral/20 bg-white p-3 md:flex-row md:items-center md:justify-between"
             >
-              <p className="text-sm leading-6 text-neutral">
-                <span className="font-semibold text-primary">{item.mes}</span>{" "}
-                — {item.atividade}
-              </p>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-neutral">
+                  {formatCronogramaDuration(item.mesInicio, item.mesFim)}
+                </p>
+
+                <p className="mt-1 text-sm leading-6 text-primary">
+                  {item.atividade}
+                </p>
+              </div>
 
               <button
                 type="button"
@@ -820,17 +1807,12 @@ export default function CoordinatorProjectForm() {
     if (!canGoStep4) return false
 
     const hasMembers = form.gerais.membros.length > 0
-    const hasComplementaryPdf = Boolean(form.gerais.pdfComplementar)
 
     if (form.gerais.tipo === "externo") {
-      return Boolean(
-        hasMembers &&
-          hasComplementaryPdf &&
-          form.gerais.comprovanteExterno
-      )
+      return Boolean(hasMembers && form.gerais.comprovanteExterno)
     }
 
-    return Boolean(hasMembers && hasComplementaryPdf)
+    return hasMembers
   }, [form, canGoStep4])
 
   const canGoStep6 = useMemo(() => {
@@ -870,6 +1852,16 @@ export default function CoordinatorProjectForm() {
         memberDraft.email.trim()
     )
   }, [memberDraft])
+
+  const areasFiltradas = useMemo(
+    () => getAreasByGrandeArea(form.gerais.grandeArea),
+    [form.gerais.grandeArea]
+  )
+
+  const subareasFiltradas = useMemo(
+    () => getSubareasByArea(form.gerais.grandeArea, form.gerais.area),
+    [form.gerais.grandeArea, form.gerais.area]
+  )
 
   function stepDone(currentStep: Step) {
     if (currentStep === 1) return canGoStep2
@@ -1548,6 +2540,9 @@ export default function CoordinatorProjectForm() {
                       gerais: {
                         ...current.gerais,
                         grandeArea: event.target.value,
+                        area: "",
+                        subarea: "",
+                        especialidade: "",
                       },
                     }))
                   }
@@ -1571,17 +2566,28 @@ export default function CoordinatorProjectForm() {
                       gerais: {
                         ...current.gerais,
                         area: event.target.value,
+                        subarea: "",
+                        especialidade: "",
                       },
                     }))
                   }
+                  disabled={!form.gerais.grandeArea}
                   className={selectClassName}
                 >
-                  <option value="">Selecione</option>
-                  {areas.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
+                  <option value="">
+                    {form.gerais.grandeArea
+                      ? "Selecione"
+                      : "Selecione primeiro a grande área"}
+                  </option>
+                  {areasFiltradas.map((item) => {
+                    const label = formatCnpqOption(item)
+
+                    return (
+                      <option key={item.codigo} value={label}>
+                        {label}
+                      </option>
+                    )
+                  })}
                 </select>
               </Field>
 
@@ -1594,17 +2600,27 @@ export default function CoordinatorProjectForm() {
                       gerais: {
                         ...current.gerais,
                         subarea: event.target.value,
+                        especialidade: "",
                       },
                     }))
                   }
+                  disabled={!form.gerais.area}
                   className={selectClassName}
                 >
-                  <option value="">Selecione</option>
-                  {subareas.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
+                  <option value="">
+                    {form.gerais.area
+                      ? "Selecione"
+                      : "Selecione primeiro a área"}
+                  </option>
+                  {subareasFiltradas.map((item) => {
+                    const label = formatCnpqOption(item)
+
+                    return (
+                      <option key={item.codigo} value={label}>
+                        {label}
+                      </option>
+                    )
+                  })}
                 </select>
               </Field>
 
@@ -1707,10 +2723,12 @@ export default function CoordinatorProjectForm() {
               <Field
                 label="Cronograma"
                 required
-                hint="Monte o cronograma por mês/período. Você pode adicionar linhas manualmente ou usar um modelo rápido."
+                hint="Informe a atividade e selecione a duração dentro do período do projeto."
               >
                 <CronogramaPicker
                   value={form.gerais.cronograma}
+                  periodoIni={form.gerais.periodoIni}
+                  periodoFim={form.gerais.periodoFim}
                   onChange={(cronograma) =>
                     setForm((current) => ({
                       ...current,
@@ -1815,7 +2833,7 @@ export default function CoordinatorProjectForm() {
                 </Field>
 
                 <Field label="Vínculo" required>
-                  <input
+                  <select
                     value={memberDraft.vinculo}
                     onChange={(event) =>
                       setMemberDraft((current) => ({
@@ -1823,9 +2841,15 @@ export default function CoordinatorProjectForm() {
                         vinculo: event.target.value,
                       }))
                     }
-                    className={inputClassName}
-                    placeholder="ex.: UFPB, CNPq, instituição parceira"
-                  />
+                    className={selectClassName}
+                  >
+                    <option value="">Selecione</option>
+                    {memberVinculos.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
 
                 <Field label="E-mail" required>
@@ -1969,8 +2993,7 @@ export default function CoordinatorProjectForm() {
             <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
               <FileInputBox
                 label="Upload do PDF complementar"
-                required
-                hint="Documento complementar do projeto."
+                hint="Documento complementar do projeto, opcional."
                 file={form.gerais.pdfComplementar}
                 onChange={(pdfComplementar) =>
                   setForm((current) => ({
@@ -2629,7 +3652,9 @@ export default function CoordinatorProjectForm() {
                     key={item.id}
                     className="rounded-xl border border-neutral/20 bg-neutral/5 p-3 text-sm text-neutral"
                   >
-                    <span className="font-semibold text-primary">{item.mes}</span>{" "}
+                    <span className="font-semibold text-primary">
+                      {formatCronogramaDuration(item.mesInicio, item.mesFim)}
+                    </span>{" "}
                     — {item.atividade}
                   </div>
                 ))}
@@ -2696,7 +3721,7 @@ export default function CoordinatorProjectForm() {
             to="/coordenador/projetos"
             className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2 text-sm font-semibold text-primary transition hover:border-primary/40 hover:bg-neutral/5"
           >
-            Cancelar e voltar para projetos
+Finalizar e voltar para projetos
           </Link>
         </div>
       </div>
