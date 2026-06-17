@@ -1,31 +1,35 @@
-// não to usando
-
 import React, { useMemo, useState } from "react"
+import { Link } from "react-router-dom"
 import {
-  Users,
-  Search,
-  Plus,
-  ShieldCheck,
-  Send,
-  Bell,
-  Mail,
-  UserX,
-  Check,
-  AlertTriangle,
   AlertCircle,
-  Info,
-  ClipboardList,
-  Filter,
-  BadgeCheck,
-  X,
+  Bell,
   BookOpen,
+  Check,
   ChevronDown,
-  RefreshCcw,
+  ClipboardList,
+  Eye,
+  Filter,
+  Mail,
+  Plus,
+  Search,
+  ShieldCheck,
+  UserCheck,
+  Users,
+  UserX,
 } from "lucide-react"
 
-type Call = { id: string; title: string; baseYear: number; statusLabel: string }
+type Call = {
+  id: string
+  title: string
+  baseYear: number
+  statusLabel: string
+}
 
-type Area = { id: string; label: string; source: "CNPq" | "CNAE" }
+type Area = {
+  id: string
+  label: string
+  source: "CNPq" | "CNAE"
+}
 
 type EvaluatorRole = "INTERNO" | "EXTERNO" | "VOLUNTARIO" | "PROPESQ"
 
@@ -34,16 +38,16 @@ type Evaluator = {
   name: string
   email: string
   type: "INTERNO" | "EXTERNO"
-  roles: EvaluatorRole[] // <- para checkbox (interno/externo/voluntario/propesq)
+  roles: EvaluatorRole[]
   areas: Area[]
   active: boolean
 }
 
 type Project = {
-  id: string // codigo
+  id: string
   title: string
   proponent: string
-  members: string[] // nomes (placeholder)
+  members: string[]
   areaHint: string
 }
 
@@ -58,45 +62,200 @@ type Assignment = {
   lastReminderAt?: string
 }
 
-function uid(prefix = "id") {
-  return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`
+function roleLabel(role: EvaluatorRole) {
+  const map: Record<EvaluatorRole, string> = {
+    INTERNO: "Interno",
+    EXTERNO: "Externo",
+    VOLUNTARIO: "Voluntário",
+    PROPESQ: "PROPESQ",
+  }
+
+  return map[role]
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+}
+
+function formatDate(date?: string) {
+  if (!date) return "Sem prazo"
+
+  const [year, month, day] = date.split("-")
+
+  if (!year || !month || !day) return "Sem prazo"
+
+  return `${day}/${month}/${year}`
 }
 
 function chip(text: string) {
   return (
-    <span className="inline-flex items-center rounded-full border border-neutral-light bg-neutral-50 px-3 py-1 text-[11px] font-semibold text-neutral">
+    <span className="inline-flex items-center rounded-full border border-neutral-light bg-neutral-50 px-2.5 py-1 text-[11px] font-semibold text-neutral">
       {text}
     </span>
   )
 }
 
-function containsName(list: string[], name: string) {
-  const n = name.trim().toLowerCase()
-  return list.some((x) => x.trim().toLowerCase() === n)
-}
-
 function Section({
   title,
+  description,
   icon,
   children,
   right,
 }: {
   title: string
+  description?: string
   icon: React.ReactNode
   children: React.ReactNode
   right?: React.ReactNode
 }) {
   return (
-    <section className="rounded-xl border border-neutral-light bg-white p-5">
-      <div className="flex items-start justify-between gap-3 mb-4 flex-col md:flex-row md:items-center">
-        <div className="flex items-center gap-2">
-          <span className="p-2 rounded-lg bg-neutral-light/60">{icon}</span>
-          <h2 className="text-sm font-semibold text-primary">{title}</h2>
+    <section className="rounded-2xl border border-neutral-light bg-white p-5 shadow-sm">
+      <div className="mb-5 flex flex-col gap-4 border-b border-neutral-light pb-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="rounded-xl bg-primary/10 p-2 text-primary">
+            {icon}
+          </span>
+
+          <div>
+            <h2 className="text-base font-bold text-primary">{title}</h2>
+
+            {description ? (
+              <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
+                {description}
+              </p>
+            ) : null}
+          </div>
         </div>
+
         {right ? <div className="shrink-0">{right}</div> : null}
       </div>
+
       {children}
     </section>
+  )
+}
+
+function MetricCard({
+  label,
+  value,
+  helper,
+  icon,
+  tone = "primary",
+}: {
+  label: string
+  value: string | number
+  helper: string
+  icon: React.ReactNode
+  tone?: "primary" | "success" | "warning" | "danger"
+}) {
+  const toneClass = {
+    primary: "bg-primary/10 text-primary",
+    success: "bg-emerald-50 text-emerald-700",
+    warning: "bg-amber-50 text-amber-700",
+    danger: "bg-red-50 text-red-700",
+  }
+
+  return (
+    <div className="rounded-2xl border border-neutral-light bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral">
+            {label}
+          </p>
+          <p className="mt-2 text-2xl font-bold text-primary">{value}</p>
+          <p className="mt-1 text-xs leading-5 text-neutral">{helper}</p>
+        </div>
+
+        <span className={`rounded-xl p-2 ${toneClass[tone]}`}>
+          {icon}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function FieldLabel({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <label className="text-sm">
+      <span className="mb-1 block text-xs font-medium text-neutral">
+        {label}
+      </span>
+      {children}
+    </label>
+  )
+}
+
+function TableHead({
+  children,
+  align = "left",
+}: {
+  children: React.ReactNode
+  align?: "left" | "center" | "right"
+}) {
+  const alignClass = {
+    left: "text-left",
+    center: "text-center",
+    right: "text-right",
+  }
+
+  return (
+    <th
+      className={`whitespace-nowrap px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-neutral ${alignClass[align]}`}
+    >
+      {children}
+    </th>
+  )
+}
+
+function TableCell({
+  children,
+  align = "left",
+}: {
+  children: React.ReactNode
+  align?: "left" | "center" | "right"
+}) {
+  const alignClass = {
+    left: "text-left",
+    center: "text-center",
+    right: "text-right",
+  }
+
+  return (
+    <td
+      className={`whitespace-nowrap px-4 py-3 text-xs text-neutral ${alignClass[align]}`}
+    >
+      {children}
+    </td>
+  )
+}
+
+function StatusBadge({ active }: { active: boolean }) {
+  if (active) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+        <Check size={12} />
+        Ativo
+      </span>
+    )
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-700">
+      <UserX size={12} />
+      Inativo
+    </span>
   )
 }
 
@@ -110,22 +269,38 @@ function ToggleBox({
   label: string
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <input type="checkbox" checked={checked} onChange={onChange} />
-      <span className="text-neutral">{label}</span>
+    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-neutral-light bg-white px-3 py-2 text-sm transition hover:border-primary/30">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        className="h-4 w-4 accent-primary"
+      />
+      <span className="text-neutral-dark">{label}</span>
     </label>
   )
 }
 
 export default function Evaluators() {
-  // ===== Mock: editais =====
   const [calls] = useState<Call[]>([
-    { id: "c1", title: "PIBIC - Pesquisa", baseYear: 2025, statusLabel: "Em configuração" },
-    { id: "c2", title: "PROBEX - Extensão", baseYear: 2024, statusLabel: "Encerrado" },
+    {
+      id: "c1",
+      title: "PIBIC - Pesquisa",
+      baseYear: 2025,
+      statusLabel: "Em configuração",
+    },
+    {
+      id: "c2",
+      title: "PROBEX - Extensão",
+      baseYear: 2024,
+      statusLabel: "Encerrado",
+    },
   ])
-  const [selectedCallId, setSelectedCallId] = useState<string>(calls[0]?.id ?? "")
 
-  // ===== Mock: áreas =====
+  const [selectedCallId, setSelectedCallId] = useState<string>(
+    calls[0]?.id ?? ""
+  )
+
   const [availableAreas] = useState<Area[]>([
     { id: "cnpq_ai", label: "CNPq: Inteligência Artificial", source: "CNPq" },
     { id: "cnpq_cv", label: "CNPq: Visão Computacional", source: "CNPq" },
@@ -134,8 +309,7 @@ export default function Evaluators() {
     { id: "cnae_ed", label: "CNAE: Educação", source: "CNAE" },
   ])
 
-  // ===== Banco de avaliadores =====
-  const [evaluators, setEvaluators] = useState<Evaluator[]>([
+  const [evaluators] = useState<Evaluator[]>([
     {
       id: "e1",
       name: "Profa. Ana Souza",
@@ -163,9 +337,17 @@ export default function Evaluators() {
       areas: [availableAreas[4]],
       active: false,
     },
+    {
+      id: "e4",
+      name: "Prof. Diego Ramos",
+      email: "diego.ramos@ufpb.br",
+      type: "INTERNO",
+      roles: ["INTERNO"],
+      areas: [availableAreas[2]],
+      active: true,
+    },
   ])
 
-  // ===== Projetos =====
   const [projects] = useState<Project[]>([
     {
       id: "P001",
@@ -190,43 +372,55 @@ export default function Evaluators() {
     },
   ])
 
-  // ===== Distribuições =====
-  const [assignments, setAssignments] = useState<Assignment[]>([
-    { id: "a1", callId: "c1", projectId: "P002", evaluatorId: "e2", blind: true, status: "PENDING", dueAt: "" },
-    { id: "a2", callId: "c1", projectId: "P003", evaluatorId: "e1", blind: true, status: "SUBMITTED", dueAt: "" },
+  const [assignments] = useState<Assignment[]>([
+    {
+      id: "a1",
+      callId: "c1",
+      projectId: "P002",
+      evaluatorId: "e2",
+      blind: true,
+      status: "PENDING",
+      dueAt: "2025-09-20",
+    },
+    {
+      id: "a2",
+      callId: "c1",
+      projectId: "P003",
+      evaluatorId: "e1",
+      blind: true,
+      status: "SUBMITTED",
+      dueAt: "2025-09-18",
+    },
+    {
+      id: "a3",
+      callId: "c1",
+      projectId: "P001",
+      evaluatorId: "e4",
+      blind: true,
+      status: "PENDING",
+      dueAt: "2025-09-20",
+    },
   ])
 
-  // ===== Distribuir automaticamente =====
-  const [autoRole, setAutoRole] = useState<Record<EvaluatorRole, boolean>>({
-    INTERNO: true,
-    EXTERNO: true,
-    VOLUNTARIO: false,
-    PROPESQ: false,
-  })
-  const [autoFilterProjects, setAutoFilterProjects] = useState("")
-  const [autoBlind, setAutoBlind] = useState(true)
-  const [autoDueAt, setAutoDueAt] = useState("")
+  const [search, setSearch] = useState("")
+  const [typeFilter, setTypeFilter] = useState<"ALL" | "INTERNO" | "EXTERNO">(
+    "ALL"
+  )
+  const [statusFilter, setStatusFilter] = useState<
+    "ALL" | "ACTIVE" | "INACTIVE"
+  >("ALL")
 
-  // ===== Consultoria especial =====
-  const [specialStart, setSpecialStart] = useState("")
-  const [specialEnd, setSpecialEnd] = useState("")
-
-  // ===== Distribuir manualmente =====
-  const [manualConsultorQ, setManualConsultorQ] = useState("")
-  const [manualScope, setManualScope] = useState<"ALL" | "ONLY_INTERNAL" | "ONLY_EXTERNAL">("ALL")
-  const [manualEvaluatorId, setManualEvaluatorId] = useState<string>(evaluators[0]?.id ?? "")
-  const [manualProjectCodes, setManualProjectCodes] = useState<string>("P001\nP002")
-  const [manualBlind, setManualBlind] = useState(true)
-  const [manualDueAt, setManualDueAt] = useState("")
-
-  // ===== Notificar pendências =====
   const [notifyRole, setNotifyRole] = useState<Record<EvaluatorRole, boolean>>({
     INTERNO: true,
     EXTERNO: true,
     VOLUNTARIO: true,
     PROPESQ: true,
   })
-  const [mailSubject, setMailSubject] = useState("Pendências de avaliação — {edital}")
+
+  const [mailSubject, setMailSubject] = useState(
+    "Pendências de avaliação — {edital}"
+  )
+
   const [mailBody, setMailBody] = useState(
     `Prezado(a) {consultor},
 
@@ -235,678 +429,666 @@ Solicitamos sua atenção para as pendências de avaliação no edital {edital}.
 Projetos pendentes:
 {projetos}
 
-Acesso ao sistema: {acesso}
-Senha: {senha}
+Acesse o sistema para concluir a avaliação dentro do prazo.
 
 Atenciosamente,
 PROPESQ`
   )
 
-  // ===== Helpers =====
-  const getEvaluator = (id: string) => evaluators.find((e) => e.id === id) ?? null
-  const getProject = (id: string) => projects.find((p) => p.id === id) ?? null
-  const selectedCall = calls.find((c) => c.id === selectedCallId) ?? null
+  const selectedCall = calls.find((call) => call.id === selectedCallId) ?? null
 
-  const eligibleEvaluatorsByAuto = useMemo(() => {
-    const enabledRoles = (Object.keys(autoRole) as EvaluatorRole[]).filter((r) => autoRole[r])
-    return evaluators.filter((e) => e.active && e.roles.some((r) => enabledRoles.includes(r)))
-  }, [evaluators, autoRole])
-
-  const autoProjectsFiltered = useMemo(() => {
-    const q = autoFilterProjects.trim().toLowerCase()
-    if (!q) return projects
-    return projects.filter((p) => {
-      return (
-        p.id.toLowerCase().includes(q) ||
-        p.title.toLowerCase().includes(q) ||
-        p.proponent.toLowerCase().includes(q) ||
-        p.areaHint.toLowerCase().includes(q)
-      )
-    })
-  }, [projects, autoFilterProjects])
-
-  const conflict = (projectId: string, evaluatorId: string) => {
-    const proj = getProject(projectId)
-    const ev = getEvaluator(evaluatorId)
-    if (!proj || !ev) return true
-    if (proj.proponent.trim().toLowerCase() === ev.name.trim().toLowerCase()) return true
-    if (containsName(proj.members, ev.name)) return true
-    return false
-  }
-
-  const pendingAssignments = useMemo(
-    () => assignments.filter((a) => a.callId === selectedCallId && a.status === "PENDING"),
-    [assignments, selectedCallId]
-  )
-
-  // ===== Ações =====
-  function distributeAutomatically() {
-    if (!selectedCallId) return
-    if (eligibleEvaluatorsByAuto.length === 0) {
-      alert("Nenhum consultor/avaliador elegível com os filtros selecionados.")
-      return
-    }
-
-    // Exemplo: 1 avaliador por projeto (random), ignorando duplicidade por simplicidade
-    const news: Assignment[] = []
-
-    autoProjectsFiltered.forEach((p) => {
-      // não duplicar se já existe distribuição desse projeto nesse edital
-      const already = assignments.some((a) => a.callId === selectedCallId && a.projectId === p.id)
-      if (already) return
-
-      const candidates = eligibleEvaluatorsByAuto.filter((e) => !conflict(p.id, e.id))
-      if (candidates.length === 0) return
-
-      const pick = candidates[Math.floor(Math.random() * candidates.length)]
-      news.push({
-        id: uid("as"),
-        callId: selectedCallId,
-        projectId: p.id,
-        evaluatorId: pick.id,
-        blind: autoBlind,
-        status: "PENDING",
-        dueAt: autoDueAt,
-        lastReminderAt: "",
-      })
-    })
-
-    if (news.length === 0) {
-      alert("Nada para distribuir (ou todos os projetos já possuem distribuição/conflito).")
-      return
-    }
-
-    setAssignments((prev) => [...prev, ...news])
-    alert(`Distribuição automática concluída: ${news.length} atribuições criadas.`)
-  }
-
-  function notifySpecialConsultancy() {
-    // Placeholder: aqui você ligaria no backend/rotina do SIGAA para "consultoria especial"
-    alert(
-      `Consultoria especial (externos) registrada.\nEdital: ${selectedCall?.title ?? "—"}\nPeríodo: ${specialStart || "—"} até ${
-        specialEnd || "—"
-      }\nNotificação: placeholder.`
+  const selectedCallAssignments = useMemo(() => {
+    return assignments.filter(
+      (assignment) => assignment.callId === selectedCallId
     )
-  }
+  }, [assignments, selectedCallId])
 
-  function distributeManuallyByCodes() {
-    if (!selectedCallId) return
-    const ev = getEvaluator(manualEvaluatorId)
-    if (!ev || !ev.active) {
-      alert("Selecione um consultor/avaliador ativo.")
-      return
-    }
-
-    const codes = manualProjectCodes
-      .split(/\r?\n|,/g)
-      .map((x) => x.trim())
-      .filter(Boolean)
-
-    if (codes.length === 0) {
-      alert("Informe ao menos um código de projeto.")
-      return
-    }
-
-    const created: Assignment[] = []
-
-    for (const code of codes) {
-      const proj = getProject(code)
-      if (!proj) continue
-
-      if (conflict(proj.id, ev.id)) continue
-
-      const exists = assignments.some(
-        (a) => a.callId === selectedCallId && a.projectId === proj.id && a.evaluatorId === ev.id
-      )
-      if (exists) continue
-
-      created.push({
-        id: uid("as"),
-        callId: selectedCallId,
-        projectId: proj.id,
-        evaluatorId: ev.id,
-        blind: manualBlind,
-        status: "PENDING",
-        dueAt: manualDueAt,
-        lastReminderAt: "",
-      })
-    }
-
-    if (created.length === 0) {
-      alert("Nenhuma atribuição criada (códigos inválidos, duplicados ou conflito de interesse).")
-      return
-    }
-
-    setAssignments((prev) => [...prev, ...created])
-    alert(`Distribuição manual concluída: ${created.length} atribuições criadas.`)
-  }
-
-  function sendPendingNotifications() {
-    const enabledRoles = (Object.keys(notifyRole) as EvaluatorRole[]).filter((r) => notifyRole[r])
-
-    // consultores com pendência no edital selecionado, respeitando grupo
-    const evaluatorIds = new Set(
-      pendingAssignments
-        .map((a) => a.evaluatorId)
-        .filter((eid) => {
-          const e = getEvaluator(eid)
-          return !!e && e.active && e.roles.some((r) => enabledRoles.includes(r))
-        })
+  const pendingAssignments = useMemo(() => {
+    return selectedCallAssignments.filter(
+      (assignment) => assignment.status === "PENDING"
     )
+  }, [selectedCallAssignments])
 
-    if (evaluatorIds.size === 0) {
-      alert("Nenhum consultor encontrado com pendências para os filtros selecionados.")
-      return
-    }
+  const submittedAssignments = useMemo(() => {
+    return selectedCallAssignments.filter(
+      (assignment) => assignment.status === "SUBMITTED"
+    )
+  }, [selectedCallAssignments])
 
-    // Placeholder: aqui enviaria e-mails em lote
-    alert(`Notificações enviadas (placeholder) para ${evaluatorIds.size} consultor(es).`)
+  const getProject = (id: string) => {
+    return projects.find((project) => project.id === id) ?? null
   }
 
-  // ===== Filtros p/ manual =====
-  const manualEligibleEvaluators = useMemo(() => {
-    const q = manualConsultorQ.trim().toLowerCase()
+  const countAssignmentsByEvaluator = (evaluatorId: string) => {
+    return selectedCallAssignments.filter(
+      (assignment) => assignment.evaluatorId === evaluatorId
+    ).length
+  }
+
+  const countPendingByEvaluator = (evaluatorId: string) => {
+    return pendingAssignments.filter(
+      (assignment) => assignment.evaluatorId === evaluatorId
+    ).length
+  }
+
+  const filteredEvaluators = useMemo(() => {
+    const q = search.trim().toLowerCase()
 
     return evaluators
-      .filter((e) => {
-        if (manualScope === "ONLY_INTERNAL" && e.type !== "INTERNO") return false
-        if (manualScope === "ONLY_EXTERNAL" && e.type !== "EXTERNO") return false
-        if (!q) return true
-        return e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q)
-      })
-      .sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name))
-  }, [evaluators, manualConsultorQ, manualScope])
+      .filter((evaluator) => {
+        if (typeFilter !== "ALL" && evaluator.type !== typeFilter) return false
+        if (statusFilter === "ACTIVE" && !evaluator.active) return false
+        if (statusFilter === "INACTIVE" && evaluator.active) return false
 
-  // ===== Prévia de notificação =====
+        if (!q) return true
+
+        return (
+          evaluator.name.toLowerCase().includes(q) ||
+          evaluator.email.toLowerCase().includes(q) ||
+          evaluator.areas.some((area) =>
+            area.label.toLowerCase().includes(q)
+          ) ||
+          evaluator.roles.some((role) =>
+            roleLabel(role).toLowerCase().includes(q)
+          )
+        )
+      })
+      .sort(
+        (a, b) =>
+          Number(b.active) - Number(a.active) ||
+          a.name.localeCompare(b.name)
+      )
+  }, [evaluators, search, typeFilter, statusFilter])
+
   const notifyPreview = useMemo(() => {
-    const enabledRoles = (Object.keys(notifyRole) as EvaluatorRole[]).filter((r) => notifyRole[r])
+    const enabledRoles = (Object.keys(notifyRole) as EvaluatorRole[]).filter(
+      (role) => notifyRole[role]
+    )
+
     const map = new Map<string, { evaluator: Evaluator; projects: Project[] }>()
 
-    pendingAssignments.forEach((a) => {
-      const e = getEvaluator(a.evaluatorId)
-      const p = getProject(a.projectId)
-      if (!e || !p) return
-      if (!e.active) return
-      if (!e.roles.some((r) => enabledRoles.includes(r))) return
+    pendingAssignments.forEach((assignment) => {
+      const evaluator = evaluators.find(
+        (item) => item.id === assignment.evaluatorId
+      )
+      const project = getProject(assignment.projectId)
 
-      if (!map.has(e.id)) map.set(e.id, { evaluator: e, projects: [] })
-      map.get(e.id)!.projects.push(p)
+      if (!evaluator || !project) return
+      if (!evaluator.active) return
+      if (!evaluator.roles.some((role) => enabledRoles.includes(role))) return
+
+      if (!map.has(evaluator.id)) {
+        map.set(evaluator.id, {
+          evaluator,
+          projects: [],
+        })
+      }
+
+      map.get(evaluator.id)!.projects.push(project)
     })
 
-    return Array.from(map.values()).sort((x, y) => x.evaluator.name.localeCompare(y.evaluator.name))
+    return Array.from(map.values()).sort((a, b) =>
+      a.evaluator.name.localeCompare(b.evaluator.name)
+    )
   }, [pendingAssignments, notifyRole, evaluators])
 
+  function sendPendingNotifications() {
+    if (notifyPreview.length === 0) {
+      alert("Nenhum avaliador com pendências para os filtros selecionados.")
+      return
+    }
+
+    alert(`Notificações enviadas para ${notifyPreview.length} avaliador(es).`)
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-xl font-bold text-primary">Distribuição de Avaliações</h1>
-        <p className="text-sm text-neutral">
-          Distribuição automática, consultoria especial, distribuição manual e notificação de pendências.
-        </p>
-      </header>
+    <div className="min-h-screen bg-neutral-light">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="space-y-6">
+          <header className="rounded-3xl border border-neutral-light bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-3xl">
+                <h1 className="mt-2 text-2xl font-bold text-primary">
+                  Avaliadores
+                </h1>
 
-      {/* ===== Contexto do edital (vertical, como você pediu) ===== */}
-      <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <BookOpen size={18} />
-          <h2 className="text-sm font-semibold text-primary">Edital em configuração</h2>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <label className="text-sm">
-            <span className="block text-xs text-neutral mb-1">Selecionar edital</span>
-            <div className="relative">
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral pointer-events-none" />
-              <select
-                value={selectedCallId}
-                onChange={(e) => setSelectedCallId(e.target.value)}
-                className="w-full appearance-none border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                {calls
-                  .slice()
-                  .sort((a, b) => b.baseYear - a.baseYear)
-                  .map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title} • {c.baseYear} • {c.statusLabel}
-                    </option>
-                  ))}
-              </select>
-            </div>
-          </label>
-
-          <div className="text-xs text-neutral flex items-start gap-2">
-            <Info size={14} className="mt-0.5" />
-            <p>
-              As distribuições e notificações abaixo são aplicadas ao edital selecionado.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== DISTRIBUIR AUTOMATICAMENTE ===== */}
-      <Section
-        title="Distribuir automaticamente"
-        icon={<RefreshCcw size={18} />}
-        right={
-          <button
-            type="button"
-            onClick={distributeAutomatically}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:opacity-90"
-          >
-            <Send size={16} />
-            Distribuir
-          </button>
-        }
-      >
-        <div className="space-y-4">
-          <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 space-y-3">
-            <p className="text-sm font-semibold text-primary inline-flex items-center gap-2">
-              <Filter size={16} /> Filtros de consultores
-            </p>
-
-            <div className="flex flex-col gap-2">
-              <ToggleBox
-                checked={autoRole.INTERNO}
-                onChange={() => setAutoRole((p) => ({ ...p, INTERNO: !p.INTERNO }))}
-                label="Avaliador interno"
-              />
-              <ToggleBox
-                checked={autoRole.EXTERNO}
-                onChange={() => setAutoRole((p) => ({ ...p, EXTERNO: !p.EXTERNO }))}
-                label="Avaliador externo"
-              />
-              <ToggleBox
-                checked={autoRole.VOLUNTARIO}
-                onChange={() => setAutoRole((p) => ({ ...p, VOLUNTARIO: !p.VOLUNTARIO }))}
-                label="Voluntário"
-              />
-              <ToggleBox
-                checked={autoRole.PROPESQ}
-                onChange={() => setAutoRole((p) => ({ ...p, PROPESQ: !p.PROPESQ }))}
-                label="PROPESQ"
-              />
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-neutral-light bg-white p-4 space-y-3">
-            <label className="text-sm">
-              <span className="block text-xs text-neutral mb-1">Filtrar projetos</span>
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral" />
-                <input
-                  value={autoFilterProjects}
-                  onChange={(e) => setAutoFilterProjects(e.target.value)}
-                  className="w-full pl-9 border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="Código, título, proponente ou área…"
-                />
+                <p className="mt-2 text-sm leading-6 text-neutral">
+                  Consulte, acompanhe e organize o banco de avaliadores internos,
+                  externos, voluntários e consultores vinculados à PROPESQ.
+                </p>
               </div>
-            </label>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm">
-                <span className="block text-xs text-neutral mb-1">Distribuição cega?</span>
-                <select
-                  value={autoBlind ? "YES" : "NO"}
-                  onChange={(e) => setAutoBlind(e.target.value === "YES")}
-                  className="w-full border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
+              <div className="flex flex-col gap-2 sm:flex-row lg:items-center">
+                <Link
+                  to="/adm/avaliacao/distribuicao"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-light bg-white px-4 py-2.5 text-sm font-semibold text-neutral transition hover:border-primary/30 hover:text-primary"
                 >
-                  <option value="YES">Sim</option>
-                  <option value="NO">Não</option>
-                </select>
-              </label>
-
-              <label className="text-sm">
-                <span className="block text-xs text-neutral mb-1">Prazo (opcional)</span>
-                <input
-                  type="date"
-                  value={autoDueAt}
-                  onChange={(e) => setAutoDueAt(e.target.value)}
-                  className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </label>
-            </div>
-
-            <div className="text-xs text-neutral flex items-start gap-2">
-              <AlertCircle size={14} className="mt-0.5" />
-              <p>
-                Regra crítica: bloqueia conflito (avaliador = proponente ou membro).
-              </p>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-neutral">
-                  <th className="py-2 pr-3">Código</th>
-                  <th className="py-2 pr-3">Projeto</th>
-                  <th className="py-2 pr-3">Área</th>
-                </tr>
-              </thead>
-              <tbody>
-                {autoProjectsFiltered.map((p) => (
-                  <tr key={p.id} className="border-t border-neutral-light">
-                    <td className="py-3 pr-3 font-semibold text-primary">{p.id}</td>
-                    <td className="py-3 pr-3">
-                      <p className="font-semibold text-primary">{p.title}</p>
-                      <p className="text-xs text-neutral">{p.proponent}</p>
-                    </td>
-                    <td className="py-3 pr-3">{chip(p.areaHint)}</td>
-                  </tr>
-                ))}
-                {autoProjectsFiltered.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="py-8 text-center text-neutral">
-                      Nenhum projeto encontrado.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </Section>
-
-      {/* ===== CONSULTORIA ESPECIAL (EXTERNOS) ===== */}
-      <Section
-        title="Distribuir automaticamente para consultores especiais (avaliadores externos)"
-        icon={<ShieldCheck size={18} />}
-        right={
-          <button
-            type="button"
-            onClick={notifySpecialConsultancy}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:opacity-90"
-          >
-            <Mail size={16} />
-            Gerenciar / Notificar
-          </button>
-        }
-      >
-        <div className="space-y-4">
-          <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 space-y-2">
-          <p className="text-sm font-semibold text-primary inline-flex items-center gap-2">
-            <ClipboardList size={16} /> Gerenciar consultoria especial (avaliador externo)
-            <br />
-            <span className="text-red-500">EM DESENVOLVIMENTO</span>
-          </p>
-
-
-            <div className="flex flex-col gap-3">
-              <label className="text-sm">
-                <span className="block text-xs text-neutral mb-1">Período da consultoria — início</span>
-                <input
-                  type="date"
-                  value={specialStart}
-                  onChange={(e) => setSpecialStart(e.target.value)}
-                  className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </label>
-
-              <label className="text-sm">
-                <span className="block text-xs text-neutral mb-1">Período da consultoria — fim</span>
-                <input
-                  type="date"
-                  value={specialEnd}
-                  onChange={(e) => setSpecialEnd(e.target.value)}
-                  className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </label>
-            </div>
-
-            {/* Info
-                 conectar o fluxo do SIGAA para consultoria externa (externos) e notificações.
-              */}
-          </div>
-
-          <div className="rounded-xl border border-neutral-light bg-white p-4">
-            <p className="text-xs text-neutral mb-2">Externos ativos</p>
-            <div className="flex flex-wrap gap-2">
-              {evaluators
-                .filter((e) => e.active && e.type === "EXTERNO")
-                .map((e) => chip(`${e.name} • ${e.email}`))}
-              {evaluators.filter((e) => e.active && e.type === "EXTERNO").length === 0 && (
-                <p className="text-sm text-neutral">Nenhum externo ativo.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* ===== DISTRIBUIR MANUALMENTE ===== */}
-      <Section
-        title="Distribuir manualmente"
-        icon={<Users size={18} />}
-        right={
-          <button
-            type="button"
-            onClick={distributeManuallyByCodes}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:opacity-90"
-          >
-            <Send size={16} />
-            Distribuir
-          </button>
-        }
-      >
-        <div className="space-y-4">
-          <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 space-y-3">
-            <label className="text-sm">
-              <span className="block text-xs text-neutral mb-1">Consultor (busca)</span>
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral" />
-                <input
-                  value={manualConsultorQ}
-                  onChange={(e) => setManualConsultorQ(e.target.value)}
-                  className="w-full pl-9 border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="Nome ou e-mail…"
-                />
+                  <ClipboardList size={16} />
+                  Ir para Distribuição
+                </Link>
               </div>
-            </label>
-
-            <div className="flex flex-col gap-2">
-              <p className="text-xs text-neutral">Filtro (tipo)</p>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="manualScope"
-                  checked={manualScope === "ALL"}
-                  onChange={() => setManualScope("ALL")}
-                />
-                <span className="text-neutral">Todos</span>
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="manualScope"
-                  checked={manualScope === "ONLY_INTERNAL"}
-                  onChange={() => setManualScope("ONLY_INTERNAL")}
-                />
-                <span className="text-neutral">Somente internos</span>
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="manualScope"
-                  checked={manualScope === "ONLY_EXTERNAL"}
-                  onChange={() => setManualScope("ONLY_EXTERNAL")}
-                />
-                <span className="text-neutral">Somente externos</span>
-              </label>
             </div>
 
-            <label className="text-sm">
-              <span className="block text-xs text-neutral mb-1">Selecionar consultor</span>
-              <select
-                value={manualEvaluatorId}
-                onChange={(e) => setManualEvaluatorId(e.target.value)}
-                className="w-full border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                {manualEligibleEvaluators.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name} {e.active ? "" : "(inativo)"} • {e.type}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="rounded-xl border border-neutral-light bg-white p-4 space-y-3">
-            <label className="text-sm">
-              <span className="block text-xs text-neutral mb-1">Lista de projetos a distribuir (código)</span>
-              <textarea
-                value={manualProjectCodes}
-                onChange={(e) => setManualProjectCodes(e.target.value)}
-                rows={4}
-                className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20 font-mono text-xs"
-                placeholder={`Ex:\nP001\nP002\nP010`}
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <MetricCard
+                label="Avaliadores cadastrados"
+                value={evaluators.length}
+                helper="Total no banco de avaliadores"
+                icon={<Users size={18} />}
               />
-              <p className="text-[11px] text-neutral mt-1">
-                Aceita códigos por linha ou separados por vírgula.
-              </p>
-            </label>
 
-            <div className="flex flex-col gap-3">
-              <label className="text-sm">
-                <span className="block text-xs text-neutral mb-1">Cega?</span>
+              <MetricCard
+                label="Ativos"
+                value={evaluators.filter((evaluator) => evaluator.active).length}
+                helper="Disponíveis para avaliação"
+                icon={<UserCheck size={18} />}
+                tone="success"
+              />
+
+              <MetricCard
+                label="Externos"
+                value={
+                  evaluators.filter((evaluator) => evaluator.type === "EXTERNO")
+                    .length
+                }
+                helper="Consultores de fora da instituição"
+                icon={<ShieldCheck size={18} />}
+              />
+
+              <MetricCard
+                label="Pendências"
+                value={pendingAssignments.length}
+                helper="Avaliações ainda não submetidas"
+                icon={<AlertCircle size={18} />}
+                tone={pendingAssignments.length > 0 ? "warning" : "success"}
+              />
+            </div>
+          </header>
+
+          <section className="rounded-2xl border border-neutral-light bg-white p-5 shadow-sm">
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+              <FieldLabel label="Edital em acompanhamento">
+                <div className="relative">
+                  <ChevronDown
+                    size={16}
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral"
+                  />
+
+                  <select
+                    value={selectedCallId}
+                    onChange={(event) => setSelectedCallId(event.target.value)}
+                    className="h-11 w-full appearance-none rounded-xl border border-neutral-light bg-white px-3 pr-9 text-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+                  >
+                    {calls
+                      .slice()
+                      .sort((a, b) => b.baseYear - a.baseYear)
+                      .map((call) => (
+                        <option key={call.id} value={call.id}>
+                          {call.title} • {call.baseYear} • {call.statusLabel}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </FieldLabel>
+
+              <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3">
+                <div className="flex items-start gap-3">
+                  <BookOpen size={18} className="mt-0.5 text-blue-700" />
+
+                  <div>
+                    <p className="text-sm font-semibold text-blue-800">
+                      {selectedCall?.title ?? "Edital não selecionado"}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-blue-800/80">
+                      {selectedCall?.baseYear ?? "—"} •{" "}
+                      {selectedCall?.statusLabel ?? "—"} •{" "}
+                      {selectedCallAssignments.length} avaliação(ões)
+                      vinculada(s)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <Section
+            title="Banco de avaliadores"
+            description="Lista de avaliadores cadastrados, com área de atuação, tipo, vínculo, status e carga no edital selecionado."
+            icon={<Users size={18} />}
+            right={
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                <div className="relative sm:w-72">
+                  <Search
+                    size={16}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral"
+                  />
+
+                  <input
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Buscar avaliador, e-mail ou área"
+                    className="h-11 w-full rounded-xl border border-neutral-light bg-white px-3 pl-9 text-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+                  />
+                </div>
+
                 <select
-                  value={manualBlind ? "YES" : "NO"}
-                  onChange={(e) => setManualBlind(e.target.value === "YES")}
-                  className="w-full border border-neutral-light rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-primary/20"
+                  value={typeFilter}
+                  onChange={(event) =>
+                    setTypeFilter(
+                      event.target.value as "ALL" | "INTERNO" | "EXTERNO"
+                    )
+                  }
+                  className="h-11 rounded-xl border border-neutral-light bg-white px-3 text-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                 >
-                  <option value="YES">Sim</option>
-                  <option value="NO">Não</option>
+                  <option value="ALL">Todos os tipos</option>
+                  <option value="INTERNO">Internos</option>
+                  <option value="EXTERNO">Externos</option>
                 </select>
-              </label>
 
-              <label className="text-sm">
-                <span className="block text-xs text-neutral mb-1">Prazo (opcional)</span>
-                <input
-                  type="date"
-                  value={manualDueAt}
-                  onChange={(e) => setManualDueAt(e.target.value)}
-                  className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </label>
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* ===== NOTIFICAR CONSULTORES (pendências) ===== */}
-      <Section
-        title="Notificar consultores (que possuem avaliações pendentes)"
-        icon={<Bell size={18} />}
-        right={
-          <button
-            type="button"
-            onClick={sendPendingNotifications}
-            disabled={notifyPreview.length === 0}
-            className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white
-              ${notifyPreview.length === 0 ? "bg-primary/40 cursor-not-allowed" : "bg-primary hover:opacity-90"}
-            `}
-          >
-            <Mail size={16} />
-            Notificar
-          </button>
-        }
-      >
-        <div className="space-y-4">
-          <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 space-y-3">
-            <p className="text-sm font-semibold text-primary inline-flex items-center gap-2">
-              <Filter size={16} /> Grupo de consultores
-            </p>
-
-            <div className="flex flex-col gap-2">
-              <ToggleBox
-                checked={notifyRole.EXTERNO}
-                onChange={() => setNotifyRole((p) => ({ ...p, EXTERNO: !p.EXTERNO }))}
-                label="Externo"
-              />
-              <ToggleBox
-                checked={notifyRole.INTERNO}
-                onChange={() => setNotifyRole((p) => ({ ...p, INTERNO: !p.INTERNO }))}
-                label="Interno"
-              />
-              <ToggleBox
-                checked={notifyRole.VOLUNTARIO}
-                onChange={() => setNotifyRole((p) => ({ ...p, VOLUNTARIO: !p.VOLUNTARIO }))}
-                label="Voluntário"
-              />
-              <ToggleBox
-                checked={notifyRole.PROPESQ}
-                onChange={() => setNotifyRole((p) => ({ ...p, PROPESQ: !p.PROPESQ }))}
-                label="PROPESQ"
-              />
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-neutral-light bg-white p-4 space-y-3">
-            <p className="text-sm font-semibold text-primary inline-flex items-center gap-2">
-              <Mail size={16} /> Modelo de e-mail
-            </p>
-
-            <label className="text-sm">
-              <span className="block text-xs text-neutral mb-1">Assunto</span>
-              <input
-                value={mailSubject}
-                onChange={(e) => setMailSubject(e.target.value)}
-                className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </label>
-
-            <label className="text-sm">
-              <span className="block text-xs text-neutral mb-1">Corpo</span>
-              <textarea
-                value={mailBody}
-                onChange={(e) => setMailBody(e.target.value)}
-                rows={9}
-                className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-              />
-              <div className="mt-2 text-xs text-neutral">
-                Placeholders: {chip("{consultor}")} {chip("{edital}")} {chip("{projetos}")} {chip("{acesso}")}{" "}
-                {chip("{senha}")}
+                <select
+                  value={statusFilter}
+                  onChange={(event) =>
+                    setStatusFilter(
+                      event.target.value as "ALL" | "ACTIVE" | "INACTIVE"
+                    )
+                  }
+                  className="h-11 rounded-xl border border-neutral-light bg-white px-3 text-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+                >
+                  <option value="ALL">Todos os status</option>
+                  <option value="ACTIVE">Ativos</option>
+                  <option value="INACTIVE">Inativos</option>
+                </select>
               </div>
-            </label>
-          </div>
+            }
+          >
+            <div className="overflow-hidden rounded-2xl border border-neutral-light">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-neutral-light">
+                  <thead className="bg-neutral-50">
+                    <tr>
+                      <TableHead>Avaliador</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Perfis</TableHead>
+                      <TableHead>Áreas</TableHead>
+                      <TableHead align="center">Carga</TableHead>
+                      <TableHead align="center">Pendentes</TableHead>
+                      <TableHead align="center">Status</TableHead>
+                      <TableHead align="right">Ações</TableHead>
+                    </tr>
+                  </thead>
 
-          <div className="rounded-xl border border-neutral-light bg-white p-4">
-            <p className="text-xs text-neutral mb-2">
-              Prévia — consultores com pendências no edital selecionado ({notifyPreview.length})
-            </p>
+                  <tbody className="divide-y divide-neutral-light bg-white">
+                    {filteredEvaluators.map((evaluator) => {
+                      const load = countAssignmentsByEvaluator(evaluator.id)
+                      const pending = countPendingByEvaluator(evaluator.id)
 
-            <div className="space-y-3">
-              {notifyPreview.map(({ evaluator, projects }) => (
-                <div key={evaluator.id} className="rounded-lg border border-neutral-light p-3">
-                  <p className="text-sm font-semibold text-primary">
-                    {evaluator.name} <span className="text-xs text-neutral">({evaluator.email})</span>
+                      return (
+                        <tr
+                          key={evaluator.id}
+                          className="transition hover:bg-neutral-50"
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                                {getInitials(evaluator.name)}
+                              </div>
+
+                              <div>
+                                <p className="font-semibold text-primary">
+                                  {evaluator.name}
+                                </p>
+                                <p className="mt-0.5 text-[11px] text-neutral">
+                                  {evaluator.email}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>{chip(evaluator.type)}</TableCell>
+
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1.5">
+                              {evaluator.roles.map((role) => (
+                                <React.Fragment key={role}>
+                                  {chip(roleLabel(role))}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex max-w-sm flex-wrap gap-1.5">
+                              {evaluator.areas.map((area) => (
+                                <React.Fragment key={area.id}>
+                                  {chip(area.label)}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          </TableCell>
+
+                          <TableCell align="center">
+                            <strong className="text-primary">{load}</strong>
+                          </TableCell>
+
+                          <TableCell align="center">
+                            {pending > 0 ? (
+                              <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+                                {pending}
+                              </span>
+                            ) : (
+                              <span className="text-neutral">0</span>
+                            )}
+                          </TableCell>
+
+                          <TableCell align="center">
+                            <StatusBadge active={evaluator.active} />
+                          </TableCell>
+
+                          <TableCell align="right">
+                            <button
+                              type="button"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-light text-neutral transition hover:border-primary/30 hover:text-primary"
+                              title="Visualizar avaliador"
+                            >
+                              <Eye size={15} />
+                            </button>
+                          </TableCell>
+                        </tr>
+                      )
+                    })}
+
+                    {filteredEvaluators.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={8}
+                          className="py-8 text-center text-sm text-neutral"
+                        >
+                          Nenhum avaliador encontrado.
+                        </td>
+                      </tr>
+                    ) : null}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </Section>
+
+          <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+            <Section
+              title="Notificar pendências"
+              description="Envie lembretes para avaliadores ativos que ainda possuem avaliações pendentes no edital selecionado."
+              icon={<Bell size={18} />}
+              right={
+                <button
+                  type="button"
+                  onClick={sendPendingNotifications}
+                  disabled={notifyPreview.length === 0}
+                  className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition ${
+                    notifyPreview.length === 0
+                      ? "cursor-not-allowed bg-primary/40"
+                      : "bg-primary hover:brightness-95"
+                  }`}
+                >
+                  <Mail size={16} />
+                  Notificar
+                </button>
+              }
+            >
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-neutral-light bg-neutral-50 p-4">
+                  <p className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                    <Filter size={16} />
+                    Grupos de envio
                   </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {evaluator.roles.map((r) => chip(r))}
-                  </div>
-                  <div className="mt-3 text-xs text-neutral">
-                    Pendências ({projects.length}):{" "}
-                    <span className="font-mono">
-                      {projects.map((p) => p.id).join(", ")}
-                    </span>
+
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <ToggleBox
+                      checked={notifyRole.INTERNO}
+                      onChange={() =>
+                        setNotifyRole((previous) => ({
+                          ...previous,
+                          INTERNO: !previous.INTERNO,
+                        }))
+                      }
+                      label="Internos"
+                    />
+
+                    <ToggleBox
+                      checked={notifyRole.EXTERNO}
+                      onChange={() =>
+                        setNotifyRole((previous) => ({
+                          ...previous,
+                          EXTERNO: !previous.EXTERNO,
+                        }))
+                      }
+                      label="Externos"
+                    />
+
+                    <ToggleBox
+                      checked={notifyRole.VOLUNTARIO}
+                      onChange={() =>
+                        setNotifyRole((previous) => ({
+                          ...previous,
+                          VOLUNTARIO: !previous.VOLUNTARIO,
+                        }))
+                      }
+                      label="Voluntários"
+                    />
+
+                    <ToggleBox
+                      checked={notifyRole.PROPESQ}
+                      onChange={() =>
+                        setNotifyRole((previous) => ({
+                          ...previous,
+                          PROPESQ: !previous.PROPESQ,
+                        }))
+                      }
+                      label="PROPESQ"
+                    />
                   </div>
                 </div>
-              ))}
 
-              {notifyPreview.length === 0 && (
-                <div className="py-6 text-center text-neutral">
-                  Nenhum consultor com pendências para os filtros selecionados.
+                <div className="rounded-2xl border border-neutral-light bg-white p-4">
+                  <p className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                    <Mail size={16} />
+                    Modelo de mensagem
+                  </p>
+
+                  <div className="space-y-3">
+                    <FieldLabel label="Assunto">
+                      <input
+                        value={mailSubject}
+                        onChange={(event) =>
+                          setMailSubject(event.target.value)
+                        }
+                        className="h-11 w-full rounded-xl border border-neutral-light bg-white px-3 text-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+                      />
+                    </FieldLabel>
+
+                    <FieldLabel label="Corpo">
+                      <textarea
+                        value={mailBody}
+                        onChange={(event) => setMailBody(event.target.value)}
+                        rows={8}
+                        className="w-full rounded-xl border border-neutral-light bg-white px-3 py-2 text-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+                      />
+                    </FieldLabel>
+
+                    <div className="flex flex-wrap gap-2 text-xs text-neutral">
+                      {chip("{consultor}")}
+                      {chip("{edital}")}
+                      {chip("{projetos}")}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
+            </Section>
 
-            <div className="mt-4 flex items-start gap-2 text-xs text-neutral">
-              <AlertCircle size={14} className="mt-0.5" />
-              <p>
-                No backend, gere senha individual, personalize {`{projetos}`} e registre auditoria (quem/quando).
-              </p>
-            </div>
+            <Section
+              title="Prévia de notificação"
+              description="Avaliadores que receberão lembrete conforme os grupos selecionados."
+              icon={<Mail size={18} />}
+            >
+              <div className="space-y-3">
+                {notifyPreview.map(({ evaluator, projects }) => (
+                  <div
+                    key={evaluator.id}
+                    className="rounded-2xl border border-neutral-light bg-white p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                        {getInitials(evaluator.name)}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="text-sm font-bold text-primary">
+                              {evaluator.name}
+                            </p>
+                            <p className="mt-0.5 text-xs text-neutral">
+                              {evaluator.email}
+                            </p>
+                          </div>
+
+                          <StatusBadge active={evaluator.active} />
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {evaluator.roles.map((role) => (
+                            <React.Fragment key={role}>
+                              {chip(roleLabel(role))}
+                            </React.Fragment>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2">
+                          <p className="text-xs text-neutral">
+                            Pendências:{" "}
+                            <span className="font-mono font-semibold text-primary">
+                              {projects.map((project) => project.id).join(", ")}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {notifyPreview.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-neutral-light bg-neutral-50 px-4 py-8 text-center">
+                    <Bell size={24} className="mx-auto text-neutral" />
+                    <p className="mt-2 text-sm font-medium text-neutral">
+                      Nenhum avaliador com pendências para os filtros
+                      selecionados.
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </Section>
           </div>
+
+          <Section
+            title="Avaliações vinculadas ao edital"
+            description="Resumo das avaliações já relacionadas ao edital selecionado. A distribuição detalhada deve ficar na página própria de Distribuição."
+            icon={<ClipboardList size={18} />}
+          >
+            <div className="overflow-hidden rounded-2xl border border-neutral-light">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-neutral-light">
+                  <thead className="bg-neutral-50">
+                    <tr>
+                      <TableHead>Projeto</TableHead>
+                      <TableHead>Avaliador</TableHead>
+                      <TableHead align="center">Avaliação cega</TableHead>
+                      <TableHead>Prazo</TableHead>
+                      <TableHead align="center">Status</TableHead>
+                    </tr>
+                  </thead>
+
+                  <tbody className="divide-y divide-neutral-light bg-white">
+                    {selectedCallAssignments.map((assignment) => {
+                      const project = getProject(assignment.projectId)
+                      const evaluator = evaluators.find(
+                        (item) => item.id === assignment.evaluatorId
+                      )
+
+                      return (
+                        <tr
+                          key={assignment.id}
+                          className="transition hover:bg-neutral-50"
+                        >
+                          <TableCell>
+                            <div>
+                              <p className="font-semibold text-primary">
+                                {project?.id ?? assignment.projectId}
+                              </p>
+                              <p className="mt-0.5 max-w-md truncate text-[11px] text-neutral">
+                                {project?.title ?? "Projeto não encontrado"}
+                              </p>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div>
+                              <p className="font-semibold text-primary">
+                                {evaluator?.name ??
+                                  "Avaliador não encontrado"}
+                              </p>
+                              <p className="mt-0.5 text-[11px] text-neutral">
+                                {evaluator?.email ?? "—"}
+                              </p>
+                            </div>
+                          </TableCell>
+
+                          <TableCell align="center">
+                            {assignment.blind ? (
+                              <span className="font-semibold text-emerald-700">
+                                Sim
+                              </span>
+                            ) : (
+                              <span className="font-semibold text-neutral">
+                                Não
+                              </span>
+                            )}
+                          </TableCell>
+
+                          <TableCell>{formatDate(assignment.dueAt)}</TableCell>
+
+                          <TableCell align="center">
+                            {assignment.status === "SUBMITTED" ? (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                                <Check size={12} />
+                                Submetida
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+                                <AlertCircle size={12} />
+                                Pendente
+                              </span>
+                            )}
+                          </TableCell>
+                        </tr>
+                      )
+                    })}
+
+                    {selectedCallAssignments.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="py-8 text-center text-sm text-neutral"
+                        >
+                          Nenhuma avaliação vinculada ao edital selecionado.
+                        </td>
+                      </tr>
+                    ) : null}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </Section>
         </div>
-      </Section>
+      </div>
     </div>
   )
 }

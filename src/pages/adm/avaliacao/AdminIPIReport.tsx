@@ -1,5 +1,8 @@
+import React from "react"
+import { Link } from "react-router-dom"
 import {
   AlertTriangle,
+  ArrowLeft,
   Award,
   CheckCircle2,
   Download,
@@ -159,16 +162,18 @@ export default function AdminIPIReport() {
   return (
     <div className="min-h-screen bg-neutral-light">
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <Link
+          to="/adm/avaliacao/avaliadores"
+          className="mb-5 inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+        >
+          <ArrowLeft size={16} />
+          Voltar para Avaliadores
+        </Link>
+
         <div className="space-y-6">
-          {/* Cabeçalho */}
           <section className="rounded-3xl border border-neutral/10 bg-white p-6 shadow-sm">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-3xl">
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                  <Award size={14} />
-                  Avaliação · IPI dos coordenadores
-                </div>
-
                 <h1 className="text-2xl font-bold text-primary">
                   Relatório de IPI dos Coordenadores
                 </h1>
@@ -195,7 +200,6 @@ export default function AdminIPIReport() {
             </div>
           </section>
 
-          {/* Fórmula */}
           <section className="rounded-3xl border border-primary/10 bg-primary/5 p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -230,7 +234,6 @@ export default function AdminIPIReport() {
             </div>
           </section>
 
-          {/* Indicadores */}
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <SummaryCard
               label="Coordenadores"
@@ -261,7 +264,6 @@ export default function AdminIPIReport() {
             />
           </section>
 
-          {/* Filtros */}
           <section className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div>
@@ -300,7 +302,6 @@ export default function AdminIPIReport() {
             </div>
           </section>
 
-          {/* Tabela principal */}
           <section className="overflow-hidden rounded-3xl border border-neutral/10 bg-white shadow-sm">
             <div className="border-b border-neutral/10 px-5 py-4">
               <h2 className="text-base font-semibold text-primary">
@@ -455,7 +456,6 @@ export default function AdminIPIReport() {
             </div>
           </section>
 
-          {/* Exportação e revisão */}
           <section className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-start gap-3">

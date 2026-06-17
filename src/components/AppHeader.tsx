@@ -591,7 +591,7 @@ export default function AppHeader() {
       // { to: "/adm/avaliacao", label: "Overview", icon: <FileSignature size={16} />, end: true },
       { to: "/adm/avaliacao/avaliadores", label: "Avaliadores", icon: <Users size={16} />, end: true },
       { to: "/adm/avaliacao/distribuicao", label: "Distribuição de Avaliações", icon: <GitBranch size={16} />, end: true },
-      { to: "/adm/avaliacao/consolidacao", label: "Consolidação de Avaliações", icon: <ClipboardCheck size={16} />, end: true },
+      //{ to: "/adm/avaliacao/consolidacao", label: "Consolidação de Avaliações", icon: <ClipboardCheck size={16} />, end: true },
       { to: "/adm/avaliacao/ipi", label: "Relatório IPI", icon: <FileText size={16} />, end: true },
     ],
     "/adm/resultados/ranking": [

@@ -5,10 +5,8 @@ import {
   CheckCircle2,
   CircleAlert,
   Clock3,
-  Filter,
   GitBranch,
   RefreshCcw,
-  Search,
   Send,
   ShieldAlert,
   Shuffle,
@@ -243,35 +241,11 @@ const assignmentsMock: Assignment[] = [
   },
 ]
 
-function statusLabel(status: ProjectStatus) {
-  const map: Record<ProjectStatus, string> = {
-    SUBMETIDO: "Submetido",
-    DISTRIBUIDO: "Distribuído",
-    PENDENTE: "Pendente",
-    RECUSADO: "Com recusa",
-    INCOMPLETO: "Incompleto",
-  }
-
-  return map[status]
-}
-
 function assignmentStatusLabel(status: AssignmentStatus) {
   const map: Record<AssignmentStatus, string> = {
     PENDENTE: "Pendente",
     ACEITO: "Aceito",
     RECUSADO: "Recusado",
-  }
-
-  return map[status]
-}
-
-function statusClass(status: ProjectStatus) {
-  const map: Record<ProjectStatus, string> = {
-    SUBMETIDO: "border-blue-200 bg-blue-50 text-blue-700",
-    DISTRIBUIDO: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    PENDENTE: "border-amber-200 bg-amber-50 text-amber-700",
-    RECUSADO: "border-red-200 bg-red-50 text-red-700",
-    INCOMPLETO: "border-neutral/20 bg-neutral-light text-neutral",
   }
 
   return map[status]
@@ -314,6 +288,7 @@ function getProjectActiveCount(
   draftAssignments: DraftAssignment[],
 ) {
   const active = activeAssignmentsByProject(projectId, assignments).length
+
   const drafted = draftAssignments.filter(
     (assignment) => assignment.projectId === projectId,
   ).length
@@ -332,8 +307,9 @@ function getEvaluatorProjectedLoad(
 
   return (
     evaluator.currentAssignments +
-    draftAssignments.filter((assignment) => assignment.evaluatorId === evaluatorId)
-      .length
+    draftAssignments.filter(
+      (assignment) => assignment.evaluatorId === evaluatorId,
+    ).length
   )
 }
 
@@ -374,6 +350,7 @@ function smartScore({
   draftAssignments: DraftAssignment[]
 }) {
   const affinity = affinityScore(project, evaluator)
+
   const projectedLoad = getEvaluatorProjectedLoad(
     evaluator.id,
     evaluators,
@@ -382,10 +359,6 @@ function smartScore({
 
   const loadRatio = projectedLoad / evaluator.maxAssignments
 
-  // Pontuação:
-  // - afinidade pesa mais;
-  // - avaliador com carga menor ganha prioridade;
-  // - isso evita concentrar muitos projetos nos mesmos avaliadores.
   return affinity * 100 - loadRatio * 30
 }
 
@@ -420,8 +393,6 @@ function buildSmartDistribution({
         )
       }).length
 
-      // Distribui primeiro os projetos com menos avaliadores possíveis.
-      // Isso reduz o risco de deixar os casos difíceis para o final.
       return aCandidates - bCandidates
     })
 
@@ -479,6 +450,7 @@ function buildSmartDistribution({
           reason:
             "Não há avaliadores elegíveis suficientes com afinidade, sem conflito e com carga disponível.",
         })
+
         break
       }
 
@@ -502,117 +474,13 @@ function buildSmartDistribution({
   }
 }
 
-function PageHeader({
-  totalProjects,
-  pendingProjects,
-  distributedProjects,
-  issueCount,
-}: {
-  totalProjects: number
-  pendingProjects: number
-  distributedProjects: number
-  issueCount: number
-}) {
-  return (
-    <section className="rounded-3xl border border-neutral/10 bg-white p-6 shadow-sm">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-3">
-          <Link
-            to="/adm/avaliacao"
-            className="inline-flex items-center gap-2 text-sm font-medium text-neutral transition hover:text-primary"
-          >
-            <ArrowLeft size={16} />
-            Voltar para Avaliação & Pontuação
-          </Link>
-
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-              <GitBranch size={14} />
-              Distribuição inteligente
-            </div>
-
-            <h1 className="text-2xl font-bold text-neutral-dark">
-              Distribuição de Projetos para Avaliação
-            </h1>
-
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
-              Em vez de distribuir projeto por projeto, gere uma prévia automática
-              para todo o edital. O sistema prioriza afinidade, evita conflitos,
-              controla a carga dos avaliadores e destaca apenas os casos que
-              precisam de intervenção manual.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-4 lg:w-[620px]">
-          <SummaryCard label="Projetos" value={totalProjects} icon={<GitBranch size={18} />} />
-          <SummaryCard label="Pendentes" value={pendingProjects} icon={<Clock3 size={18} />} />
-          <SummaryCard label="Distribuídos" value={distributedProjects} icon={<CheckCircle2 size={18} />} />
-          <SummaryCard label="Ajustes" value={issueCount} icon={<AlertTriangle size={18} />} />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function SummaryCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string
-  value: number
-  icon: ReactNode
-}) {
-  return (
-    <div className="rounded-2xl border border-neutral/10 bg-neutral-light/60 p-4">
-      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-        {icon}
-      </div>
-      <p className="text-xs font-medium text-neutral">{label}</p>
-      <p className="mt-1 text-xl font-bold text-neutral-dark">{value}</p>
-    </div>
-  )
-}
-
-function SectionTitle({
-  icon,
-  title,
-  subtitle,
-}: {
-  icon: ReactNode
-  title: string
-  subtitle?: string
-}) {
-  return (
-    <div className="mb-4 flex items-start gap-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-primary/5 text-primary">
-        {icon}
-      </div>
-
-      <div>
-        <h2 className="text-base font-semibold text-neutral-dark">{title}</h2>
-        {subtitle ? <p className="mt-1 text-sm text-neutral">{subtitle}</p> : null}
-      </div>
-    </div>
-  )
-}
-
 export default function AdminEvaluationDistribution() {
   const [projects, setProjects] = useState<Project[]>(projectsMock)
   const [evaluators, setEvaluators] = useState<Evaluator[]>(evaluatorsMock)
   const [assignments, setAssignments] = useState<Assignment[]>(assignmentsMock)
   const [preview, setPreview] = useState<DistributionPreview | null>(null)
-
-  const [search, setSearch] = useState("")
-  const [areaFilter, setAreaFilter] = useState("TODAS")
-  const [selectedIssueProjectId, setSelectedIssueProjectId] = useState<number | null>(
-    null,
-  )
-
-  const availableAreas = useMemo(() => {
-    return ["TODAS", ...Array.from(new Set(projects.map((project) => project.area)))]
-  }, [projects])
+  const [selectedIssueProjectId, setSelectedIssueProjectId] =
+    useState<number | null>(null)
 
   const pendingProjects = projects.filter(
     (project) => project.status !== "DISTRIBUIDO",
@@ -647,30 +515,6 @@ export default function AdminEvaluationDistribution() {
     issueProjects[0]?.project ??
     null
 
-  const filteredProjects = useMemo(() => {
-    return projects.filter((project) => {
-      const matchesSearch =
-        project.title.toLowerCase().includes(search.toLowerCase()) ||
-        project.code.toLowerCase().includes(search.toLowerCase()) ||
-        project.coordinator.toLowerCase().includes(search.toLowerCase())
-
-      const matchesArea = areaFilter === "TODAS" || project.area === areaFilter
-
-      return matchesSearch && matchesArea
-    })
-  }, [projects, search, areaFilter])
-
-  const previewByProject = useMemo(() => {
-    const map = new Map<number, DraftAssignment[]>()
-
-    preview?.draftAssignments.forEach((assignment) => {
-      const current = map.get(assignment.projectId) ?? []
-      map.set(assignment.projectId, [...current, assignment])
-    })
-
-    return map
-  }, [preview])
-
   const totalDraftAssignments = preview?.draftAssignments.length ?? 0
 
   const projectsCompletedInPreview = useMemo(() => {
@@ -686,6 +530,48 @@ export default function AdminEvaluationDistribution() {
       return activeCount >= MIN_EVALUATORS_PER_PROJECT
     }).length
   }, [preview, pendingProjects, assignments])
+
+  const assignmentSummary = useMemo(() => {
+    return {
+      total: assignments.length,
+      pendentes: assignments.filter((item) => item.status === "PENDENTE").length,
+      aceitos: assignments.filter((item) => item.status === "ACEITO").length,
+      recusados: assignments.filter((item) => item.status === "RECUSADO").length,
+    }
+  }, [assignments])
+
+  const areaSummary = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        area: string
+        total: number
+        pendentes: number
+        distribuidos: number
+        incompletos: number
+      }
+    >()
+
+    projects.forEach((project) => {
+      const current = map.get(project.area) ?? {
+        area: project.area,
+        total: 0,
+        pendentes: 0,
+        distribuidos: 0,
+        incompletos: 0,
+      }
+
+      current.total += 1
+
+      if (project.status === "DISTRIBUIDO") current.distribuidos += 1
+      if (project.status === "INCOMPLETO") current.incompletos += 1
+      if (project.status !== "DISTRIBUIDO") current.pendentes += 1
+
+      map.set(project.area, current)
+    })
+
+    return Array.from(map.values()).sort((a, b) => b.pendentes - a.pendentes)
+  }, [projects])
 
   const projectedEvaluatorLoads = useMemo(() => {
     return evaluators
@@ -703,6 +589,86 @@ export default function AdminEvaluationDistribution() {
       })
       .sort((a, b) => b.projected - a.projected)
   }, [evaluators, preview])
+
+  const evaluatorLoadSummary = useMemo(() => {
+    const overloaded = projectedEvaluatorLoads.filter(
+      ({ evaluator, projected }) => projected >= evaluator.maxAssignments,
+    ).length
+
+    const changed = projectedEvaluatorLoads.filter(({ added }) => added > 0).length
+
+    const unavailable = evaluators.filter((item) => item.unavailable).length
+
+    return {
+      total: evaluators.length,
+      changed,
+      overloaded,
+      unavailable,
+    }
+  }, [projectedEvaluatorLoads, evaluators])
+
+  const visibleEvaluatorLoads = useMemo(() => {
+    return projectedEvaluatorLoads
+      .filter(({ evaluator, added, projected }) => {
+        return added > 0 || projected >= evaluator.maxAssignments || evaluator.unavailable
+      })
+      .slice(0, 6)
+  }, [projectedEvaluatorLoads])
+
+  const recentDeclinedAssignments = useMemo(() => {
+    return assignments
+      .filter((assignment) => assignment.status === "RECUSADO")
+      .slice(0, 5)
+  }, [assignments])
+
+  const manualCandidatesForIssue = useMemo(() => {
+    if (!selectedIssueProject || !preview) return []
+
+    const activeIds = activeAssignmentsByProject(
+      selectedIssueProject.id,
+      assignments,
+    ).map((assignment) => assignment.evaluatorId)
+
+    const draftIds = preview.draftAssignments
+      .filter((assignment) => assignment.projectId === selectedIssueProject.id)
+      .map((assignment) => assignment.evaluatorId)
+
+    return evaluators
+      .map((evaluator) => {
+        const score = affinityScore(selectedIssueProject, evaluator)
+
+        const projectedLoad = getEvaluatorProjectedLoad(
+          evaluator.id,
+          evaluators,
+          preview.draftAssignments,
+        )
+
+        const alreadyAssigned = [...activeIds, ...draftIds].includes(evaluator.id)
+
+        const blocked =
+          !alreadyAssigned &&
+          (!canEvaluateWithProjectedLoad({
+            project: selectedIssueProject,
+            evaluator,
+            evaluators,
+            draftAssignments: preview.draftAssignments,
+          }) ||
+            evaluator.unavailable)
+
+        return {
+          evaluator,
+          score,
+          projectedLoad,
+          alreadyAssigned,
+          blocked,
+          conflict: hasConflict(selectedIssueProject, evaluator),
+        }
+      })
+      .sort((a, b) => {
+        return b.score - a.score || a.projectedLoad - b.projectedLoad
+      })
+      .slice(0, 8)
+  }, [selectedIssueProject, preview, assignments, evaluators])
 
   function handleGenerateSmartPreview() {
     const nextPreview = buildSmartDistribution({
@@ -926,57 +892,21 @@ export default function AdminEvaluationDistribution() {
     )
   }
 
-  const manualCandidatesForIssue = useMemo(() => {
-    if (!selectedIssueProject || !preview) return []
-
-    const activeIds = activeAssignmentsByProject(
-      selectedIssueProject.id,
-      assignments,
-    ).map((assignment) => assignment.evaluatorId)
-
-    const draftIds = preview.draftAssignments
-      .filter((assignment) => assignment.projectId === selectedIssueProject.id)
-      .map((assignment) => assignment.evaluatorId)
-
-    return evaluators
-      .map((evaluator) => {
-        const score = affinityScore(selectedIssueProject, evaluator)
-        const projectedLoad = getEvaluatorProjectedLoad(
-          evaluator.id,
-          evaluators,
-          preview.draftAssignments,
-        )
-
-        const alreadyAssigned = [...activeIds, ...draftIds].includes(evaluator.id)
-
-        const blocked =
-          !alreadyAssigned &&
-          (!canEvaluateWithProjectedLoad({
-            project: selectedIssueProject,
-            evaluator,
-            evaluators,
-            draftAssignments: preview.draftAssignments,
-          }) ||
-            evaluator.unavailable)
-
-        return {
-          evaluator,
-          score,
-          projectedLoad,
-          alreadyAssigned,
-          blocked,
-          conflict: hasConflict(selectedIssueProject, evaluator),
-        }
-      })
-      .sort((a, b) => {
-        return b.score - a.score || a.projectedLoad - b.projectedLoad
-      })
-  }, [selectedIssueProject, preview, assignments, evaluators])
-
   return (
     <div className="min-h-screen bg-neutral-light">
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="space-y-6">
+
+        <div className="flex items-center justify-between">
+          <Link
+            to="/adm/avaliacao/avaliadores"
+            className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
+          >
+            <ArrowLeft size={16} />
+            Voltar para Avaliadores
+          </Link>
+        </div>
+
           <PageHeader
             totalProjects={projects.length}
             pendingProjects={pendingProjects.length}
@@ -989,7 +919,7 @@ export default function AdminEvaluationDistribution() {
               <SectionTitle
                 icon={<Shuffle size={18} />}
                 title="Distribuição em lote"
-                subtitle="Gere uma prévia para todos os projetos pendentes antes de enviar os convites."
+                subtitle="Gere uma prévia automática e revise somente as exceções."
               />
 
               <div className="flex flex-wrap gap-2">
@@ -999,7 +929,7 @@ export default function AdminEvaluationDistribution() {
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark"
                 >
                   <Shuffle size={16} />
-                  Gerar prévia inteligente
+                  Gerar prévia
                 </button>
 
                 <button
@@ -1009,7 +939,7 @@ export default function AdminEvaluationDistribution() {
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:border-neutral/10 disabled:bg-neutral-light disabled:text-neutral/50"
                 >
                   <Send size={16} />
-                  Confirmar e enviar
+                  Confirmar
                 </button>
 
                 <button
@@ -1019,27 +949,30 @@ export default function AdminEvaluationDistribution() {
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral/15 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-dark transition hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:text-neutral/40"
                 >
                   <RefreshCcw size={16} />
-                  Limpar prévia
+                  Limpar
                 </button>
               </div>
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-4">
               <MetricCard
-                label="Projetos analisados"
+                label="Projetos pendentes"
                 value={pendingProjects.length}
                 icon={<GitBranch size={18} />}
               />
+
               <MetricCard
                 label="Atribuições sugeridas"
                 value={totalDraftAssignments}
                 icon={<UserCheck size={18} />}
               />
+
               <MetricCard
                 label="Projetos completos"
                 value={projectsCompletedInPreview}
                 icon={<CheckCircle2 size={18} />}
               />
+
               <MetricCard
                 label="Exigem ajuste"
                 value={preview?.issues.length ?? 0}
@@ -1055,14 +988,15 @@ export default function AdminEvaluationDistribution() {
                     size={18}
                     className="mt-0.5 shrink-0 text-blue-700"
                   />
+
                   <div>
                     <h3 className="text-sm font-semibold text-blue-800">
                       Prévia gerada
                     </h3>
+
                     <p className="mt-1 text-sm leading-6 text-blue-800">
-                      Nenhum convite foi enviado ainda. Revise os projetos com
-                      alerta, ajuste manualmente se necessário e depois clique em
-                      “Confirmar e enviar”.
+                      Nenhum convite foi enviado. Revise as exceções antes de
+                      confirmar a distribuição.
                     </p>
                   </div>
                 </div>
@@ -1070,86 +1004,145 @@ export default function AdminEvaluationDistribution() {
             ) : null}
           </section>
 
-          <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
             <div className="space-y-6">
-              <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
+              <section className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
                 <SectionTitle
                   icon={<BarChart3 size={18} />}
-                  title="Carga projetada dos avaliadores"
-                  subtitle="Ajuda a verificar se a distribuição ficou equilibrada."
+                  title="Resumo por área"
+                  subtitle="Visão agregada para o gestor."
                 />
 
-                <div className="space-y-3">
-                  {projectedEvaluatorLoads.map(({ evaluator, added, projected }) => {
-                    const percent = Math.min(
-                      Math.round((projected / evaluator.maxAssignments) * 100),
-                      100,
-                    )
+                <div className="overflow-hidden rounded-2xl border border-neutral/10">
+                  <table className="min-w-full divide-y divide-neutral/10 text-sm">
+                    <thead className="bg-neutral-light/70">
+                      <tr>
+                        <TableHead>Área</TableHead>
+                        <TableHead align="right">Total</TableHead>
+                        <TableHead align="right">Pendentes</TableHead>
+                        <TableHead align="right">Distribuídos</TableHead>
+                        <TableHead align="right">Incompletos</TableHead>
+                      </tr>
+                    </thead>
 
-                    return (
-                      <div
-                        key={evaluator.id}
-                        className="rounded-2xl border border-neutral/10 bg-white p-4"
-                      >
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                          <div>
-                            <h3 className="text-sm font-semibold text-neutral-dark">
-                              {evaluator.name}
-                            </h3>
-                            <p className="mt-1 text-xs text-neutral">
-                              {evaluator.unit} · {evaluator.email}
-                            </p>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            {added > 0 ? (
-                              <SmallBadge className="bg-primary/10 text-primary">
-                                +{added} na prévia
-                              </SmallBadge>
-                            ) : null}
-
-                            {evaluator.unavailable ? (
-                              <SmallBadge className="bg-neutral-light text-neutral">
-                                Indisponível
-                              </SmallBadge>
-                            ) : null}
-                          </div>
-                        </div>
-
-                        <div className="mt-4">
-                          <div className="mb-1 flex justify-between text-xs text-neutral">
-                            <span>
-                              Carga: {projected}/{evaluator.maxAssignments}
-                            </span>
-                            <span>{percent}%</span>
-                          </div>
-
-                          <div className="h-2 overflow-hidden rounded-full bg-neutral-light">
-                            <div
-                              className={`h-full rounded-full ${
-                                percent >= 100
-                                  ? "bg-red-500"
-                                  : percent >= 80
-                                    ? "bg-amber-500"
-                                    : "bg-primary"
-                              }`}
-                              style={{ width: `${percent}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
+                    <tbody className="divide-y divide-neutral/10 bg-white">
+                      {areaSummary.map((item) => (
+                        <tr key={item.area}>
+                          <TableCell>{item.area}</TableCell>
+                          <TableCell align="right">{item.total}</TableCell>
+                          <TableCell align="right">{item.pendentes}</TableCell>
+                          <TableCell align="right">{item.distribuidos}</TableCell>
+                          <TableCell align="right">{item.incompletos}</TableCell>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
+              </section>
+
+              <section className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
+                <SectionTitle
+                  icon={<UserCheck size={18} />}
+                  title="Distribuições existentes"
+                  subtitle="Resumo dos convites já enviados."
+                />
+
+                <div className="grid gap-4 md:grid-cols-4">
+                  <MetricCard
+                    label="Total"
+                    value={assignmentSummary.total}
+                    icon={<UserCheck size={18} />}
+                  />
+
+                  <MetricCard
+                    label="Pendentes"
+                    value={assignmentSummary.pendentes}
+                    icon={<Clock3 size={18} />}
+                    warning={assignmentSummary.pendentes > 0}
+                  />
+
+                  <MetricCard
+                    label="Aceitos"
+                    value={assignmentSummary.aceitos}
+                    icon={<CheckCircle2 size={18} />}
+                  />
+
+                  <MetricCard
+                    label="Recusados"
+                    value={assignmentSummary.recusados}
+                    icon={<XCircle size={18} />}
+                    warning={assignmentSummary.recusados > 0}
+                  />
+                </div>
+
+                {recentDeclinedAssignments.length > 0 ? (
+                  <div className="mt-5">
+                    <h3 className="mb-3 text-sm font-semibold text-neutral-dark">
+                      Recusas recentes
+                    </h3>
+
+                    <div className="space-y-3">
+                      {recentDeclinedAssignments.map((assignment) => {
+                        const project = projects.find(
+                          (item) => item.id === assignment.projectId,
+                        )
+
+                        const evaluator = evaluators.find(
+                          (item) => item.id === assignment.evaluatorId,
+                        )
+
+                        if (!project || !evaluator) return null
+
+                        return (
+                          <div
+                            key={assignment.id}
+                            className="rounded-2xl border border-red-100 bg-red-50 p-4"
+                          >
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                              <div>
+                                <p className="text-xs font-semibold text-red-700">
+                                  {project.code}
+                                </p>
+
+                                <h4 className="mt-1 text-sm font-semibold text-neutral-dark">
+                                  {evaluator.name}
+                                </h4>
+
+                                <p className="mt-1 text-xs text-red-700">
+                                  {assignment.reason ??
+                                    "Recusa registrada pelo avaliador."}
+                                </p>
+
+                                <p className="mt-1 text-xs text-neutral">
+                                  Status: {assignmentStatusLabel(assignment.status)} ·{" "}
+                                  enviado em {assignment.sentAt}
+                                </p>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleResendDeclined(assignment.id)}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/5"
+                              >
+                                <RefreshCcw size={14} />
+                                Redistribuir
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </section>
             </div>
 
             <div className="space-y-6">
-              <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
+              <section className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
                 <SectionTitle
                   icon={<AlertTriangle size={18} />}
                   title="Fila de exceções"
-                  subtitle="O gestor só precisa atuar nos casos que o algoritmo não conseguiu resolver."
+                  subtitle="Casos que precisam de ajuste manual."
                 />
 
                 {issueProjects.length > 0 ? (
@@ -1173,9 +1166,14 @@ export default function AdminEvaluationDistribution() {
                               <p className="text-xs font-semibold text-primary">
                                 {project.code}
                               </p>
-                              <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-neutral-dark">
+
+                              <h3 className="mt-1 text-sm font-semibold text-neutral-dark">
                                 {project.title}
                               </h3>
+
+                              <p className="mt-1 text-xs text-neutral">
+                                {project.area} · {project.subarea}
+                              </p>
                             </div>
 
                             <SmallBadge className="bg-red-100 text-red-700">
@@ -1191,34 +1189,34 @@ export default function AdminEvaluationDistribution() {
                     })}
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-neutral/20 bg-neutral-light/60 p-6 text-center">
-                    <CheckCircle2 className="mx-auto text-emerald-600" size={28} />
-                    <h3 className="mt-3 text-sm font-semibold text-neutral-dark">
-                      Nenhuma exceção pendente
-                    </h3>
-                    <p className="mt-1 text-sm text-neutral">
-                      Quando a prévia for gerada, os problemas aparecerão aqui.
-                    </p>
-                  </div>
+                  <EmptyState
+                    icon={<CheckCircle2 size={28} />}
+                    title="Nenhuma exceção pendente"
+                    desc="Depois de gerar a prévia, os casos problemáticos aparecem aqui."
+                    success
+                  />
                 )}
-              </div>
+              </section>
 
               {selectedIssueProject && preview ? (
-                <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
+                <section className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
                   <SectionTitle
                     icon={<SlidersHorizontal size={18} />}
-                    title="Ajuste manual da exceção"
-                    subtitle="Use apenas quando a distribuição automática não encontrar avaliadores suficientes."
+                    title="Ajuste manual"
+                    subtitle="Use somente para completar uma exceção."
                   />
 
                   <div className="mb-4 rounded-2xl border border-neutral/10 bg-neutral-light/60 p-4">
                     <p className="text-xs font-semibold text-primary">
                       {selectedIssueProject.code}
                     </p>
+
                     <h3 className="mt-1 text-sm font-semibold text-neutral-dark">
                       {selectedIssueProject.title}
                     </h3>
+
                     <p className="mt-2 text-xs text-neutral">
+                      {selectedIssueProject.grandeArea} ·{" "}
                       {selectedIssueProject.area} · {selectedIssueProject.subarea}
                     </p>
                   </div>
@@ -1242,6 +1240,7 @@ export default function AdminEvaluationDistribution() {
                               <h3 className="text-sm font-semibold text-neutral-dark">
                                 {evaluator.name}
                               </h3>
+
                               <p className="mt-1 text-xs text-neutral">
                                 {evaluator.unit} · {evaluator.email}
                               </p>
@@ -1294,97 +1293,114 @@ export default function AdminEvaluationDistribution() {
                       ),
                     )}
                   </div>
-                </div>
+                </section>
               ) : null}
-
-              <div className="rounded-3xl border border-neutral/10 bg-white p-5 shadow-sm">
-                <SectionTitle
-                  icon={<UserCheck size={18} />}
-                  title="Distribuições existentes"
-                  subtitle="Acompanhamento de aceite, recusa e redistribuição."
-                />
-
-                <div className="space-y-3">
-                  {assignments.map((assignment) => {
-                    const project = projects.find(
-                      (item) => item.id === assignment.projectId,
-                    )
-
-                    const evaluator = evaluators.find(
-                      (item) => item.id === assignment.evaluatorId,
-                    )
-
-                    if (!project || !evaluator) return null
-
-                    return (
-                      <div
-                        key={assignment.id}
-                        className="rounded-2xl border border-neutral/10 bg-white p-4"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-xs font-semibold text-primary">
-                              {project.code}
-                            </p>
-                            <h3 className="mt-1 text-sm font-semibold text-neutral-dark">
-                              {evaluator.name}
-                            </h3>
-                            <p className="mt-1 text-xs text-neutral">
-                              Enviado em {assignment.sentAt}
-                            </p>
-                          </div>
-
-                          <span
-                            className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${assignmentStatusClass(
-                              assignment.status,
-                            )}`}
-                          >
-                            {assignmentStatusLabel(assignment.status)}
-                          </span>
-                        </div>
-
-                        {assignment.reason ? (
-                          <div className="mt-3 rounded-xl border border-red-100 bg-red-50 p-3 text-xs leading-5 text-red-700">
-                            <strong>Justificativa:</strong> {assignment.reason}
-                          </div>
-                        ) : null}
-
-                        {assignment.status === "RECUSADO" ? (
-                          <button
-                            type="button"
-                            onClick={() => handleResendDeclined(assignment.id)}
-                            className="mt-3 inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/10"
-                          >
-                            <RefreshCcw size={14} />
-                            Redistribuir automaticamente
-                          </button>
-                        ) : null}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
-            <div className="flex gap-3">
-              <AlertTriangle size={20} className="mt-0.5 shrink-0 text-amber-700" />
-              <div>
-                <h3 className="text-sm font-semibold text-amber-800">
-                  Regra operacional recomendada para produção
-                </h3>
-                <p className="mt-1 text-sm leading-6 text-amber-800">
-                  O gestor não deve escolher avaliadores manualmente para todos os
-                  projetos. A página deve gerar uma distribuição automática por
-                  lote, permitir conferência por indicadores e exigir ação manual
-                  somente em exceções: falta de avaliador, conflito de interesse,
-                  sobrecarga, recusa ou ausência de afinidade suficiente.
-                </p>
-              </div>
             </div>
           </section>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function PageHeader({
+  totalProjects,
+  pendingProjects,
+  distributedProjects,
+  issueCount,
+}: {
+  totalProjects: number
+  pendingProjects: number
+  distributedProjects: number
+  issueCount: number
+}) {
+  return (
+    <section className="rounded-3xl border border-neutral/10 bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-3">
+
+          <div>
+
+            <h1 className="text-2xl font-bold text-neutral-dark">
+              Distribuição de Projetos para Avaliação
+            </h1>
+
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral">
+              Distribuição em lote com acompanhamento por indicadores e ajuste
+              manual apenas nos casos pendentes.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-4 lg:w-[620px]">
+          <SummaryCard
+            label="Projetos"
+            value={totalProjects}
+            icon={<GitBranch size={18} />}
+          />
+
+          <SummaryCard
+            label="Pendentes"
+            value={pendingProjects}
+            icon={<Clock3 size={18} />}
+          />
+
+          <SummaryCard
+            label="Distribuídos"
+            value={distributedProjects}
+            icon={<CheckCircle2 size={18} />}
+          />
+
+          <SummaryCard
+            label="Exceções"
+            value={issueCount}
+            icon={<AlertTriangle size={18} />}
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function SummaryCard({
+  label,
+  value,
+  icon,
+}: {
+  label: string
+  value: number
+  icon: ReactNode
+}) {
+  return (
+    <div className="rounded-2xl border border-neutral/10 bg-neutral-light/60 p-4">
+      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        {icon}
+      </div>
+
+      <p className="text-xs font-medium text-neutral">{label}</p>
+      <p className="mt-1 text-xl font-bold text-neutral-dark">{value}</p>
+    </div>
+  )
+}
+
+function SectionTitle({
+  icon,
+  title,
+  subtitle,
+}: {
+  icon: ReactNode
+  title: string
+  subtitle?: string
+}) {
+  return (
+    <div className="mb-4 flex items-start gap-3">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-primary/5 text-primary">
+        {icon}
+      </div>
+
+      <div>
+        <h2 className="text-base font-semibold text-neutral-dark">{title}</h2>
+        {subtitle ? <p className="mt-1 text-sm text-neutral">{subtitle}</p> : null}
       </div>
     </div>
   )
@@ -1412,9 +1428,46 @@ function MetricCard({
       <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/70 text-primary">
         {icon}
       </div>
+
       <p className="text-xs font-medium">{label}</p>
       <p className="mt-1 text-2xl font-bold">{value}</p>
     </div>
+  )
+}
+
+function TableHead({
+  children,
+  align = "left",
+}: {
+  children: ReactNode
+  align?: "left" | "right"
+}) {
+  return (
+    <th
+      className={`px-4 py-3 text-xs font-semibold uppercase tracking-wide text-neutral ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      {children}
+    </th>
+  )
+}
+
+function TableCell({
+  children,
+  align = "left",
+}: {
+  children: ReactNode
+  align?: "left" | "right"
+}) {
+  return (
+    <td
+      className={`px-4 py-3 text-xs text-neutral ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      {children}
+    </td>
   )
 }
 
@@ -1431,5 +1484,29 @@ function SmallBadge({
     >
       {children}
     </span>
+  )
+}
+
+function EmptyState({
+  icon,
+  title,
+  desc,
+  success,
+}: {
+  icon: ReactNode
+  title: string
+  desc: string
+  success?: boolean
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed border-neutral/20 bg-neutral-light/60 p-6 text-center">
+      <div className={success ? "text-emerald-600" : "text-neutral"}>
+        {icon}
+      </div>
+
+      <h3 className="mt-3 text-sm font-semibold text-neutral-dark">{title}</h3>
+
+      <p className="mt-1 text-sm text-neutral">{desc}</p>
+    </div>
   )
 }

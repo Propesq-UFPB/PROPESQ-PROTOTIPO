@@ -1,3 +1,4 @@
+/// não to usando
 import {
   AlertTriangle,
   ArrowLeft,
@@ -867,11 +868,11 @@ export default function AdminEvaluationDistribution() {
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-3">
                 <Link
-                  to="/adm/avaliacao"
+                  to="/adm/avaliacao/avaliadores"
                   className="inline-flex items-center gap-2 text-sm font-medium text-neutral transition hover:text-primary"
                 >
                   <ArrowLeft size={16} />
-                  Voltar para Avaliação & Pontuação
+                  Voltar para Avaliadores
                 </Link>
 
                 <div>
