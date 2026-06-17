@@ -1,27 +1,28 @@
 // src/pages/admin/projects/ProjectCreateWizard.tsx
+// src/pages/coordenador/projetos/CoordinatorProjectForm.tsx
 
 import React, { useMemo, useState } from "react"
-import { Helmet } from "react-helmet"
 import { Link } from "react-router-dom"
 import {
   AlertCircle,
   ArrowLeft,
-  BookOpen,
   CalendarDays,
   Check,
   ChevronRight,
   ClipboardCheck,
-  Copy,
   FileText,
+  FileUp,
   GraduationCap,
   Hash,
   Layers,
+  Lock,
   Plus,
   RefreshCcw,
   Save,
   Tags,
   Trash2,
-  Lock,
+  Upload,
+  Users,
 } from "lucide-react"
 
 /* ================= TIPOS ================= */
@@ -33,19 +34,58 @@ type ODS = {
   label: string
 }
 
+type CronogramaItem = {
+  id: string
+  atividade: string
+  mesInicio: number
+  mesFim: number
+}
+
+type MemberRole =
+  | "Coordenador"
+  | "Coordenador Adjunto"
+  | "Pesquisador"
+  | "Colaborador"
+
+type ProjectMember = {
+  id: string
+  nome: string
+  papel: MemberRole | ""
+  vinculo: string
+  email: string
+  lattes: string
+}
+
 type GeneralData = {
+  tipo: ProjectType | null
+
   titulo: string
+  title: string
+
+  palavrasChave: string
+  keywords: string
+
+  descricaoResumida: string
+  abstract: string
+
+  introducaoJustificativa: string
+  objetivos: string
+  metodologia: string
+  referencias: string
+
+  objetivosDS: ODS[]
+  cronograma: CronogramaItem[]
+  membros: ProjectMember[]
+
+  pdfComplementar: File | null
+  comprovanteExterno: File | null
+
+  editalPesquisa: string
   unidade: string
   centro: string
   periodoIni: string
   periodoFim: string
-
-  editalPesquisa: string
-  termo: string
   email: string
-
-  palavrasChave: string
-  objetivosDS: ODS[]
   areaConhecimento: string
   grandeArea: string
   area: string
@@ -71,92 +111,22 @@ type ExternalData = {
   tratamentoProducao: string
 }
 
-type WorkPlan = {
-  id: string
-  tipoBolsa: string
-  direcionamento: string
-  periodoIni: string
-  periodoFim: string
-  cota: string
-  vinculacaoInstitucional: string
-  areaConhecimento: string
-  introducaoJustificativa: string
-  objetivos: string
-  metodologia: string
-  cronogramaAtividades: string
-  referencias: string
-  resumoPlano: string
-  palavrasChave: string
-}
-
 type FormState = {
-  tipo: ProjectType | null
   gerais: GeneralData
   interno: InternalData
   externo: ExternalData
-  planosTrabalho: WorkPlan[]
 }
 
-type Step = 1 | 2 | 3 | 4 | 5
+type Step = 1 | 2 | 3 | 4 | 5 | 6
 
-/* ================= ESTADO INICIAL ================= */
+/* ================= CONSTANTES ================= */
 
-const emptyWorkPlan: WorkPlan = {
-  id: "",
-  tipoBolsa: "",
-  direcionamento: "",
-  periodoIni: "",
-  periodoFim: "",
-  cota: "",
-  vinculacaoInstitucional: "",
-  areaConhecimento: "",
-  introducaoJustificativa: "",
-  objetivos: "",
-  metodologia: "",
-  cronogramaAtividades: "",
-  referencias: "",
-  resumoPlano: "",
-  palavrasChave: "",
-}
+const TITLE_MAX = 400
+const LONG_TEXT_MAX = 15000
 
-const initialState: FormState = {
-  tipo: null,
-  gerais: {
-    titulo: "",
-    unidade: "",
-    centro: "",
-    periodoIni: "",
-    periodoFim: "",
-    editalPesquisa: "",
-    termo: "",
-    email: "",
-    palavrasChave: "",
-    objetivosDS: [],
-    areaConhecimento: "",
-    grandeArea: "",
-    area: "",
-    subarea: "",
-    especialidade: "",
-    linhaPesquisa: "",
-  },
-  interno: {
-    vinculadoGrupo: "Não",
-    grupoPesquisa: "",
-    possuiProtocoloEtica: "Não",
-    comiteEticaNome: "",
-    protocoloEtica: "",
-  },
-  externo: {
-    categoriaProjeto: "",
-    subcategoriaNivelI: "",
-    subcategoriaNivelII: "",
-    definicaoPropriedadeIntelectual: "",
-    tratamentoProducao: "",
-  },
-  planosTrabalho: [],
-}
-
-/* ================= OPTIONS ================= */
+// Por enquanto, o cadastro de projeto externo fica preservado no código,
+// mas indisponível para seleção no fluxo da tela.
+const EXTERNAL_PROJECTS_ENABLED = false
 
 const centros = ["CCHLA", "CCEN", "CT", "CCS", "CE", "CCTA"]
 
@@ -176,74 +146,996 @@ const editais = [
   "PROBEX 2026",
 ]
 
-const termos = [
-  "Termo de Compromisso",
-  "Termo de Sigilo",
-  "Termo de Consentimento (TCLE)",
-  "Outro",
+type CnpqSubarea = {
+  codigo: string
+  nome: string
+}
+
+type CnpqArea = {
+  codigo: string
+  nome: string
+  subareas: CnpqSubarea[]
+}
+
+type CnpqGrandeArea = {
+  codigo: string
+  nome: string
+  areas: CnpqArea[]
+}
+
+const cnpqAreasConhecimento: CnpqGrandeArea[] = [
+  {
+    codigo: "10000003",
+    nome: "Ciências Exatas e da Terra",
+    areas: [
+      {
+        codigo: "10100008",
+        nome: "Matemática",
+        subareas: [
+          { codigo: "10101004", nome: "Álgebra" },
+          { codigo: "10102000", nome: "Análise" },
+          { codigo: "10103007", nome: "Geometria e Topologia" },
+          { codigo: "10104003", nome: "Matemática Aplicada" },
+        ],
+      },
+      {
+        codigo: "10200002",
+        nome: "Probabilidade e Estatística",
+        subareas: [
+          { codigo: "10201009", nome: "Probabilidade" },
+          { codigo: "10202005", nome: "Estatística" },
+          { codigo: "10203001", nome: "Probabilidade e Estatística Aplicadas" },
+        ],
+      },
+      {
+        codigo: "10300007",
+        nome: "Ciência da Computação",
+        subareas: [
+          { codigo: "10301003", nome: "Teoria da Computação" },
+          { codigo: "10302000", nome: "Matemática da Computação" },
+          { codigo: "10303006", nome: "Metodologia e Técnicas da Computação" },
+          { codigo: "10304002", nome: "Sistemas de Computação" },
+        ],
+      },
+      {
+        codigo: "10400001",
+        nome: "Astronomia",
+        subareas: [
+          { codigo: "10401008", nome: "Astronomia de Posição e Mecânica Celeste" },
+          { codigo: "10402004", nome: "Astrofísica Estelar" },
+          { codigo: "10403000", nome: "Astrofísica do Meio Interestelar" },
+          { codigo: "10404007", nome: "Astrofísica Extragalactica" },
+          { codigo: "10405003", nome: "Astrofísica do Sistema Solar" },
+          { codigo: "10406000", nome: "Instrumentação Astronômica" },
+        ],
+      },
+      {
+        codigo: "10500006",
+        nome: "Física",
+        subareas: [
+          { codigo: "10501002", nome: "Física Geral" },
+          { codigo: "10502009", nome: "Áreas Clássicas de Fenomenologia e suas Aplicações" },
+          { codigo: "10503005", nome: "Física das Partículas Elementares e Campos" },
+          { codigo: "10504001", nome: "Física Nuclear" },
+          { codigo: "10505008", nome: "Física Atômica e Molecular" },
+          { codigo: "10506004", nome: "Física dos Fluídos, Física de Plasmas e Descargas Elétricas" },
+          { codigo: "10507000", nome: "Física da Matéria Condensada" },
+        ],
+      },
+      {
+        codigo: "10600000",
+        nome: "Química",
+        subareas: [
+          { codigo: "10601007", nome: "Química Orgânica" },
+          { codigo: "10602003", nome: "Química Inorgânica" },
+          { codigo: "10603000", nome: "Físico-Química" },
+          { codigo: "10604006", nome: "Química Analítica" },
+        ],
+      },
+      {
+        codigo: "10700005",
+        nome: "Geociências",
+        subareas: [
+          { codigo: "10701001", nome: "Geologia" },
+          { codigo: "10702008", nome: "Geofísica" },
+          { codigo: "10703004", nome: "Meteorologia" },
+          { codigo: "10704000", nome: "Geodésia" },
+          { codigo: "10705007", nome: "Geografia Física" },
+        ],
+      },
+      {
+        codigo: "10800000",
+        nome: "Oceanografia",
+        subareas: [
+          { codigo: "10801006", nome: "Oceanografia Biológica" },
+          { codigo: "10802002", nome: "Oceanografia Física" },
+          { codigo: "10803009", nome: "Oceanografia Química" },
+          { codigo: "10804005", nome: "Oceanografia Geológica" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "20000006",
+    nome: "Ciências Biológicas",
+    areas: [
+      {
+        codigo: "20100000",
+        nome: "Biologia Geral",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "20200005",
+        nome: "Genética",
+        subareas: [
+          { codigo: "20201001", nome: "Genética Quantitativa" },
+          { codigo: "20202008", nome: "Genética Molecular e de Microorganismos" },
+          { codigo: "20203004", nome: "Genética Vegetal" },
+          { codigo: "20204000", nome: "Genética Animal" },
+          { codigo: "20205007", nome: "Genética Humana e Médica" },
+          { codigo: "20206003", nome: "Mutagênese" },
+        ],
+      },
+      {
+        codigo: "20300000",
+        nome: "Botânica",
+        subareas: [
+          { codigo: "20301006", nome: "Paleobotânica" },
+          { codigo: "20302002", nome: "Morfologia Vegetal" },
+          { codigo: "20303009", nome: "Fisiologia Vegetal" },
+          { codigo: "20304005", nome: "Taxonomia Vegetal" },
+          { codigo: "20305001", nome: "Fitogeografia" },
+          { codigo: "20306008", nome: "Botânica Aplicada" },
+        ],
+      },
+      {
+        codigo: "20400004",
+        nome: "Zoologia",
+        subareas: [
+          { codigo: "20401000", nome: "Paleozoologia" },
+          { codigo: "20402007", nome: "Morfologia dos Grupos Recentes" },
+          { codigo: "20403003", nome: "Fisiologia dos Grupos Recentes" },
+          { codigo: "20404000", nome: "Comportamento Animal" },
+          { codigo: "20405006", nome: "Taxonomia dos Grupos Recentes" },
+          { codigo: "20406002", nome: "Zoologia Aplicada" },
+        ],
+      },
+      {
+        codigo: "20500009",
+        nome: "Ecologia",
+        subareas: [
+          { codigo: "20501005", nome: "Ecologia Teórica" },
+          { codigo: "20502001", nome: "Ecologia de Ecossistemas" },
+          { codigo: "20503008", nome: "Ecologia Aplicada" },
+        ],
+      },
+      {
+        codigo: "20600003",
+        nome: "Morfologia",
+        subareas: [
+          { codigo: "20601000", nome: "Citologia e Biologia Celular" },
+          { codigo: "20602006", nome: "Embriologia" },
+          { codigo: "20603002", nome: "Histologia" },
+          { codigo: "20604009", nome: "Anatomia" },
+        ],
+      },
+      {
+        codigo: "20700008",
+        nome: "Fisiologia",
+        subareas: [
+          { codigo: "20701004", nome: "Fisiologia Geral" },
+          { codigo: "20702000", nome: "Fisiologia de Órgãos e Sistemas" },
+          { codigo: "20703007", nome: "Fisiologia do Esforço" },
+          { codigo: "20704003", nome: "Fisiologia Comparada" },
+        ],
+      },
+      {
+        codigo: "20800002",
+        nome: "Bioquímica",
+        subareas: [
+          { codigo: "20801009", nome: "Química de Macromoléculas" },
+          { codigo: "20802005", nome: "Bioquímica dos Microorganismos" },
+          { codigo: "20803001", nome: "Metabolismo e Bioenergética" },
+          { codigo: "20804008", nome: "Biologia Molecular" },
+          { codigo: "20805004", nome: "Enzimologia" },
+        ],
+      },
+      {
+        codigo: "20900007",
+        nome: "Biofísica",
+        subareas: [
+          { codigo: "20901003", nome: "Biofísica Molecular" },
+          { codigo: "20902000", nome: "Biofísica Celular" },
+          { codigo: "20903006", nome: "Biofísica de Processos e Sistemas" },
+          { codigo: "20904002", nome: "Radiologia e Fotobiologia" },
+        ],
+      },
+      {
+        codigo: "21000000",
+        nome: "Farmacologia",
+        subareas: [
+          { codigo: "21001006", nome: "Farmacologia Geral" },
+          { codigo: "21002002", nome: "Farmacologia Autonômica" },
+          { codigo: "21003009", nome: "Neuropsicofarmacologia" },
+          { codigo: "21004005", nome: "Farmacologia Cardiorenal" },
+          { codigo: "21005001", nome: "Farmacologia Bioquímica e Molecular" },
+          { codigo: "21006008", nome: "Etnofarmacologia" },
+          { codigo: "21007004", nome: "Toxicologia" },
+          { codigo: "21008000", nome: "Farmacologia Clínica" },
+        ],
+      },
+      {
+        codigo: "21100004",
+        nome: "Imunologia",
+        subareas: [
+          { codigo: "21101000", nome: "Imunoquímica" },
+          { codigo: "21102007", nome: "Imunologia Celular" },
+          { codigo: "21103003", nome: "Imunogenética" },
+          { codigo: "21104000", nome: "Imunologia Aplicada" },
+        ],
+      },
+      {
+        codigo: "21200009",
+        nome: "Microbiologia",
+        subareas: [
+          { codigo: "21201005", nome: "Biologia e Fisiologia dos Microorganismos" },
+          { codigo: "21202001", nome: "Microbiologia Aplicada" },
+        ],
+      },
+      {
+        codigo: "21300003",
+        nome: "Parasitologia",
+        subareas: [
+          { codigo: "21301000", nome: "Protozoologia de Parasitos" },
+          { codigo: "21302006", nome: "Helmintologia de Parasitos" },
+          { codigo: "21303002", nome: "Entomologia e Malacologia de Parasitos e Vetores" },
+        ],
+      },
+      {
+        codigo: "21400008",
+        nome: "Biotecnologia",
+        subareas: [
+          { codigo: "21401004", nome: "Biotecnologia em Saúde Humana e Animal" },
+          { codigo: "21402000", nome: "Biotecnologia Industrial" },
+          { codigo: "21403007", nome: "Biotecnologia Vegetal" },
+          { codigo: "21404003", nome: "Biotecnologia Ambiental e Recursos Naturais" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "30000009",
+    nome: "Engenharias",
+    areas: [
+      {
+        codigo: "30100003",
+        nome: "Engenharia Civil",
+        subareas: [
+          { codigo: "30101000", nome: "Construção Civil" },
+          { codigo: "30102006", nome: "Estruturas" },
+          { codigo: "30103002", nome: "Geotécnica" },
+          { codigo: "30104009", nome: "Engenharia Hidráulica" },
+          { codigo: "30105005", nome: "Infra-Estrutura de Transportes" },
+        ],
+      },
+      {
+        codigo: "30200008",
+        nome: "Engenharia de Minas",
+        subareas: [
+          { codigo: "30201004", nome: "Pesquisa Mineral" },
+          { codigo: "30202000", nome: "Lavra" },
+          { codigo: "30203007", nome: "Tratamento de Minérios" },
+        ],
+      },
+      {
+        codigo: "30300002",
+        nome: "Engenharia de Materiais e Metalúrgica",
+        subareas: [
+          { codigo: "30301009", nome: "Instalações e Equipamentos Metalúrgicos" },
+          { codigo: "30302005", nome: "Metalurgia Extrativa" },
+          { codigo: "30303001", nome: "Metalurgia de Transformação" },
+          { codigo: "30304008", nome: "Metalurgia Física" },
+          { codigo: "30305004", nome: "Materiais Não-Metálicos" },
+        ],
+      },
+      {
+        codigo: "30400007",
+        nome: "Engenharia Elétrica",
+        subareas: [
+          { codigo: "30401003", nome: "Materiais Elétricos" },
+          { codigo: "30402000", nome: "Medidas Elétricas, Magnéticas e Eletrônicas; Instrumentação" },
+          { codigo: "30403006", nome: "Circuitos Elétricos, Magnéticos e Eletrônicos" },
+          { codigo: "30404002", nome: "Sistemas Elétricos de Potência" },
+          { codigo: "30405009", nome: "Eletrônica Industrial, Sistemas e Controles Eletrônicos" },
+          { codigo: "30406005", nome: "Telecomunicações" },
+        ],
+      },
+      {
+        codigo: "30500001",
+        nome: "Engenharia Mecânica",
+        subareas: [
+          { codigo: "30501008", nome: "Fenômenos de Transporte" },
+          { codigo: "30502004", nome: "Engenharia Térmica" },
+          { codigo: "30503000", nome: "Mecânica dos Sólidos" },
+          { codigo: "30504007", nome: "Projetos de Máquinas" },
+          { codigo: "30505003", nome: "Processos de Fabricação" },
+        ],
+      },
+      {
+        codigo: "30600006",
+        nome: "Engenharia Química",
+        subareas: [
+          { codigo: "30604001", nome: "Engenharia de Reações Químicas e Catálise" },
+          { codigo: "30605008", nome: "Engenharia de Separações e Termodinâmica" },
+          { codigo: "30606004", nome: "Fenômenos de Transporte, Materiais e Particulados" },
+          { codigo: "30607000", nome: "Modelagem, Simulação, Síntese, Otimização e Controle de Processos" },
+          { codigo: "30608007", nome: "Processos Ambientais e Tecnologias Limpas" },
+          { codigo: "30609003", nome: "Processos Biotecnológicos e Alimentos" },
+        ],
+      },
+      {
+        codigo: "30700000",
+        nome: "Engenharia Sanitária",
+        subareas: [
+          { codigo: "30701007", nome: "Recursos Hídricos" },
+          { codigo: "30702003", nome: "Tratamento de Águas de Abastecimento e Residuárias" },
+          { codigo: "30703000", nome: "Saneamento Básico" },
+          { codigo: "30704006", nome: "Saneamento Ambiental" },
+        ],
+      },
+      {
+        codigo: "30800005",
+        nome: "Engenharia de Produção",
+        subareas: [
+          { codigo: "30801001", nome: "Gerência de Produção" },
+          { codigo: "30802008", nome: "Pesquisa Operacional" },
+          { codigo: "30803004", nome: "Engenharia do Produto" },
+          { codigo: "30804000", nome: "Engenharia Econômica" },
+        ],
+      },
+      {
+        codigo: "30900000",
+        nome: "Engenharia Nuclear",
+        subareas: [
+          { codigo: "30901006", nome: "Aplicações de Radioisótopos" },
+          { codigo: "30902002", nome: "Fusão Controlada" },
+          { codigo: "30903009", nome: "Combustível Nuclear" },
+          { codigo: "30904005", nome: "Tecnologia dos Reatores" },
+        ],
+      },
+      {
+        codigo: "31000002",
+        nome: "Engenharia de Transportes",
+        subareas: [
+          { codigo: "31001009", nome: "Planejamento de Transportes" },
+          { codigo: "31002005", nome: "Veículos e Equipamentos de Controle" },
+          { codigo: "31003001", nome: "Operações de Transportes" },
+        ],
+      },
+      {
+        codigo: "31100007",
+        nome: "Engenharia Naval e Oceânica",
+        subareas: [
+          { codigo: "31101003", nome: "Hidrodinâmica de Navios e Sistemas Oceânicos" },
+          { codigo: "31102000", nome: "Estruturas Navais e Oceânicas" },
+          { codigo: "31103006", nome: "Máquinas Marítimas" },
+          { codigo: "31104002", nome: "Projeto de Navios e de Sistemas Oceânicos" },
+          { codigo: "31105009", nome: "Tecnologia de Construção Naval e de Sistemas Oceânicos" },
+        ],
+      },
+      {
+        codigo: "31200001",
+        nome: "Engenharia Aeroespacial",
+        subareas: [
+          { codigo: "31201008", nome: "Aerodinâmica" },
+          { codigo: "31202004", nome: "Dinâmica de Voo" },
+          { codigo: "31203000", nome: "Estruturas Aeroespaciais" },
+          { codigo: "31204007", nome: "Materiais e Processos para Engenharia Aeronáutica e Aeroespacial" },
+          { codigo: "31205003", nome: "Propulsão Aeroespacial" },
+          { codigo: "31206000", nome: "Sistemas Aeroespaciais" },
+        ],
+      },
+      {
+        codigo: "31300006",
+        nome: "Engenharia Biomédica",
+        subareas: [
+          { codigo: "31301002", nome: "Bioengenharia" },
+          { codigo: "31302009", nome: "Engenharia Médica" },
+        ],
+      },
+      {
+        codigo: "31400000",
+        nome: "Engenharia de Energia",
+        subareas: [
+          { codigo: "31401007", nome: "Planejamento Energético" },
+          { codigo: "31402003", nome: "Fontes Renováveis de Energia" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "40000001",
+    nome: "Ciências da Saúde",
+    areas: [
+      {
+        codigo: "40100006",
+        nome: "Medicina",
+        subareas: [
+          { codigo: "40101002", nome: "Clínica Médica" },
+          { codigo: "40102009", nome: "Cirurgia" },
+          { codigo: "40103005", nome: "Saúde Materno-Infantil" },
+          { codigo: "40104001", nome: "Psiquiatria" },
+          { codigo: "40105008", nome: "Anatomia Patológica e Patologia Clínica" },
+          { codigo: "40106004", nome: "Radiologia Médica" },
+          { codigo: "40107000", nome: "Medicina Legal e Deontologia" },
+        ],
+      },
+      {
+        codigo: "40200000",
+        nome: "Odontologia",
+        subareas: [
+          { codigo: "40201007", nome: "Clínica Odontológica" },
+          { codigo: "40202003", nome: "Cirurgia Buco-Maxilo-Facial" },
+          { codigo: "40203000", nome: "Ortodontia" },
+          { codigo: "40204006", nome: "Odontopediatria" },
+          { codigo: "40205002", nome: "Periodontia" },
+          { codigo: "40206009", nome: "Endodontia" },
+          { codigo: "40207005", nome: "Radiologia Odontológica" },
+          { codigo: "40208001", nome: "Odontologia Social e Preventiva" },
+          { codigo: "40209008", nome: "Materiais Odontológicos" },
+        ],
+      },
+      {
+        codigo: "40300005",
+        nome: "Farmácia",
+        subareas: [
+          { codigo: "40301001", nome: "Farmacotécnica e tecnologia farmacêutica" },
+          { codigo: "40302008", nome: "Farmacognosia" },
+          { codigo: "40303004", nome: "Avaliação e analises toxicológicas" },
+          { codigo: "40304000", nome: "Garantia e controle de qualidade farmacêuticos" },
+          { codigo: "40306003", nome: "Fisiopatologia e diagnóstico laboratorial" },
+          { codigo: "40307000", nome: "Farmácia clínica, assistência e atenção farmacêuticas" },
+          { codigo: "40308006", nome: "Química Farmacêutica Medicinal" },
+        ],
+      },
+      {
+        codigo: "40400000",
+        nome: "Enfermagem",
+        subareas: [
+          { codigo: "40401006", nome: "Enfermagem em Saúde do Adulto e do Idoso" },
+          { codigo: "40402002", nome: "Enfermagem em Saúde da Mulher" },
+          { codigo: "40403009", nome: "Enfermagem em Saúde da Criança e do Adolescente" },
+          { codigo: "40404005", nome: "Enfermagem em Saúde Mental" },
+          { codigo: "40405001", nome: "Enfermagem em Doenças Emergentes, Reemergentes e Negligenciadas" },
+          { codigo: "40406008", nome: "Enfermagem em Saúde Coletiva" },
+          { codigo: "40407004", nome: "Enfermagem Fundamental" },
+          { codigo: "40408000", nome: "Enfermagem na Gestão e Gerenciamento" },
+        ],
+      },
+      {
+        codigo: "40500004",
+        nome: "Nutrição",
+        subareas: [
+          { codigo: "40505006", nome: "Alimentos e alimentação coletiva" },
+          { codigo: "40506002", nome: "Ciências humanas e sociais em alimentação e nutrição" },
+          { codigo: "40507009", nome: "Epidemiologia e políticas de alimentação e nutrição" },
+          { codigo: "40508005", nome: "Nutrição básica e experimental" },
+          { codigo: "40509001", nome: "Nutrição clínica" },
+        ],
+      },
+      {
+        codigo: "40600009",
+        nome: "Saúde Coletiva",
+        subareas: [
+          { codigo: "40601005", nome: "Epidemiologia" },
+          { codigo: "40604004", nome: "Ciências Sociais e Humanidades em Saúde" },
+          { codigo: "40605000", nome: "Política, Planejamento, Gestão e Avaliação" },
+        ],
+      },
+      {
+        codigo: "40700003",
+        nome: "Fonoaudiologia",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "40800008",
+        nome: "Fisioterapia e Terapia Ocupacional",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "40900002",
+        nome: "Educação Física",
+        subareas: [
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "50000004",
+    nome: "Ciências Agrárias",
+    areas: [
+      {
+        codigo: "50100009",
+        nome: "Agronomia",
+        subareas: [
+          { codigo: "50101005", nome: "Ciência do Solo" },
+          { codigo: "50102001", nome: "Fitossanidade" },
+          { codigo: "50103008", nome: "Fitotecnia" },
+          { codigo: "50104004", nome: "Floricultura, Parques e Jardins" },
+          { codigo: "50105000", nome: "Agrometeorologia" },
+          { codigo: "50106007", nome: "Extensão Rural" },
+        ],
+      },
+      {
+        codigo: "50200003",
+        nome: "Recursos Florestais e Engenharia Florestal",
+        subareas: [
+          { codigo: "50201000", nome: "Silvicultura" },
+          { codigo: "50202006", nome: "Manejo Florestal" },
+          { codigo: "50203002", nome: "Técnicas e Operações Florestais" },
+          { codigo: "50204009", nome: "Tecnologia e Utilização de Produtos Florestais" },
+          { codigo: "50205005", nome: "Conservação da Natureza" },
+          { codigo: "50206001", nome: "Energia de Biomassa Florestal" },
+        ],
+      },
+      {
+        codigo: "50300008",
+        nome: "Engenharia Agrícola",
+        subareas: [
+          { codigo: "50301004", nome: "Máquinas e Implementos Agrícolas" },
+          { codigo: "50302000", nome: "Engenharia de Água e Solo" },
+          { codigo: "50303007", nome: "Engenharia de Processamento de Produtos Agrícolas" },
+          { codigo: "50304003", nome: "Construções Rurais e Ambiência" },
+          { codigo: "50305000", nome: "Energização Rural" },
+        ],
+      },
+      {
+        codigo: "50400002",
+        nome: "Zootecnia",
+        subareas: [
+          { codigo: "50401009", nome: "Ecologia dos Animais Domésticos e Etologia" },
+          { codigo: "50402005", nome: "Genética e Melhoramento dos Animais Domésticos" },
+          { codigo: "50403001", nome: "Nutrição e Alimentação Animal" },
+          { codigo: "50404008", nome: "Pastagem e Forragicultura" },
+          { codigo: "50405004", nome: "Produção Animal" },
+        ],
+      },
+      {
+        codigo: "50500007",
+        nome: "Medicina Veterinária",
+        subareas: [
+          { codigo: "50501003", nome: "Clínica e Cirurgia Animal" },
+          { codigo: "50502000", nome: "Medicina Veterinária Preventiva" },
+          { codigo: "50503006", nome: "Patologia Animal" },
+          { codigo: "50504002", nome: "Reprodução Animal" },
+          { codigo: "50505009", nome: "Inspeção de Produtos de Origem Animal" },
+        ],
+      },
+      {
+        codigo: "50600001",
+        nome: "Recursos Pesqueiros e Engenharia de Pesca",
+        subareas: [
+          { codigo: "50601008", nome: "Recursos Pesqueiros Marinhos" },
+          { codigo: "50602004", nome: "Recursos Pesqueiros de Águas Interiores" },
+          { codigo: "50603000", nome: "Aqüicultura" },
+          { codigo: "50604007", nome: "Engenharia de Pesca" },
+        ],
+      },
+      {
+        codigo: "50700006",
+        nome: "Ciência e Tecnologia de Alimentos",
+        subareas: [
+          { codigo: "50701002", nome: "Ciência de Alimentos" },
+          { codigo: "50702009", nome: "Tecnologia de Alimentos" },
+          { codigo: "50703005", nome: "Engenharia de Alimentos" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "60000007",
+    nome: "Ciências Sociais Aplicadas",
+    areas: [
+      {
+        codigo: "60100001",
+        nome: "Direito",
+        subareas: [
+          { codigo: "60101008", nome: "Teoria do Direito" },
+          { codigo: "60102004", nome: "Direito Público" },
+          { codigo: "60103000", nome: "Direito Privado" },
+          { codigo: "60104007", nome: "Direitos Especiais" },
+        ],
+      },
+      {
+        codigo: "60200006",
+        nome: "Administração",
+        subareas: [
+          { codigo: "60201002", nome: "Administração de Empresas" },
+          { codigo: "60202009", nome: "Administração Pública" },
+          { codigo: "60203005", nome: "Administração de Setores Específicos" },
+          { codigo: "60204001", nome: "Ciências Contábeis" },
+        ],
+      },
+      {
+        codigo: "60300000",
+        nome: "Economia",
+        subareas: [
+          { codigo: "60301007", nome: "Teoria Econômica" },
+          { codigo: "60302003", nome: "Métodos Quantitativos em Economia" },
+          { codigo: "60303000", nome: "Economia Monetária e Fiscal" },
+          { codigo: "60304006", nome: "Crescimento, Flutuações e Planejamento Econômico" },
+          { codigo: "60305002", nome: "Economia Internacional" },
+          { codigo: "60306009", nome: "Economia dos Recursos Humanos" },
+          { codigo: "60307005", nome: "Economia Industrial" },
+          { codigo: "60308001", nome: "Economia do Bem-Estar Social" },
+          { codigo: "60309008", nome: "Economia Regional e Urbana" },
+          { codigo: "60310006", nome: "Economias Agrária e dos Recursos Naturais" },
+        ],
+      },
+      {
+        codigo: "60400005",
+        nome: "Arquitetura e Urbanismo",
+        subareas: [
+          { codigo: "60401001", nome: "Fundamentos de Arquitetura e Urbanismo" },
+          { codigo: "60402008", nome: "Projeto de Arquitetura e Urbanismo" },
+          { codigo: "60403004", nome: "Tecnologia de Arquitetura e Urbanismo" },
+          { codigo: "60404000", nome: "Paisagismo" },
+        ],
+      },
+      {
+        codigo: "60500000",
+        nome: "Planejamento Urbano e Regional",
+        subareas: [
+          { codigo: "60501006", nome: "Fundamentos do Planejamento Urbano e Regional" },
+          { codigo: "60502002", nome: "Métodos e Técnicas do Planejamento Urbano e Regional" },
+          { codigo: "60503009", nome: "Serviços Urbanos e Regionais" },
+        ],
+      },
+      {
+        codigo: "60600004",
+        nome: "Demografia",
+        subareas: [
+          { codigo: "60601000", nome: "Distribuição Espacial" },
+          { codigo: "60602007", nome: "Tendência Populacional" },
+          { codigo: "60603003", nome: "Componentes da Dinâmica Demográfica" },
+          { codigo: "60604000", nome: "Nupcialidade e Família" },
+          { codigo: "60605006", nome: "Demografia Histórica" },
+          { codigo: "60606002", nome: "Política Pública e População" },
+          { codigo: "60607009", nome: "Fontes de Dados Demográficos" },
+        ],
+      },
+      {
+        codigo: "60700009",
+        nome: "Ciência da Informação",
+        subareas: [
+          { codigo: "60701005", nome: "Teoria da Informação" },
+          { codigo: "60702001", nome: "Biblioteconomia" },
+          { codigo: "60703008", nome: "Arquivologia" },
+        ],
+      },
+      {
+        codigo: "60800003",
+        nome: "Museologia",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "60900008",
+        nome: "Comunicação",
+        subareas: [
+          { codigo: "60901004", nome: "Teoria da Comunicação" },
+          { codigo: "60902000", nome: "Jornalismo e Editoração" },
+          { codigo: "60903007", nome: "Rádio e Televisão" },
+          { codigo: "60904003", nome: "Relações Públicas e Propaganda" },
+          { codigo: "60905000", nome: "Comunicação Visual e Cinema" },
+        ],
+      },
+      {
+        codigo: "61000000",
+        nome: "Serviço Social",
+        subareas: [
+          { codigo: "61001007", nome: "Fundamentos do Serviço Social" },
+          { codigo: "61002003", nome: "Serviço Social Aplicado" },
+        ],
+      },
+      {
+        codigo: "61100005",
+        nome: "Economia Doméstica",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "61200000",
+        nome: "Desenho Industrial",
+        subareas: [
+          { codigo: "61201006", nome: "Programação Visual" },
+          { codigo: "61202002", nome: "Desenho de Produto" },
+        ],
+      },
+      {
+        codigo: "61300004",
+        nome: "Turismo",
+        subareas: [
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "70000000",
+    nome: "Ciências Humanas",
+    areas: [
+      {
+        codigo: "70100004",
+        nome: "Filosofia",
+        subareas: [
+          { codigo: "70101000", nome: "História da Filosofia" },
+          { codigo: "70102007", nome: "Metafísica" },
+          { codigo: "70103003", nome: "Lógica" },
+          { codigo: "70104000", nome: "Ética" },
+          { codigo: "70105006", nome: "Epistemologia" },
+          { codigo: "70106002", nome: "Filosofia Brasileira" },
+          { codigo: "70107009", nome: "Estética e Filosofia da Arte" },
+        ],
+      },
+      {
+        codigo: "70200009",
+        nome: "Sociologia",
+        subareas: [
+          { codigo: "70201005", nome: "Fundamentos da Sociologia" },
+          { codigo: "70202001", nome: "Sociologia do Conhecimento" },
+          { codigo: "70203008", nome: "Sociologia do Desenvolvimento" },
+          { codigo: "70204004", nome: "Sociologia Urbana" },
+          { codigo: "70205000", nome: "Sociologia Rural" },
+          { codigo: "70206007", nome: "Sociologia da Saúde" },
+          { codigo: "70207003", nome: "Outras Sociologias Específicas" },
+        ],
+      },
+      {
+        codigo: "70300003",
+        nome: "Antropologia",
+        subareas: [
+          { codigo: "70301000", nome: "Teoria Antropológica" },
+          { codigo: "70302006", nome: "Etnologia Indígena" },
+          { codigo: "70303002", nome: "Antropologia Urbana" },
+          { codigo: "70304009", nome: "Antropologia Rural" },
+          { codigo: "70305005", nome: "Antropologia das Populações Afro-Brasileiras" },
+        ],
+      },
+      {
+        codigo: "70400008",
+        nome: "Arqueologia",
+        subareas: [
+          { codigo: "70401004", nome: "Teoria e Método em Arqueologia" },
+          { codigo: "70402000", nome: "Arqueologia Pré-Histórica" },
+          { codigo: "70403007", nome: "Arqueologia Histórica" },
+        ],
+      },
+      {
+        codigo: "70500002",
+        nome: "História",
+        subareas: [
+          { codigo: "70501009", nome: "Teoria e Filosofia da História" },
+          { codigo: "70502005", nome: "História Antiga e Medieval" },
+          { codigo: "70503001", nome: "História Moderna e Contemporânea" },
+          { codigo: "70504008", nome: "História da América" },
+          { codigo: "70505004", nome: "História do Brasil" },
+          { codigo: "70506000", nome: "História das Ciências" },
+        ],
+      },
+      {
+        codigo: "70600007",
+        nome: "Geografia",
+        subareas: [
+          { codigo: "70601003", nome: "Geografia Humana" },
+          { codigo: "70602000", nome: "Geografia Regional" },
+        ],
+      },
+      {
+        codigo: "70700001",
+        nome: "Psicologia",
+        subareas: [
+          { codigo: "70701008", nome: "Fundamentos e Medidas da Psicologia" },
+          { codigo: "70702004", nome: "Psicologia Experimental" },
+          { codigo: "70703000", nome: "Psicologia Fisiológica" },
+          { codigo: "70704007", nome: "Psicologia Comparativa" },
+          { codigo: "70705003", nome: "Psicologia Social" },
+          { codigo: "70706000", nome: "Psicologia Cognitiva" },
+          { codigo: "70707006", nome: "Psicologia do Desenvolvimento Humano" },
+          { codigo: "70708002", nome: "Psicologia do Ensino e da Aprendizagem" },
+          { codigo: "70709009", nome: "Psicologia do Trabalho e Organizacional" },
+          { codigo: "70710007", nome: "Tratamento e Prevenção Psicológica" },
+        ],
+      },
+      {
+        codigo: "70800006",
+        nome: "Educação",
+        subareas: [
+          { codigo: "70801002", nome: "Fundamentos da Educação" },
+          { codigo: "70802009", nome: "Administração Educacional" },
+          { codigo: "70803005", nome: "Política, Planejamento e Avaliação Educacional" },
+          { codigo: "70804001", nome: "Ensino-Aprendizagem" },
+          { codigo: "70805008", nome: "Currículo" },
+          { codigo: "70806004", nome: "Orientação e Aconselhamento" },
+          { codigo: "70807000", nome: "Tópicos Específicos de Educação" },
+          { codigo: "70808007", nome: "Educação e Diversidade" },
+        ],
+      },
+      {
+        codigo: "70900000",
+        nome: "Ciência Política",
+        subareas: [
+          { codigo: "70901007", nome: "Teoria Política" },
+          { codigo: "70902003", nome: "Estado e Governo" },
+          { codigo: "70903000", nome: "Comportamento Político" },
+          { codigo: "70904006", nome: "Políticas Públicas" },
+          { codigo: "70905002", nome: "Política Internacional" },
+        ],
+      },
+      {
+        codigo: "71000003",
+        nome: "Teologia",
+        subareas: [
+          { codigo: "71001000", nome: "História das Teologias e Religiões" },
+          { codigo: "71004009", nome: "Teologia Prática" },
+          { codigo: "71005005", nome: "Teologia Fundamental Sistemática" },
+          { codigo: "71006001", nome: "Ciências da Religião Aplicada" },
+          { codigo: "71007008", nome: "Ciências da Linguagem Religiosa" },
+          { codigo: "71008004", nome: "Ciências Empíricas da Religião" },
+          { codigo: "71009000", nome: "Epistemologia das Ciências da Religião" },
+          { codigo: "71010009", nome: "Tradições e Escrituras Sagradas" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "80000002",
+    nome: "Linguística, Letras e Artes",
+    areas: [
+      {
+        codigo: "80100007",
+        nome: "Linguística",
+        subareas: [
+          { codigo: "80101003", nome: "Teoria e Análise Linguística" },
+          { codigo: "80102000", nome: "Filosofia da Linguagem" },
+          { codigo: "80103006", nome: "Linguística Histórica" },
+          { codigo: "80104002", nome: "Sociolinguística e Dialetologia" },
+          { codigo: "80105009", nome: "Psicolinguística" },
+          { codigo: "80106005", nome: "Linguística Aplicada" },
+        ],
+      },
+      {
+        codigo: "80200001",
+        nome: "Letras",
+        subareas: [
+          { codigo: "80201008", nome: "Língua Portuguesa" },
+          { codigo: "80202004", nome: "Línguas Estrangeiras Modernas" },
+          { codigo: "80203000", nome: "Línguas Clássicas" },
+          { codigo: "80204007", nome: "Línguas Indígenas" },
+          { codigo: "80205003", nome: "Teoria Literária" },
+          { codigo: "80206000", nome: "Literatura Brasileira" },
+          { codigo: "80207006", nome: "Outras Literaturas Vernáculas" },
+          { codigo: "80208002", nome: "Literaturas Estrangeiras Modernas" },
+          { codigo: "80209009", nome: "Literaturas Clássicas" },
+          { codigo: "80210007", nome: "Literatura Comparada" },
+        ],
+      },
+      {
+        codigo: "80300006",
+        nome: "Artes",
+        subareas: [
+          { codigo: "80301002", nome: "Fundamentos e Crítica das Artes" },
+          { codigo: "80302009", nome: "Artes Plásticas" },
+          { codigo: "80303005", nome: "Música" },
+          { codigo: "80304001", nome: "Dança" },
+          { codigo: "80305008", nome: "Teatro" },
+          { codigo: "80306004", nome: "Ópera" },
+          { codigo: "80307000", nome: "Fotografia" },
+          { codigo: "80308007", nome: "Cinema" },
+          { codigo: "80309003", nome: "Artes do Vídeo" },
+          { codigo: "80310001", nome: "Educação Artística" },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: "90000005",
+    nome: "Outra",
+    areas: [
+      {
+        codigo: "99900009",
+        nome: "Multidisciplinar",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "90200000",
+        nome: "Ensino",
+        subareas: [
+          { codigo: "90201000", nome: "Ensino de Ciências e Matemática" },
+        ],
+      },
+      {
+        codigo: "92300006",
+        nome: "Secretariado Executivo",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "92400000",
+        nome: "Defesa",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "92600000",
+        nome: "Bioética",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "92700004",
+        nome: "Ciências Ambientais",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "92800009",
+        nome: "Divulgação Científica",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "93200005",
+        nome: "Robótica, Mecatrônica e Automação",
+        subareas: [
+        ],
+      },
+      {
+        codigo: "93300000",
+        nome: "Microeletrônica",
+        subareas: [
+          { codigo: "93301006", nome: "Processos de Fabricação" },
+          { codigo: "93302002", nome: "Dispositivos" },
+          { codigo: "93303009", nome: "Teste e Tolerância a Falhas" },
+          { codigo: "93304005", nome: "Projeto" },
+          { codigo: "93305001", nome: "EDA" },
+        ],
+      },
+      {
+        codigo: "93400004",
+        nome: "Segurança Contra Incêndio",
+        subareas: [
+        ],
+      },
+    ],
+  },
 ]
 
-const tipoBolsaOptions = [
-  "PIBIC",
-  "PIBITI",
-  "PIVIC",
-  "PIBIC-AF",
-  "PIBIC-EM",
-  "Voluntário",
-  "Outro",
-]
+function formatCnpqOption(item: { codigo: string; nome: string }) {
+  return `${item.codigo} — ${item.nome}`
+}
 
-const direcionamentos = [
-  "Discente de graduação",
-  "Discente de ensino médio",
-  "Discente voluntário",
-  "Bolsista institucional",
-  "Outro",
-]
+const areaConhecimentoOptions = cnpqAreasConhecimento.map(formatCnpqOption)
+const grandeAreas = cnpqAreasConhecimento.map(formatCnpqOption)
 
-const cotas = ["1", "2", "3", "4", "5", "Mais de 5"]
+function getAreasByGrandeArea(grandeArea: string) {
+  const grandeAreaSelecionada = cnpqAreasConhecimento.find(
+    (item) => formatCnpqOption(item) === grandeArea
+  )
 
-const vinculacoesInstitucionais = [
-  "UFPB",
-  "CNPq",
-  "FAPESQ",
-  "CAPES",
-  "Instituição parceira",
-  "Outra",
-]
+  return grandeAreaSelecionada?.areas ?? []
+}
 
-const areaConhecimentoOptions = [
-  "Ciência da Computação",
-  "Engenharias",
-  "Saúde",
-  "Humanas",
-  "Linguística/Artes",
-  "Outra",
-]
+function getSubareasByArea(grandeArea: string, area: string) {
+  const areaSelecionada = getAreasByGrandeArea(grandeArea).find(
+    (item) => formatCnpqOption(item) === area
+  )
 
-const grandeAreas = [
-  "Ciências Exatas",
-  "Ciências Humanas",
-  "Saúde",
-  "Engenharias",
-  "Linguística, Letras e Artes",
-]
-
-const areas = [
-  "Visão Computacional",
-  "IA Aplicada",
-  "Processamento de Imagens",
-  "Sistemas Embarcados",
-  "Segurança",
-]
-
-const subareas = [
-  "Detecção",
-  "Segmentação",
-  "Classificação",
-  "Otimização",
-  "TinyML",
-]
+  return areaSelecionada?.subareas ?? []
+}
 
 const especialidades = [
   "Especialidade A",
@@ -253,10 +1145,6 @@ const especialidades = [
 ]
 
 const linhas = ["Linha 01", "Linha 02", "Linha 03"]
-
-// Por enquanto, o cadastro de projeto externo fica preservado no código,
-// mas indisponível para seleção no fluxo da tela.
-const EXTERNAL_PROJECTS_ENABLED = false
 
 const grupos = ["GP I", "GP II", "GP III", "Outro"]
 
@@ -286,10 +1174,121 @@ const definicoesPI = [
   "A definir",
 ]
 
+const memberRoles: MemberRole[] = [
+  "Coordenador",
+  "Coordenador Adjunto",
+  "Pesquisador",
+  "Colaborador",
+]
+
+const memberVinculos = [
+  "Docente UFPB",
+  "Técnico-administrativo UFPB",
+  "Discente UFPB",
+  "Pesquisador externo",
+  "Instituição parceira",
+  "Outro",
+]
+
+/* ================= ESTADO INICIAL ================= */
+
+const initialMember: ProjectMember = {
+  id: "",
+  nome: "",
+  papel: "",
+  vinculo: "",
+  email: "",
+  lattes: "",
+}
+
+const initialState: FormState = {
+  gerais: {
+    tipo: null,
+
+    titulo: "",
+    title: "",
+
+    palavrasChave: "",
+    keywords: "",
+
+    descricaoResumida: "",
+    abstract: "",
+
+    introducaoJustificativa: "",
+    objetivos: "",
+    metodologia: "",
+    referencias: "",
+
+    objetivosDS: [],
+    cronograma: [],
+    membros: [],
+
+    pdfComplementar: null,
+    comprovanteExterno: null,
+
+    editalPesquisa: "",
+    unidade: "",
+    centro: "",
+    periodoIni: "",
+    periodoFim: "",
+    email: "",
+    areaConhecimento: "",
+    grandeArea: "",
+    area: "",
+    subarea: "",
+    especialidade: "",
+    linhaPesquisa: "",
+  },
+
+  interno: {
+    vinculadoGrupo: "Não",
+    grupoPesquisa: "",
+    possuiProtocoloEtica: "Não",
+    comiteEticaNome: "",
+    protocoloEtica: "",
+  },
+
+  externo: {
+    categoriaProjeto: "",
+    subcategoriaNivelI: "",
+    subcategoriaNivelII: "",
+    definicaoPropriedadeIntelectual: "",
+    tratamentoProducao: "",
+  },
+}
+
 /* ================= UTIL/UI ================= */
 
 function cx(...arr: Array<string | false | null | undefined>) {
   return arr.filter(Boolean).join(" ")
+}
+
+function createId(prefix: string) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function getProjectDurationInMonths(periodoIni: string, periodoFim: string) {
+  if (!periodoIni || !periodoFim) return 12
+
+  const start = new Date(`${periodoIni}T00:00:00`)
+  const end = new Date(`${periodoFim}T00:00:00`)
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+    return 12
+  }
+
+  const months =
+    (end.getFullYear() - start.getFullYear()) * 12 +
+    (end.getMonth() - start.getMonth()) +
+    1
+
+  return Math.max(1, months)
+}
+
+function formatCronogramaDuration(mesInicio: number, mesFim: number) {
+  if (mesInicio === mesFim) return `Mês ${mesInicio}`
+
+  return `Mês ${mesInicio} ao mês ${mesFim}`
 }
 
 const inputClassName =
@@ -302,11 +1301,7 @@ const selectClassName =
   "w-full rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
 
 const textareaClassName =
-  "min-h-[120px] w-full resize-y rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm leading-6 text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
-
-function createWorkPlanId() {
-  return `plano-${Date.now()}-${Math.random().toString(16).slice(2)}`
-}
+  "min-h-[140px] w-full resize-y rounded-xl border border-neutral/30 bg-white px-3 py-2.5 text-sm leading-6 text-primary outline-none transition placeholder:text-neutral/70 focus:border-primary focus:ring-2 focus:ring-primary/10"
 
 function Card({
   title,
@@ -362,6 +1357,28 @@ function Field({
   )
 }
 
+function CharacterCounter({
+  value,
+  max,
+}: {
+  value: string
+  max: number
+}) {
+  const remaining = max - value.length
+  const closeToLimit = remaining <= Math.ceil(max * 0.1)
+
+  return (
+    <p
+      className={cx(
+        "text-right text-[11px]",
+        closeToLimit ? "text-amber-700" : "text-neutral"
+      )}
+    >
+      {value.length.toLocaleString("pt-BR")} / {max.toLocaleString("pt-BR")} caracteres
+    </p>
+  )
+}
+
 function StepPill({
   active,
   done,
@@ -387,6 +1404,33 @@ function StepPill({
     </div>
   )
 }
+
+function Info({
+  label,
+  value,
+  preWrap,
+}: {
+  label: string
+  value: string
+  preWrap?: boolean
+}) {
+  return (
+    <div>
+      <p className="text-[11px] font-bold uppercase text-neutral">{label}</p>
+
+      <p
+        className={cx(
+          "text-sm text-neutral",
+          preWrap && "whitespace-pre-wrap"
+        )}
+      >
+        {value || "—"}
+      </p>
+    </div>
+  )
+}
+
+/* ================= COMPONENTES DE SEÇÕES ================= */
 
 function OdsPicker({
   value,
@@ -465,99 +1509,63 @@ function OdsPicker({
   )
 }
 
-
-const cronogramaMeses = [
-  "Mês 1",
-  "Mês 2",
-  "Mês 3",
-  "Mês 4",
-  "Mês 5",
-  "Mês 6",
-  "Mês 7",
-  "Mês 8",
-  "Mês 9",
-  "Mês 10",
-  "Mês 11",
-  "Mês 12",
-]
-
-const modeloCronograma6Meses = [
-  "Mês 1 — Revisão bibliográfica e alinhamento metodológico",
-  "Mês 2 — Definição dos instrumentos, materiais ou procedimentos",
-  "Mês 3 — Coleta, organização ou preparação dos dados",
-  "Mês 4 — Execução dos experimentos, análises ou atividades principais",
-  "Mês 5 — Consolidação dos resultados e discussão parcial",
-  "Mês 6 — Elaboração do relatório, revisão final e entrega dos produtos",
-]
-
-const modeloCronograma12Meses = [
-  "Mês 1 — Revisão bibliográfica inicial e planejamento detalhado",
-  "Mês 2 — Aprofundamento teórico e definição dos procedimentos",
-  "Mês 3 — Preparação dos instrumentos, bases, materiais ou ambiente",
-  "Mês 4 — Coleta ou levantamento inicial de dados",
-  "Mês 5 — Organização, limpeza ou categorização dos dados",
-  "Mês 6 — Execução da primeira etapa de análise ou experimentação",
-  "Mês 7 — Execução da segunda etapa de análise ou experimentação",
-  "Mês 8 — Validação, comparação ou refinamento dos resultados",
-  "Mês 9 — Consolidação dos achados e discussão preliminar",
-  "Mês 10 — Escrita do relatório parcial/final e organização dos produtos",
-  "Mês 11 — Revisão, ajustes finais e preparação para apresentação",
-  "Mês 12 — Entrega final, socialização dos resultados e encerramento",
-]
-
-function splitCronograma(value: string) {
-  return value
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean)
-}
-
 function CronogramaPicker({
   value,
   onChange,
+  periodoIni,
+  periodoFim,
 }: {
-  value: string
-  onChange: (value: string) => void
+  value: CronogramaItem[]
+  onChange: (value: CronogramaItem[]) => void
+  periodoIni: string
+  periodoFim: string
 }) {
-  const [mes, setMes] = useState("")
   const [atividade, setAtividade] = useState("")
+  const [mesInicio, setMesInicio] = useState(1)
+  const [mesFim, setMesFim] = useState(1)
 
-  const linhas = useMemo(() => splitCronograma(value), [value])
-  const canAdd = Boolean(mes.trim() && atividade.trim())
+  const totalMeses = useMemo(
+    () => getProjectDurationInMonths(periodoIni, periodoFim),
+    [periodoIni, periodoFim]
+  )
+
+  const mesesDisponiveis = useMemo(
+    () => Array.from({ length: totalMeses }, (_, index) => index + 1),
+    [totalMeses]
+  )
+
+  const canAdd = Boolean(
+    atividade.trim() &&
+      mesInicio >= 1 &&
+      mesFim >= mesInicio &&
+      mesFim <= totalMeses
+  )
 
   function addLinha() {
     if (!canAdd) return
 
-    const next = [...linhas, `${mes} — ${atividade.trim()}`]
-    onChange(next.join("\n"))
-    setMes("")
+    onChange([
+      ...value,
+      {
+        id: createId("cronograma"),
+        atividade: atividade.trim(),
+        mesInicio,
+        mesFim,
+      },
+    ])
+
     setAtividade("")
+    setMesInicio(1)
+    setMesFim(1)
   }
 
-  function removeLinha(index: number) {
-    onChange(linhas.filter((_, itemIndex) => itemIndex !== index).join("\n"))
-  }
-
-  function applyModelo(modelo: string[]) {
-    onChange(modelo.join("\n"))
+  function removeLinha(id: string) {
+    onChange(value.filter((item) => item.id !== id))
   }
 
   return (
     <div className="rounded-2xl border border-neutral/20 bg-neutral/5 p-4">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[180px_1fr_auto]">
-        <select
-          value={mes}
-          onChange={(event) => setMes(event.target.value)}
-          className={selectClassName}
-        >
-          <option value="">Selecione o mês</option>
-          {cronogramaMeses.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_170px_170px_auto]">
         <input
           value={atividade}
           onChange={(event) => setAtividade(event.target.value)}
@@ -568,8 +1576,41 @@ function CronogramaPicker({
             }
           }}
           className={inputClassName}
-          placeholder="Descreva a atividade prevista para o período"
+          placeholder="Atividade"
         />
+
+        <select
+          value={mesInicio}
+          onChange={(event) => {
+            const nextMesInicio = Number(event.target.value)
+            setMesInicio(nextMesInicio)
+
+            if (mesFim < nextMesInicio) {
+              setMesFim(nextMesInicio)
+            }
+          }}
+          className={selectClassName}
+        >
+          {mesesDisponiveis.map((item) => (
+            <option key={item} value={item}>
+              Início: mês {item}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={mesFim}
+          onChange={(event) => setMesFim(Number(event.target.value))}
+          className={selectClassName}
+        >
+          {mesesDisponiveis
+            .filter((item) => item >= mesInicio)
+            .map((item) => (
+              <option key={item} value={item}>
+                Fim: mês {item}
+              </option>
+            ))}
+        </select>
 
         <button
           type="button"
@@ -587,32 +1628,19 @@ function CronogramaPicker({
         </button>
       </div>
 
+      <p className="mt-2 text-[11px] text-neutral">
+        A duração deve ficar entre o mês 1 e o mês {totalMeses}, conforme o
+        período informado para o projeto.
+      </p>
+
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => applyModelo(modeloCronograma6Meses)}
-          className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:border-primary/30"
-        >
-          <CalendarDays size={14} />
-          Usar modelo 6 meses
-        </button>
-
-        <button
-          type="button"
-          onClick={() => applyModelo(modeloCronograma12Meses)}
-          className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:border-primary/30"
-        >
-          <CalendarDays size={14} />
-          Usar modelo 12 meses
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onChange("")}
-          disabled={linhas.length === 0}
+          onClick={() => onChange([])}
+          disabled={value.length === 0}
           className={cx(
             "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
-            linhas.length === 0
+            value.length === 0
               ? "cursor-not-allowed border-neutral/20 bg-neutral/5 text-neutral"
               : "border-neutral/20 bg-white text-primary hover:border-primary/30"
           )}
@@ -623,27 +1651,35 @@ function CronogramaPicker({
       </div>
 
       <div className="mt-4 space-y-2">
-        {linhas.length === 0 ? (
+        {value.length === 0 ? (
           <div className="rounded-xl border border-dashed border-neutral/30 bg-white p-4 text-center">
             <p className="text-sm font-semibold text-primary">
               Nenhuma atividade adicionada ao cronograma.
             </p>
 
             <p className="mt-1 text-xs text-neutral">
-              Selecione um mês, descreva a atividade e clique em adicionar.
+              Informe a atividade, selecione a duração e clique em adicionar.
             </p>
           </div>
         ) : (
-          linhas.map((linha, index) => (
+          value.map((item) => (
             <div
-              key={`${linha}-${index}`}
+              key={item.id}
               className="flex flex-col gap-3 rounded-xl border border-neutral/20 bg-white p-3 md:flex-row md:items-center md:justify-between"
             >
-              <p className="text-sm leading-6 text-neutral">{linha}</p>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-neutral">
+                  {formatCronogramaDuration(item.mesInicio, item.mesFim)}
+                </p>
+
+                <p className="mt-1 text-sm leading-6 text-primary">
+                  {item.atividade}
+                </p>
+              </div>
 
               <button
                 type="button"
-                onClick={() => removeLinha(index)}
+                onClick={() => removeLinha(item.id)}
                 className="inline-flex w-fit items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100"
               >
                 <Trash2 size={14} />
@@ -657,36 +1693,101 @@ function CronogramaPicker({
   )
 }
 
+function FileInputBox({
+  label,
+  hint,
+  file,
+  onChange,
+  required,
+  disabled,
+}: {
+  label: string
+  hint?: string
+  file: File | null
+  onChange: (file: File | null) => void
+  required?: boolean
+  disabled?: boolean
+}) {
+  return (
+    <Field label={label} hint={hint} required={required}>
+      <label
+        className={cx(
+          "flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center transition",
+          disabled
+            ? "cursor-not-allowed border-neutral/20 bg-neutral/5 text-neutral"
+            : "border-neutral/30 bg-white text-primary hover:border-primary/40 hover:bg-primary/5"
+        )}
+      >
+        <input
+          type="file"
+          accept="application/pdf,.pdf"
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.files?.[0] ?? null)}
+          className="hidden"
+        />
+
+        <FileUp size={28} />
+
+        <p className="mt-3 text-sm font-semibold">
+          {file ? file.name : "Selecionar arquivo PDF"}
+        </p>
+
+        <p className="mt-1 text-xs text-neutral">
+          {disabled ? "Campo indisponível no fluxo atual." : "Formato aceito: PDF."}
+        </p>
+      </label>
+
+      {file && !disabled && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="inline-flex w-fit items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+        >
+          <Trash2 size={14} />
+          Remover arquivo
+        </button>
+      )}
+    </Field>
+  )
+}
 
 /* ================= PÁGINA ================= */
 
-export default function ProjectCreateWizard() {
+export default function CoordinatorProjectForm() {
   const [step, setStep] = useState<Step>(1)
   const [saving, setSaving] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [form, setForm] = useState<FormState>(initialState)
-  const [workPlanDraft, setWorkPlanDraft] = useState<WorkPlan>({
-    ...emptyWorkPlan,
-    id: createWorkPlanId(),
+  const [memberDraft, setMemberDraft] = useState<ProjectMember>({
+    ...initialMember,
+    id: createId("membro"),
   })
 
   const canGoStep2 =
-    form.tipo === "interno" ||
-    (EXTERNAL_PROJECTS_ENABLED && form.tipo === "externo")
+    form.gerais.tipo === "interno" ||
+    (EXTERNAL_PROJECTS_ENABLED && form.gerais.tipo === "externo")
 
   const canGoStep3 = useMemo(() => {
     const g = form.gerais
 
     return Boolean(
       canGoStep2 &&
+        g.editalPesquisa.trim() &&
         g.titulo.trim() &&
-        g.unidade.trim() &&
+        g.title.trim() &&
+        g.palavrasChave.trim() &&
+        g.keywords.trim() &&
+        g.descricaoResumida.trim() &&
+        g.abstract.trim() &&
+        g.introducaoJustificativa.trim() &&
+        g.objetivos.trim() &&
+        g.metodologia.trim() &&
+        g.referencias.trim() &&
+        g.email.trim() &&
         g.centro.trim() &&
+        g.unidade.trim() &&
         g.periodoIni &&
         g.periodoFim &&
-        g.editalPesquisa.trim() &&
-        g.email.trim() &&
-        g.palavrasChave.trim() &&
         g.grandeArea.trim() &&
         g.area.trim() &&
         g.especialidade.trim() &&
@@ -697,20 +1798,40 @@ export default function ProjectCreateWizard() {
   const canGoStep4 = useMemo(() => {
     if (!canGoStep3) return false
 
-    if (form.tipo === "interno") {
+    return Boolean(
+      form.gerais.objetivosDS.length > 0 &&
+        form.gerais.cronograma.length > 0
+    )
+  }, [form, canGoStep3])
+
+  const canGoStep5 = useMemo(() => {
+    if (!canGoStep4) return false
+
+    const hasMembers = form.gerais.membros.length > 0
+
+    if (form.gerais.tipo === "externo") {
+      return Boolean(hasMembers && form.gerais.comprovanteExterno)
+    }
+
+    return hasMembers
+  }, [form, canGoStep4])
+
+  const canGoStep6 = useMemo(() => {
+    if (!canGoStep5) return false
+
+    if (form.gerais.tipo === "interno") {
       const i = form.interno
 
       if (!i.grupoPesquisa.trim()) return false
 
       if (i.possuiProtocoloEtica === "Sim") {
-        if (!i.comiteEticaNome.trim()) return false
-        if (!i.protocoloEtica.trim()) return false
+        return Boolean(i.comiteEticaNome.trim() && i.protocoloEtica.trim())
       }
 
       return true
     }
 
-    if (EXTERNAL_PROJECTS_ENABLED && form.tipo === "externo") {
+    if (EXTERNAL_PROJECTS_ENABLED && form.gerais.tipo === "externo") {
       const e = form.externo
 
       return Boolean(
@@ -722,35 +1843,34 @@ export default function ProjectCreateWizard() {
     }
 
     return false
-  }, [form, canGoStep3])
+  }, [form, canGoStep5])
 
-  const canAddWorkPlan = useMemo(() => {
+  const canAddMember = useMemo(() => {
     return Boolean(
-      workPlanDraft.tipoBolsa.trim() &&
-        workPlanDraft.direcionamento.trim() &&
-        workPlanDraft.periodoIni &&
-        workPlanDraft.periodoFim &&
-        workPlanDraft.cota.trim() &&
-        workPlanDraft.vinculacaoInstitucional.trim() &&
-        workPlanDraft.areaConhecimento.trim() &&
-        workPlanDraft.introducaoJustificativa.trim() &&
-        workPlanDraft.objetivos.trim() &&
-        workPlanDraft.metodologia.trim() &&
-        workPlanDraft.cronogramaAtividades.trim() &&
-        workPlanDraft.referencias.trim() &&
-        workPlanDraft.resumoPlano.trim() &&
-        workPlanDraft.palavrasChave.trim()
+      memberDraft.nome.trim() &&
+        memberDraft.papel.trim() &&
+        memberDraft.vinculo.trim() &&
+        memberDraft.email.trim()
     )
-  }, [workPlanDraft])
+  }, [memberDraft])
 
-  const canGoStep5 = canGoStep4 && form.planosTrabalho.length > 0
+  const areasFiltradas = useMemo(
+    () => getAreasByGrandeArea(form.gerais.grandeArea),
+    [form.gerais.grandeArea]
+  )
+
+  const subareasFiltradas = useMemo(
+    () => getSubareasByArea(form.gerais.grandeArea, form.gerais.area),
+    [form.gerais.grandeArea, form.gerais.area]
+  )
 
   function stepDone(currentStep: Step) {
     if (currentStep === 1) return canGoStep2
     if (currentStep === 2) return canGoStep3
     if (currentStep === 3) return canGoStep4
     if (currentStep === 4) return canGoStep5
-    if (currentStep === 5) return submitted
+    if (currentStep === 5) return canGoStep6
+    if (currentStep === 6) return submitted
 
     return false
   }
@@ -760,57 +1880,54 @@ export default function ProjectCreateWizard() {
     if (step === 2 && !canGoStep3) return
     if (step === 3 && !canGoStep4) return
     if (step === 4 && !canGoStep5) return
+    if (step === 5 && !canGoStep6) return
 
-    setStep((current) => (current < 5 ? ((current + 1) as Step) : current))
+    setStep((current) => (current < 6 ? ((current + 1) as Step) : current))
   }
 
   function goBack() {
     setStep((current) => (current > 1 ? ((current - 1) as Step) : current))
   }
 
-  function resetWorkPlanDraft() {
-    setWorkPlanDraft({
-      ...emptyWorkPlan,
-      id: createWorkPlanId(),
+  function resetMemberDraft() {
+    setMemberDraft({
+      ...initialMember,
+      id: createId("membro"),
     })
   }
 
-  function addWorkPlan() {
-    if (!canAddWorkPlan) return
+  function addMember() {
+    if (!canAddMember) return
 
     setForm((current) => ({
       ...current,
-      planosTrabalho: [
-        ...current.planosTrabalho,
-        {
-          ...workPlanDraft,
-          id: workPlanDraft.id || createWorkPlanId(),
-        },
-      ],
+      gerais: {
+        ...current.gerais,
+        membros: [
+          ...current.gerais.membros,
+          {
+            ...memberDraft,
+            id: memberDraft.id || createId("membro"),
+          },
+        ],
+      },
     }))
 
-    resetWorkPlanDraft()
+    resetMemberDraft()
   }
 
-  function removeWorkPlan(id: string) {
+  function removeMember(id: string) {
     setForm((current) => ({
       ...current,
-      planosTrabalho: current.planosTrabalho.filter((plano) => plano.id !== id),
+      gerais: {
+        ...current.gerais,
+        membros: current.gerais.membros.filter((membro) => membro.id !== id),
+      },
     }))
-  }
-
-  function duplicateLastWorkPlan() {
-    const lastPlan = form.planosTrabalho[form.planosTrabalho.length - 1]
-    if (!lastPlan) return
-
-    setWorkPlanDraft({
-      ...lastPlan,
-      id: createWorkPlanId(),
-    })
   }
 
   async function submit() {
-    if (!canGoStep5) return
+    if (!canGoStep6) return
 
     setSaving(true)
 
@@ -824,14 +1941,10 @@ export default function ProjectCreateWizard() {
 
   return (
     <main className="min-h-screen bg-[#F3F4F6]">
-      <Helmet>
-        <title>Cadastrar Projeto • PROPESQ</title>
-      </Helmet>
-
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <div className="flex items-center justify-between">
           <Link
-            to="/adm/admprojetos"
+            to="/coordenador/projetos"
             className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2.5 text-sm font-medium text-neutral transition hover:border-primary/30 hover:text-primary"
           >
             <ArrowLeft size={16} />
@@ -851,30 +1964,35 @@ export default function ProjectCreateWizard() {
             </h1>
 
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral">
-              Ao submeter, o projeto entra com status inicial{" "}
-              <span className="font-semibold text-primary">SUBMETIDO</span>
+              Preencha os campos do Anexo II, vincule ODS, cronograma, membros
+              e documentos complementares. Ao submeter, o projeto entra com status inicial{" "}
+              <span className="font-semibold text-primary">SUBMETIDO</span>.
             </p>
           </div>
 
-          <div className="hidden flex-wrap items-center gap-2 md:flex ">
+          <div className="hidden max-w-xl flex-wrap items-center justify-end gap-2 md:flex">
             <StepPill active={step === 1} done={stepDone(1)}>
               1. Tipo
             </StepPill>
 
             <StepPill active={step === 2} done={stepDone(2)}>
-              2. Dados gerais
+              2. Anexo II
             </StepPill>
 
             <StepPill active={step === 3} done={stepDone(3)}>
-              3. Específico
+              3. ODS e cronograma
             </StepPill>
 
             <StepPill active={step === 4} done={stepDone(4)}>
-              4. Plano de trabalho
+              4. Membros e uploads
             </StepPill>
 
             <StepPill active={step === 5} done={stepDone(5)}>
-              5. Revisão
+              5. Específico
+            </StepPill>
+
+            <StepPill active={step === 6} done={stepDone(6)}>
+              6. Revisão
             </StepPill>
           </div>
         </section>
@@ -893,6 +2011,7 @@ export default function ProjectCreateWizard() {
                   <p className="text-sm font-bold">
                     Cadastro de projeto externo temporariamente desativado
                   </p>
+
                 </div>
               </div>
             )}
@@ -900,17 +2019,27 @@ export default function ProjectCreateWizard() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <button
                 type="button"
-                onClick={() => setForm((current) => ({ ...current, tipo: "interno" }))}
+                onClick={() =>
+                  setForm((current) => ({
+                    ...current,
+                    gerais: {
+                      ...current.gerais,
+                      tipo: "interno",
+                    },
+                  }))
+                }
                 className={cx(
                   "rounded-2xl border p-6 text-left transition",
-                  form.tipo === "interno"
+                  form.gerais.tipo === "interno"
                     ? "border-primary bg-primary/5"
                     : "border-neutral/20 hover:bg-neutral/5"
                 )}
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-bold text-primary">Interno</h3>
-                  {form.tipo === "interno" && <Check size={18} className="text-primary" />}
+                  {form.gerais.tipo === "interno" && (
+                    <Check size={18} className="text-primary" />
+                  )}
                 </div>
 
                 <p className="mt-2 text-sm leading-6 text-neutral">
@@ -925,13 +2054,19 @@ export default function ProjectCreateWizard() {
                 onClick={() => {
                   if (!EXTERNAL_PROJECTS_ENABLED) return
 
-                  setForm((current) => ({ ...current, tipo: "externo" }))
+                  setForm((current) => ({
+                    ...current,
+                    gerais: {
+                      ...current.gerais,
+                      tipo: "externo",
+                    },
+                  }))
                 }}
                 className={cx(
                   "rounded-2xl border p-6 text-left transition",
                   !EXTERNAL_PROJECTS_ENABLED
                     ? "cursor-not-allowed border-neutral/20 bg-neutral/5 opacity-70"
-                    : form.tipo === "externo"
+                    : form.gerais.tipo === "externo"
                       ? "border-primary bg-primary/5"
                       : "border-neutral/20 hover:bg-neutral/5"
                 )}
@@ -946,7 +2081,7 @@ export default function ProjectCreateWizard() {
                     Externo
                   </h3>
 
-                  {EXTERNAL_PROJECTS_ENABLED && form.tipo === "externo" ? (
+                  {EXTERNAL_PROJECTS_ENABLED && form.gerais.tipo === "externo" ? (
                     <Check size={18} className="text-primary" />
                   ) : (
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral/20 bg-white px-2.5 py-1 text-[11px] font-bold text-neutral">
@@ -957,19 +2092,19 @@ export default function ProjectCreateWizard() {
                 </div>
 
                 <p className="mt-2 text-sm leading-6 text-neutral">
-                  Projeto com campos complementares, como propriedade intelectual,
-                  categoria e tratamento da produção.
+                  Projeto com campos complementares e upload de comprovante de
+                  aprovação ou financiamento.
                 </p>
               </button>
             </div>
 
             <div className="mt-6 flex items-center justify-between gap-4">
               <p className="text-xs text-neutral">
-                {form.tipo ? (
+                {form.gerais.tipo ? (
                   <>
                     Tipo selecionado:{" "}
                     <span className="font-semibold text-primary">
-                      {form.tipo === "interno" ? "Interno" : "Externo"}
+                      {form.gerais.tipo === "interno" ? "Interno" : "Externo"}
                     </span>
                   </>
                 ) : (
@@ -997,14 +2132,20 @@ export default function ProjectCreateWizard() {
 
         {step === 2 && (
           <Card
-            title="Passo 2 — Dados gerais"
-            subtitle="Campos comuns aos dois tipos de projeto."
+            title="Passo 2 — Campos do Anexo II"
+            subtitle="Preencha os campos principais do projeto em português e inglês."
             icon={<FileText size={18} className="text-primary" />}
           >
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <Field label="Tipo do projeto" required>
                 <input
-                  value={form.tipo ? (form.tipo === "interno" ? "Interno" : "Externo") : ""}
+                  value={
+                    form.gerais.tipo
+                      ? form.gerais.tipo === "interno"
+                        ? "Interno"
+                        : "Externo"
+                      : ""
+                  }
                   readOnly
                   className={disabledInputClassName}
                   placeholder="Selecione no passo 1"
@@ -1034,9 +2175,10 @@ export default function ProjectCreateWizard() {
                 </select>
               </Field>
 
-              <Field label="Título" required>
+              <Field label="Título" required hint="">
                 <input
                   value={form.gerais.titulo}
+                  maxLength={TITLE_MAX}
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
@@ -1047,11 +2189,225 @@ export default function ProjectCreateWizard() {
                     }))
                   }
                   className={inputClassName}
-                  placeholder="Título do projeto"
+                  placeholder="Título do projeto em português"
+                />
+
+                <CharacterCounter value={form.gerais.titulo} max={TITLE_MAX} />
+              </Field>
+
+              <Field label="Title" required hint="">
+                <input
+                  value={form.gerais.title}
+                  maxLength={TITLE_MAX}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      gerais: {
+                        ...current.gerais,
+                        title: event.target.value,
+                      },
+                    }))
+                  }
+                  className={inputClassName}
+                  placeholder="Project title in English"
+                />
+
+                <CharacterCounter value={form.gerais.title} max={TITLE_MAX} />
+              </Field>
+
+              <Field
+                label="Palavras-chave"
+                required
+                hint="Separe por vírgula ou ponto e vírgula."
+              >
+                <input
+                  value={form.gerais.palavrasChave}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      gerais: {
+                        ...current.gerais,
+                        palavrasChave: event.target.value,
+                      },
+                    }))
+                  }
+                  className={inputClassName}
+                  placeholder="ex.: acessibilidade, IA, educação"
                 />
               </Field>
 
-              <Field label="E-mail" required hint="E-mail de contato para o projeto.">
+              <Field
+                label="Keywords"
+                required
+                hint="Separe por vírgula ou ponto e vírgula."
+              >
+                <input
+                  value={form.gerais.keywords}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      gerais: {
+                        ...current.gerais,
+                        keywords: event.target.value,
+                      },
+                    }))
+                  }
+                  className={inputClassName}
+                  placeholder="ex.: accessibility, AI, education"
+                />
+              </Field>
+
+              <div className="md:col-span-2">
+                <Field label="Descrição resumida" required>
+                  <textarea
+                    value={form.gerais.descricaoResumida}
+                    maxLength={LONG_TEXT_MAX}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        gerais: {
+                          ...current.gerais,
+                          descricaoResumida: event.target.value,
+                        },
+                      }))
+                    }
+                    className={textareaClassName}
+                    placeholder="Apresente uma descrição resumida do projeto."
+                  />
+
+                  <CharacterCounter
+                    value={form.gerais.descricaoResumida}
+                    max={LONG_TEXT_MAX}
+                  />
+                </Field>
+              </div>
+
+              <div className="md:col-span-2">
+                <Field label="Abstract" required>
+                  <textarea
+                    value={form.gerais.abstract}
+                    maxLength={LONG_TEXT_MAX}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        gerais: {
+                          ...current.gerais,
+                          abstract: event.target.value,
+                        },
+                      }))
+                    }
+                    className={textareaClassName}
+                    placeholder="Provide the project abstract in English."
+                  />
+
+                  <CharacterCounter
+                    value={form.gerais.abstract}
+                    max={LONG_TEXT_MAX}
+                  />
+                </Field>
+              </div>
+
+              <div className="md:col-span-2">
+                <Field label="Introdução / justificativa" required>
+                  <textarea
+                    value={form.gerais.introducaoJustificativa}
+                    maxLength={LONG_TEXT_MAX}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        gerais: {
+                          ...current.gerais,
+                          introducaoJustificativa: event.target.value,
+                        },
+                      }))
+                    }
+                    className={textareaClassName}
+                    placeholder="Apresente o contexto, problema, relevância e justificativa do projeto."
+                  />
+
+                  <CharacterCounter
+                    value={form.gerais.introducaoJustificativa}
+                    max={LONG_TEXT_MAX}
+                  />
+                </Field>
+              </div>
+
+              <div className="md:col-span-2">
+                <Field label="Objetivos" required>
+                  <textarea
+                    value={form.gerais.objetivos}
+                    maxLength={LONG_TEXT_MAX}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        gerais: {
+                          ...current.gerais,
+                          objetivos: event.target.value,
+                        },
+                      }))
+                    }
+                    className={textareaClassName}
+                    placeholder="Informe os objetivos gerais e específicos do projeto."
+                  />
+
+                  <CharacterCounter
+                    value={form.gerais.objetivos}
+                    max={LONG_TEXT_MAX}
+                  />
+                </Field>
+              </div>
+
+              <div className="md:col-span-2">
+                <Field label="Metodologia" required>
+                  <textarea
+                    value={form.gerais.metodologia}
+                    maxLength={LONG_TEXT_MAX}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        gerais: {
+                          ...current.gerais,
+                          metodologia: event.target.value,
+                        },
+                      }))
+                    }
+                    className={textareaClassName}
+                    placeholder="Descreva procedimentos, métodos, etapas, instrumentos e formas de análise."
+                  />
+
+                  <CharacterCounter
+                    value={form.gerais.metodologia}
+                    max={LONG_TEXT_MAX}
+                  />
+                </Field>
+              </div>
+
+              <div className="md:col-span-2">
+                <Field label="Referências" required>
+                  <textarea
+                    value={form.gerais.referencias}
+                    maxLength={LONG_TEXT_MAX}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        gerais: {
+                          ...current.gerais,
+                          referencias: event.target.value,
+                        },
+                      }))
+                    }
+                    className={textareaClassName}
+                    placeholder="Informe as referências bibliográficas do projeto."
+                  />
+
+                  <CharacterCounter
+                    value={form.gerais.referencias}
+                    max={LONG_TEXT_MAX}
+                  />
+                </Field>
+              </div>
+
+              <Field label="E-mail de contato" required>
                 <input
                   type="email"
                   value={form.gerais.email}
@@ -1067,6 +2423,44 @@ export default function ProjectCreateWizard() {
                   className={inputClassName}
                   placeholder="ex.: coordenador@ufpb.br"
                 />
+              </Field>
+
+              <Field
+                label="Período do projeto"
+                required
+                hint="Defina início e fim do projeto."
+              >
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <input
+                    type="date"
+                    value={form.gerais.periodoIni}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        gerais: {
+                          ...current.gerais,
+                          periodoIni: event.target.value,
+                        },
+                      }))
+                    }
+                    className={inputClassName}
+                  />
+
+                  <input
+                    type="date"
+                    value={form.gerais.periodoFim}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        gerais: {
+                          ...current.gerais,
+                          periodoFim: event.target.value,
+                        },
+                      }))
+                    }
+                    className={inputClassName}
+                  />
+                </div>
               </Field>
 
               <Field label="Centro" required>
@@ -1115,88 +2509,6 @@ export default function ProjectCreateWizard() {
                 </select>
               </Field>
 
-              <Field
-                label="Período do projeto"
-                required
-                hint="Defina início e fim do projeto."
-              >
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <input
-                    type="date"
-                    value={form.gerais.periodoIni}
-                    onChange={(event) =>
-                      setForm((current) => ({
-                        ...current,
-                        gerais: {
-                          ...current.gerais,
-                          periodoIni: event.target.value,
-                        },
-                      }))
-                    }
-                    className={inputClassName}
-                  />
-
-                  <input
-                    type="date"
-                    value={form.gerais.periodoFim}
-                    onChange={(event) =>
-                      setForm((current) => ({
-                        ...current,
-                        gerais: {
-                          ...current.gerais,
-                          periodoFim: event.target.value,
-                        },
-                      }))
-                    }
-                    className={inputClassName}
-                  />
-                </div>
-              </Field>
-
-              <Field label="Termo" hint="Caso aplicável ao edital/projeto.">
-                <select
-                  value={form.gerais.termo}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      gerais: {
-                        ...current.gerais,
-                        termo: event.target.value,
-                      },
-                    }))
-                  }
-                  className={selectClassName}
-                >
-                  <option value="">Selecione</option>
-                  {termos.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-
-              <Field
-                label="Palavras-chave"
-                required
-                hint="Separe por vírgula ou ponto e vírgula."
-              >
-                <input
-                  value={form.gerais.palavrasChave}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      gerais: {
-                        ...current.gerais,
-                        palavrasChave: event.target.value,
-                      },
-                    }))
-                  }
-                  className={inputClassName}
-                  placeholder="ex.: visão computacional, TinyML, sustentabilidade"
-                />
-              </Field>
-
               <Field label="Área de conhecimento">
                 <select
                   value={form.gerais.areaConhecimento}
@@ -1229,6 +2541,9 @@ export default function ProjectCreateWizard() {
                       gerais: {
                         ...current.gerais,
                         grandeArea: event.target.value,
+                        area: "",
+                        subarea: "",
+                        especialidade: "",
                       },
                     }))
                   }
@@ -1252,17 +2567,28 @@ export default function ProjectCreateWizard() {
                       gerais: {
                         ...current.gerais,
                         area: event.target.value,
+                        subarea: "",
+                        especialidade: "",
                       },
                     }))
                   }
+                  disabled={!form.gerais.grandeArea}
                   className={selectClassName}
                 >
-                  <option value="">Selecione</option>
-                  {areas.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
+                  <option value="">
+                    {form.gerais.grandeArea
+                      ? "Selecione"
+                      : "Selecione primeiro a grande área"}
+                  </option>
+                  {areasFiltradas.map((item) => {
+                    const label = formatCnpqOption(item)
+
+                    return (
+                      <option key={item.codigo} value={label}>
+                        {label}
+                      </option>
+                    )
+                  })}
                 </select>
               </Field>
 
@@ -1275,17 +2601,27 @@ export default function ProjectCreateWizard() {
                       gerais: {
                         ...current.gerais,
                         subarea: event.target.value,
+                        especialidade: "",
                       },
                     }))
                   }
+                  disabled={!form.gerais.area}
                   className={selectClassName}
                 >
-                  <option value="">Selecione</option>
-                  {subareas.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
+                  <option value="">
+                    {form.gerais.area
+                      ? "Selecione"
+                      : "Selecione primeiro a área"}
+                  </option>
+                  {subareasFiltradas.map((item) => {
+                    const label = formatCnpqOption(item)
+
+                    return (
+                      <option key={item.codigo} value={label}>
+                        {label}
+                      </option>
+                    )
+                  })}
                 </select>
               </Field>
 
@@ -1336,23 +2672,6 @@ export default function ProjectCreateWizard() {
               </Field>
             </div>
 
-            <div className="mt-6">
-              <Field label="Objetivos do Desenvolvimento Sustentável">
-                <OdsPicker
-                  value={form.gerais.objetivosDS}
-                  onChange={(objetivosDS) =>
-                    setForm((current) => ({
-                      ...current,
-                      gerais: {
-                        ...current.gerais,
-                        objetivosDS,
-                      },
-                    }))
-                  }
-                />
-              </Field>
-            </div>
-
             <div className="mt-8 flex justify-between">
               <button
                 type="button"
@@ -1382,15 +2701,368 @@ export default function ProjectCreateWizard() {
 
         {step === 3 && (
           <Card
-            title="Passo 3 — Dados específicos"
+            title="Passo 3 — ODS e cronograma"
+            subtitle="Vincule pelo menos um ODS e cadastre o cronograma do projeto."
+            icon={<CalendarDays size={18} className="text-primary" />}
+          >
+            <div className="space-y-6">
+              <Field label="Objetivos do Desenvolvimento Sustentável" required>
+                <OdsPicker
+                  value={form.gerais.objetivosDS}
+                  onChange={(objetivosDS) =>
+                    setForm((current) => ({
+                      ...current,
+                      gerais: {
+                        ...current.gerais,
+                        objetivosDS,
+                      },
+                    }))
+                  }
+                />
+              </Field>
+
+              <Field
+                label="Cronograma"
+                required
+                hint="Informe a atividade e selecione a duração dentro do período do projeto."
+              >
+                <CronogramaPicker
+                  value={form.gerais.cronograma}
+                  periodoIni={form.gerais.periodoIni}
+                  periodoFim={form.gerais.periodoFim}
+                  onChange={(cronograma) =>
+                    setForm((current) => ({
+                      ...current,
+                      gerais: {
+                        ...current.gerais,
+                        cronograma,
+                      },
+                    }))
+                  }
+                />
+              </Field>
+            </div>
+
+            <div className="mt-8 flex justify-between">
+              <button
+                type="button"
+                onClick={goBack}
+                className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2 text-sm font-semibold text-neutral transition hover:border-primary/30 hover:text-primary"
+              >
+                Voltar
+              </button>
+
+              <button
+                type="button"
+                onClick={goNext}
+                disabled={!canGoStep4}
+                className={cx(
+                  "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
+                  canGoStep4
+                    ? "bg-primary text-white hover:bg-primary/90"
+                    : "cursor-not-allowed bg-neutral/10 text-neutral"
+                )}
+              >
+                Próximo
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </Card>
+        )}
+
+        {step === 4 && (
+          <Card
+            title="Passo 4 — Membros e uploads"
+            subtitle="Cadastre os membros do projeto e anexe os documentos complementares."
+            icon={<Users size={18} className="text-primary" />}
+          >
+            <div className="rounded-2xl border border-neutral/20 p-5">
+              <div className="flex flex-col gap-3 border-b border-neutral/20 pb-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-primary">
+                    Novo membro do projeto
+                  </h3>
+
+                  <p className="mt-1 text-xs text-neutral">
+                    Informe os dados principais do membro e clique em adicionar.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={resetMemberDraft}
+                  className="inline-flex w-fit items-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:border-primary/30"
+                >
+                  <RefreshCcw size={14} />
+                  Limpar
+                </button>
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+                <Field label="Nome" required>
+                  <input
+                    value={memberDraft.nome}
+                    onChange={(event) =>
+                      setMemberDraft((current) => ({
+                        ...current,
+                        nome: event.target.value,
+                      }))
+                    }
+                    className={inputClassName}
+                    placeholder="Nome completo"
+                  />
+                </Field>
+
+                <Field label="Papel no projeto" required>
+                  <select
+                    value={memberDraft.papel}
+                    onChange={(event) =>
+                      setMemberDraft((current) => ({
+                        ...current,
+                        papel: event.target.value as MemberRole | "",
+                      }))
+                    }
+                    className={selectClassName}
+                  >
+                    <option value="">Selecione</option>
+                    {memberRoles.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Vínculo" required>
+                  <select
+                    value={memberDraft.vinculo}
+                    onChange={(event) =>
+                      setMemberDraft((current) => ({
+                        ...current,
+                        vinculo: event.target.value,
+                      }))
+                    }
+                    className={selectClassName}
+                  >
+                    <option value="">Selecione</option>
+                    {memberVinculos.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="E-mail" required>
+                  <input
+                    type="email"
+                    value={memberDraft.email}
+                    onChange={(event) =>
+                      setMemberDraft((current) => ({
+                        ...current,
+                        email: event.target.value,
+                      }))
+                    }
+                    className={inputClassName}
+                    placeholder="ex.: membro@ufpb.br"
+                  />
+                </Field>
+
+                <div className="md:col-span-2">
+                  <Field label="Currículo Lattes">
+                    <input
+                      value={memberDraft.lattes}
+                      onChange={(event) =>
+                        setMemberDraft((current) => ({
+                          ...current,
+                          lattes: event.target.value,
+                        }))
+                      }
+                      className={inputClassName}
+                      placeholder="URL do currículo Lattes"
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={addMember}
+                  disabled={!canAddMember}
+                  className={cx(
+                    "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
+                    canAddMember
+                      ? "bg-primary text-white hover:bg-primary/90"
+                      : "cursor-not-allowed bg-neutral/10 text-neutral"
+                  )}
+                >
+                  <Plus size={16} />
+                  Adicionar membro
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-neutral/20 p-5">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-primary">
+                    Membros cadastrados
+                  </h3>
+
+                  <p className="mt-1 text-xs text-neutral">
+                    Total cadastrado:{" "}
+                    <span className="font-semibold text-primary">
+                      {form.gerais.membros.length}
+                    </span>
+                  </p>
+                </div>
+
+                <span
+                  className={cx(
+                    "inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold",
+                    form.gerais.membros.length > 0
+                      ? "border-green-200 bg-green-50 text-green-700"
+                      : "border-red-200 bg-red-50 text-red-700"
+                  )}
+                >
+                  {form.gerais.membros.length > 0
+                    ? "Regra atendida"
+                    : "Obrigatório adicionar 1 membro"}
+                </span>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {form.gerais.membros.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-neutral/30 bg-neutral/5 p-5 text-center">
+                    <p className="text-sm font-semibold text-primary">
+                      Nenhum membro cadastrado.
+                    </p>
+
+                    <p className="mt-1 text-xs text-neutral">
+                      Preencha o formulário acima e clique em adicionar.
+                    </p>
+                  </div>
+                ) : (
+                  form.gerais.membros.map((membro) => (
+                    <div
+                      key={membro.id}
+                      className="rounded-xl border border-neutral/20 bg-white p-4"
+                    >
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-primary">
+                            {membro.nome}
+                          </p>
+
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral">
+                            <span className="rounded-full bg-neutral/10 px-2 py-1">
+                              {membro.papel}
+                            </span>
+
+                            <span className="rounded-full bg-neutral/10 px-2 py-1">
+                              {membro.vinculo}
+                            </span>
+
+                            <span className="rounded-full bg-neutral/10 px-2 py-1">
+                              {membro.email}
+                            </span>
+                          </div>
+
+                          {membro.lattes && (
+                            <p className="mt-3 text-xs text-neutral">
+                              Lattes: {membro.lattes}
+                            </p>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeMember(membro.id)}
+                          className="inline-flex w-fit items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                        >
+                          <Trash2 size={14} />
+                          Remover
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <FileInputBox
+                label="Upload do PDF complementar"
+                hint="Documento complementar do projeto, opcional."
+                file={form.gerais.pdfComplementar}
+                onChange={(pdfComplementar) =>
+                  setForm((current) => ({
+                    ...current,
+                    gerais: {
+                      ...current.gerais,
+                      pdfComplementar,
+                    },
+                  }))
+                }
+              />
+
+              <FileInputBox
+                label="Comprovante de aprovação/financiamento"
+                required={form.gerais.tipo === "externo"}
+                disabled={form.gerais.tipo !== "externo"}
+                hint="Obrigatório apenas para projeto externo."
+                file={form.gerais.comprovanteExterno}
+                onChange={(comprovanteExterno) =>
+                  setForm((current) => ({
+                    ...current,
+                    gerais: {
+                      ...current.gerais,
+                      comprovanteExterno,
+                    },
+                  }))
+                }
+              />
+            </div>
+
+            <div className="mt-8 flex justify-between">
+              <button
+                type="button"
+                onClick={goBack}
+                className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2 text-sm font-semibold text-neutral transition hover:border-primary/30 hover:text-primary"
+              >
+                Voltar
+              </button>
+
+              <button
+                type="button"
+                onClick={goNext}
+                disabled={!canGoStep5}
+                className={cx(
+                  "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
+                  canGoStep5
+                    ? "bg-primary text-white hover:bg-primary/90"
+                    : "cursor-not-allowed bg-neutral/10 text-neutral"
+                )}
+              >
+                Próximo
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </Card>
+        )}
+
+        {step === 5 && (
+          <Card
+            title="Passo 5 — Dados específicos"
             subtitle={
-              form.tipo === "interno"
-                ? "Campos adicionais para projeto Interno."
-                : "Campos adicionais para projeto Externo."
+              form.gerais.tipo === "interno"
+                ? "Campos adicionais para projeto interno."
+                : "Campos adicionais para projeto externo."
             }
             icon={<ClipboardCheck size={18} className="text-primary" />}
           >
-            {form.tipo === "interno" && (
+            {form.gerais.tipo === "interno" && (
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <Field
                   label="Este projeto está vinculado a algum grupo de pesquisa?"
@@ -1398,7 +3070,10 @@ export default function ProjectCreateWizard() {
                 >
                   <div className="flex gap-4">
                     {(["Sim", "Não"] as const).map((item) => (
-                      <label key={item} className="inline-flex items-center gap-2 text-sm text-primary">
+                      <label
+                        key={item}
+                        className="inline-flex items-center gap-2 text-sm text-primary"
+                      >
                         <input
                           type="radio"
                           checked={form.interno.vinculadoGrupo === item}
@@ -1447,7 +3122,10 @@ export default function ProjectCreateWizard() {
                 >
                   <div className="flex gap-4">
                     {(["Sim", "Não"] as const).map((item) => (
-                      <label key={item} className="inline-flex items-center gap-2 text-sm text-primary">
+                      <label
+                        key={item}
+                        className="inline-flex items-center gap-2 text-sm text-primary"
+                      >
                         <input
                           type="radio"
                           checked={form.interno.possuiProtocoloEtica === item}
@@ -1481,7 +3159,7 @@ export default function ProjectCreateWizard() {
                   hint={
                     form.interno.possuiProtocoloEtica === "Sim"
                       ? "Obrigatório quando possui protocolo."
-                      : "Desabilitado obrigatoriedade quando não possui protocolo."
+                      : "Campo opcional enquanto não possui protocolo."
                   }
                 >
                   <input
@@ -1511,7 +3189,7 @@ export default function ProjectCreateWizard() {
                   hint={
                     form.interno.possuiProtocoloEtica === "Sim"
                       ? "Obrigatório quando possui protocolo."
-                      : "Desabilitado obrigatoriedade quando não possui protocolo."
+                      : "Campo opcional enquanto não possui protocolo."
                   }
                 >
                   <input
@@ -1537,7 +3215,7 @@ export default function ProjectCreateWizard() {
               </div>
             )}
 
-            {form.tipo === "externo" && (
+            {form.gerais.tipo === "externo" && (
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <Field label="Categoria do projeto" required>
                   <select
@@ -1667,10 +3345,10 @@ export default function ProjectCreateWizard() {
               <button
                 type="button"
                 onClick={goNext}
-                disabled={!canGoStep4}
+                disabled={!canGoStep6}
                 className={cx(
                   "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
-                  canGoStep4
+                  canGoStep6
                     ? "bg-primary text-white hover:bg-primary/90"
                     : "cursor-not-allowed bg-neutral/10 text-neutral"
                 )}
@@ -1682,484 +3360,63 @@ export default function ProjectCreateWizard() {
           </Card>
         )}
 
-        {step === 4 && (
+        {step === 6 && (
           <Card
-            title="Passo 4 — Plano de trabalho"
-            subtitle="Cadastre pelo menos 1 plano de trabalho vinculado ao projeto para liberar a revisão."
-            icon={<BookOpen size={18} className="text-primary" />}
-          >
-
-            <div className="rounded-2xl border border-neutral/20 p-5">
-              <div className="flex flex-col gap-3 border-b border-neutral/20 pb-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-primary">
-                    Novo plano de trabalho
-                  </h3>
-
-                  <p className="mt-1 text-xs text-neutral">
-                    Preencha todos os campos obrigatórios e clique em adicionar.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={duplicateLastWorkPlan}
-                    disabled={form.planosTrabalho.length === 0}
-                    className={cx(
-                      "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
-                      form.planosTrabalho.length === 0
-                        ? "cursor-not-allowed border-neutral/20 bg-neutral/5 text-neutral"
-                        : "border-neutral/20 bg-white text-primary hover:border-primary/30"
-                    )}
-                  >
-                    <Copy size={14} />
-                    Duplicar último
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={resetWorkPlanDraft}
-                    className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:border-primary/30"
-                  >
-                    <RefreshCcw size={14} />
-                    Limpar
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
-                <Field label="Tipo de Bolsa" required>
-                  <select
-                    value={workPlanDraft.tipoBolsa}
-                    onChange={(event) =>
-                      setWorkPlanDraft((current) => ({
-                        ...current,
-                        tipoBolsa: event.target.value,
-                      }))
-                    }
-                    className={selectClassName}
-                  >
-                    <option value="">Selecione</option>
-                    {tipoBolsaOptions.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Direcionamento" required>
-                  <select
-                    value={workPlanDraft.direcionamento}
-                    onChange={(event) =>
-                      setWorkPlanDraft((current) => ({
-                        ...current,
-                        direcionamento: event.target.value,
-                      }))
-                    }
-                    className={selectClassName}
-                  >
-                    <option value="">Selecione</option>
-                    {direcionamentos.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Período" required hint="Defina início e fim do plano.">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <input
-                      type="date"
-                      value={workPlanDraft.periodoIni}
-                      onChange={(event) =>
-                        setWorkPlanDraft((current) => ({
-                          ...current,
-                          periodoIni: event.target.value,
-                        }))
-                      }
-                      className={inputClassName}
-                    />
-
-                    <input
-                      type="date"
-                      value={workPlanDraft.periodoFim}
-                      onChange={(event) =>
-                        setWorkPlanDraft((current) => ({
-                          ...current,
-                          periodoFim: event.target.value,
-                        }))
-                      }
-                      className={inputClassName}
-                    />
-                  </div>
-                </Field>
-
-                <Field label="Cota" required>
-                  <select
-                    value={workPlanDraft.cota}
-                    onChange={(event) =>
-                      setWorkPlanDraft((current) => ({
-                        ...current,
-                        cota: event.target.value,
-                      }))
-                    }
-                    className={selectClassName}
-                  >
-                    <option value="">Selecione</option>
-                    {cotas.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Vinculação institucional" required>
-                  <select
-                    value={workPlanDraft.vinculacaoInstitucional}
-                    onChange={(event) =>
-                      setWorkPlanDraft((current) => ({
-                        ...current,
-                        vinculacaoInstitucional: event.target.value,
-                      }))
-                    }
-                    className={selectClassName}
-                  >
-                    <option value="">Selecione</option>
-                    {vinculacoesInstitucionais.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Área de conhecimento" required>
-                  <select
-                    value={workPlanDraft.areaConhecimento}
-                    onChange={(event) =>
-                      setWorkPlanDraft((current) => ({
-                        ...current,
-                        areaConhecimento: event.target.value,
-                      }))
-                    }
-                    className={selectClassName}
-                  >
-                    <option value="">Selecione</option>
-                    {areaConhecimentoOptions.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <div className="md:col-span-2">
-                  <Field label="Introdução e justificativa" required>
-                    <textarea
-                      value={workPlanDraft.introducaoJustificativa}
-                      onChange={(event) =>
-                        setWorkPlanDraft((current) => ({
-                          ...current,
-                          introducaoJustificativa: event.target.value,
-                        }))
-                      }
-                      className={textareaClassName}
-                      placeholder="Apresente o contexto do plano e a justificativa da atividade."
-                    />
-                  </Field>
-                </div>
-
-                <div className="md:col-span-2">
-                  <Field label="Objetivos" required>
-                    <textarea
-                      value={workPlanDraft.objetivos}
-                      onChange={(event) =>
-                        setWorkPlanDraft((current) => ({
-                          ...current,
-                          objetivos: event.target.value,
-                        }))
-                      }
-                      className={textareaClassName}
-                      placeholder="Informe os objetivos gerais e específicos do plano."
-                    />
-                  </Field>
-                </div>
-
-                <div className="md:col-span-2">
-                  <Field label="Metodologia" required>
-                    <textarea
-                      value={workPlanDraft.metodologia}
-                      onChange={(event) =>
-                        setWorkPlanDraft((current) => ({
-                          ...current,
-                          metodologia: event.target.value,
-                        }))
-                      }
-                      className={textareaClassName}
-                      placeholder="Descreva os procedimentos, métodos e etapas de execução."
-                    />
-                  </Field>
-                </div>
-
-                <div className="md:col-span-2">
-                  <Field
-                    label="Cronograma de atividades"
-                    required
-                    hint="Monte o cronograma por mês/período. Você pode adicionar linhas manualmente ou usar um modelo rápido."
-                  >
-                    <CronogramaPicker
-                      value={workPlanDraft.cronogramaAtividades}
-                      onChange={(cronogramaAtividades) =>
-                        setWorkPlanDraft((current) => ({
-                          ...current,
-                          cronogramaAtividades,
-                        }))
-                      }
-                    />
-                  </Field>
-                </div>
-
-                <div className="md:col-span-2">
-                  <Field label="Referências" required>
-                    <textarea
-                      value={workPlanDraft.referencias}
-                      onChange={(event) =>
-                        setWorkPlanDraft((current) => ({
-                          ...current,
-                          referencias: event.target.value,
-                        }))
-                      }
-                      className={textareaClassName}
-                      placeholder="Informe as referências bibliográficas do plano."
-                    />
-                  </Field>
-                </div>
-
-                <div className="md:col-span-2">
-                  <Field label="Resumo do plano" required>
-                    <textarea
-                      value={workPlanDraft.resumoPlano}
-                      onChange={(event) =>
-                        setWorkPlanDraft((current) => ({
-                          ...current,
-                          resumoPlano: event.target.value,
-                        }))
-                      }
-                      className={textareaClassName}
-                      placeholder="Resumo objetivo do plano de trabalho."
-                    />
-                  </Field>
-                </div>
-
-                <div className="md:col-span-2">
-                  <Field
-                    label="Palavras-chave"
-                    required
-                    hint="Separe por vírgula ou ponto e vírgula."
-                  >
-                    <input
-                      value={workPlanDraft.palavrasChave}
-                      onChange={(event) =>
-                        setWorkPlanDraft((current) => ({
-                          ...current,
-                          palavrasChave: event.target.value,
-                        }))
-                      }
-                      className={inputClassName}
-                      placeholder="ex.: IA, educação, acessibilidade"
-                    />
-                  </Field>
-                </div>
-              </div>
-
-              <div className="mt-6 flex justify-end">
-                <button
-                  type="button"
-                  onClick={addWorkPlan}
-                  disabled={!canAddWorkPlan}
-                  className={cx(
-                    "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
-                    canAddWorkPlan
-                      ? "bg-primary text-white hover:bg-primary/90"
-                      : "cursor-not-allowed bg-neutral/10 text-neutral"
-                  )}
-                >
-                  <Plus size={16} />
-                  Adicionar plano de trabalho
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-6 rounded-2xl border border-neutral/20 p-5">
-              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-primary">
-                    Planos vinculados
-                  </h3>
-
-                  <p className="mt-1 text-xs text-neutral">
-                    Total cadastrado:{" "}
-                    <span className="font-semibold text-primary">
-                      {form.planosTrabalho.length}
-                    </span>
-                  </p>
-                </div>
-
-                <span
-                  className={cx(
-                    "inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold",
-                    form.planosTrabalho.length > 0
-                      ? "border-green-200 bg-green-50 text-green-700"
-                      : "border-red-200 bg-red-50 text-red-700"
-                  )}
-                >
-                  {form.planosTrabalho.length > 0
-                    ? "Regra atendida"
-                    : "Obrigatório adicionar 1 plano"}
-                </span>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                {form.planosTrabalho.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-neutral/30 bg-neutral/5 p-5 text-center">
-                    <p className="text-sm font-semibold text-primary">
-                      Nenhum plano de trabalho cadastrado.
-                    </p>
-
-                    <p className="mt-1 text-xs text-neutral">
-                      Preencha o formulário acima e clique em adicionar para
-                      liberar a revisão do projeto.
-                    </p>
-                  </div>
-                ) : (
-                  form.planosTrabalho.map((plano, index) => (
-                    <div
-                      key={plano.id}
-                      className="rounded-xl border border-neutral/20 bg-white p-4"
-                    >
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <p className="text-sm font-bold text-primary">
-                            Plano de trabalho {index + 1}
-                          </p>
-
-                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
-                              <BookOpen size={12} />
-                              {plano.tipoBolsa}
-                            </span>
-
-                            <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
-                              <CalendarDays size={12} />
-                              {plano.periodoIni} → {plano.periodoFim}
-                            </span>
-
-                            <span className="inline-flex items-center gap-1 rounded-full bg-neutral/10 px-2 py-1">
-                              <Hash size={12} />
-                              Cota: {plano.cota}
-                            </span>
-                          </div>
-
-                          <p className="mt-3 line-clamp-2 text-sm leading-6 text-neutral">
-                            {plano.resumoPlano}
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => removeWorkPlan(plano.id)}
-                          className="inline-flex w-fit items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100"
-                        >
-                          <Trash2 size={14} />
-                          Remover
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="mt-8 flex justify-between">
-              <button
-                type="button"
-                onClick={goBack}
-                className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2 text-sm font-semibold text-neutral transition hover:border-primary/30 hover:text-primary"
-              >
-                Voltar
-              </button>
-
-              <button
-                type="button"
-                onClick={goNext}
-                disabled={!canGoStep5}
-                className={cx(
-                  "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
-                  canGoStep5
-                    ? "bg-primary text-white hover:bg-primary/90"
-                    : "cursor-not-allowed bg-neutral/10 text-neutral"
-                )}
-              >
-                Próximo
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </Card>
-        )}
-
-        {step === 5 && (
-          <Card
-            title="Passo 5 — Revisão e submissão"
-            subtitle="Revise todos os dados antes de submeter. Status inicial será SUBMETIDO."
+            title="Passo 6 — Revisão e submissão"
+            subtitle="Revise todos os dados antes de submeter."
             icon={<Save size={18} className="text-primary" />}
           >
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div className="rounded-2xl border border-neutral/20 p-5">
                 <h3 className="flex items-center gap-2 text-sm font-bold text-primary">
                   <FileText size={16} />
-                  Dados gerais
+                  Dados do projeto
                 </h3>
 
                 <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Info label="Tipo" value={form.tipo || "—"} />
-                  <Info label="Edital" value={form.gerais.editalPesquisa || "—"} />
+                  <Info
+                    label="Tipo"
+                    value={
+                      form.gerais.tipo === "interno"
+                        ? "Interno"
+                        : form.gerais.tipo === "externo"
+                          ? "Externo"
+                          : "—"
+                    }
+                  />
+
+                  <Info label="Edital" value={form.gerais.editalPesquisa} />
+                  <Info label="Centro" value={form.gerais.centro} />
+                  <Info label="Unidade" value={form.gerais.unidade} />
 
                   <div className="sm:col-span-2">
-                    <Info label="Título" value={form.gerais.titulo || "—"} />
+                    <Info label="Título" value={form.gerais.titulo} />
                   </div>
-
-                  <Info label="E-mail" value={form.gerais.email || "—"} />
-                  <Info label="Termo" value={form.gerais.termo || "—"} />
-                  <Info label="Centro" value={form.gerais.centro || "—"} />
-                  <Info label="Unidade" value={form.gerais.unidade || "—"} />
 
                   <div className="sm:col-span-2">
-                    <Info
-                      label="Período"
-                      value={`${form.gerais.periodoIni || "—"} → ${
-                        form.gerais.periodoFim || "—"
-                      }`}
-                    />
+                    <Info label="Title" value={form.gerais.title} />
                   </div>
+
+                  <Info label="E-mail" value={form.gerais.email} />
+
+                  <Info
+                    label="Período"
+                    value={`${form.gerais.periodoIni || "—"} → ${
+                      form.gerais.periodoFim || "—"
+                    }`}
+                  />
 
                   <Info
                     label="Área de conhecimento"
-                    value={form.gerais.areaConhecimento || "—"}
+                    value={form.gerais.areaConhecimento}
                   />
 
                   <Info
                     label="Linha de pesquisa"
-                    value={form.gerais.linhaPesquisa || "—"}
+                    value={form.gerais.linhaPesquisa}
                   />
 
-                  <Info
-                    label="Grande área"
-                    value={form.gerais.grandeArea || "—"}
-                  />
+                  <Info label="Grande área" value={form.gerais.grandeArea} />
 
                   <Info
                     label="Área / Subárea"
@@ -2168,10 +3425,7 @@ export default function ProjectCreateWizard() {
                     }`}
                   />
 
-                  <Info
-                    label="Especialidade"
-                    value={form.gerais.especialidade || "—"}
-                  />
+                  <Info label="Especialidade" value={form.gerais.especialidade} />
                 </div>
 
                 <div className="mt-4">
@@ -2187,28 +3441,13 @@ export default function ProjectCreateWizard() {
 
                 <div className="mt-4">
                   <p className="flex items-center gap-2 text-[11px] font-bold uppercase text-neutral">
-                    <GraduationCap size={14} />
-                    ODS
+                    <Tags size={14} />
+                    Keywords
                   </p>
 
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {form.gerais.objetivosDS.length === 0 ? (
-                      <span className="text-sm text-neutral">—</span>
-                    ) : (
-                      form.gerais.objetivosDS.map((ods) => (
-                        <span
-                          key={ods.id}
-                          className="inline-flex items-center gap-2 rounded-full bg-neutral/10 px-3 py-1 text-xs font-semibold text-neutral"
-                        >
-                          <span className="grid h-5 w-5 place-items-center rounded-full border border-neutral/20 bg-white text-[11px]">
-                            {ods.id}
-                          </span>
-
-                          {ods.label}
-                        </span>
-                      ))
-                    )}
-                  </div>
+                  <p className="mt-1 text-sm text-neutral">
+                    {form.gerais.keywords || "—"}
+                  </p>
                 </div>
               </div>
 
@@ -2216,10 +3455,12 @@ export default function ProjectCreateWizard() {
                 <h3 className="flex items-center gap-2 text-sm font-bold text-primary">
                   <Hash size={16} />
                   Dados específicos{" "}
-                  {form.tipo ? `(${form.tipo === "interno" ? "Interno" : "Externo"})` : ""}
+                  {form.gerais.tipo
+                    ? `(${form.gerais.tipo === "interno" ? "Interno" : "Externo"})`
+                    : ""}
                 </h3>
 
-                {form.tipo === "interno" ? (
+                {form.gerais.tipo === "interno" ? (
                   <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Info
                       label="Vinculado a grupo?"
@@ -2228,7 +3469,7 @@ export default function ProjectCreateWizard() {
 
                     <Info
                       label="Grupo de pesquisa"
-                      value={form.interno.grupoPesquisa || "—"}
+                      value={form.interno.grupoPesquisa}
                     />
 
                     <Info
@@ -2238,13 +3479,13 @@ export default function ProjectCreateWizard() {
 
                     <Info
                       label="Comitê de ética"
-                      value={form.interno.comiteEticaNome || "—"}
+                      value={form.interno.comiteEticaNome}
                     />
 
                     <div className="sm:col-span-2">
                       <Info
                         label="Nº do protocolo"
-                        value={form.interno.protocoloEtica || "—"}
+                        value={form.interno.protocoloEtica}
                       />
                     </div>
                   </div>
@@ -2252,42 +3493,33 @@ export default function ProjectCreateWizard() {
                   <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Info
                       label="Categoria"
-                      value={form.externo.categoriaProjeto || "—"}
+                      value={form.externo.categoriaProjeto}
                     />
 
                     <Info
                       label="Subcategoria Nível I"
-                      value={form.externo.subcategoriaNivelI || "—"}
+                      value={form.externo.subcategoriaNivelI}
                     />
 
                     <Info
                       label="Subcategoria Nível II"
-                      value={form.externo.subcategoriaNivelII || "—"}
+                      value={form.externo.subcategoriaNivelII}
                     />
 
                     <Info
                       label="Definição de PI"
-                      value={form.externo.definicaoPropriedadeIntelectual || "—"}
+                      value={form.externo.definicaoPropriedadeIntelectual}
                     />
 
                     <div className="sm:col-span-2">
                       <Info
                         label="Tratamento da produção intelectual"
-                        value={form.externo.tratamentoProducao || "—"}
+                        value={form.externo.tratamentoProducao}
                         preWrap
                       />
                     </div>
                   </div>
                 )}
-
-                <div className="mt-6 rounded-xl border border-neutral/20 bg-neutral/5 p-4">
-                  <p className="text-xs font-bold text-primary">Status inicial</p>
-
-                  <p className="mt-1.5 text-sm text-neutral">
-                    Ao submeter, o projeto será criado com status{" "}
-                    <span className="font-semibold text-primary">SUBMETIDO</span>.
-                  </p>
-                </div>
 
                 {submitted && (
                   <div className="mt-6 rounded-xl border border-green-200 bg-green-50 p-4">
@@ -2301,7 +3533,7 @@ export default function ProjectCreateWizard() {
 
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Link
-                        to="/adm/admprojetos"
+                        to="/coordenador/projetos"
                         className="inline-flex items-center gap-2 rounded-xl border border-green-200 px-3 py-2 text-sm font-semibold text-green-800 transition hover:bg-green-100"
                       >
                         Voltar para projetos
@@ -2311,7 +3543,7 @@ export default function ProjectCreateWizard() {
                         type="button"
                         onClick={() => {
                           setForm(initialState)
-                          resetWorkPlanDraft()
+                          resetMemberDraft()
                           setSubmitted(false)
                           setStep(1)
                         }}
@@ -2327,70 +3559,128 @@ export default function ProjectCreateWizard() {
 
             <div className="mt-6 rounded-2xl border border-neutral/20 p-5">
               <h3 className="flex items-center gap-2 text-sm font-bold text-primary">
-                <BookOpen size={16} />
-                Planos de trabalho vinculados ({form.planosTrabalho.length})
+                <FileText size={16} />
+                Campos textuais do Anexo II
               </h3>
 
-              <div className="mt-4 space-y-4">
-                {form.planosTrabalho.map((plano, index) => (
+              <div className="mt-4 grid grid-cols-1 gap-4">
+                <Info
+                  label="Descrição resumida"
+                  value={form.gerais.descricaoResumida}
+                  preWrap
+                />
+
+                <Info label="Abstract" value={form.gerais.abstract} preWrap />
+
+                <Info
+                  label="Introdução / justificativa"
+                  value={form.gerais.introducaoJustificativa}
+                  preWrap
+                />
+
+                <Info label="Objetivos" value={form.gerais.objetivos} preWrap />
+
+                <Info
+                  label="Metodologia"
+                  value={form.gerais.metodologia}
+                  preWrap
+                />
+
+                <Info
+                  label="Referências"
+                  value={form.gerais.referencias}
+                  preWrap
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="rounded-2xl border border-neutral/20 p-5">
+                <h3 className="flex items-center gap-2 text-sm font-bold text-primary">
+                  <GraduationCap size={16} />
+                  ODS vinculados
+                </h3>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {form.gerais.objetivosDS.length === 0 ? (
+                    <span className="text-sm text-neutral">—</span>
+                  ) : (
+                    form.gerais.objetivosDS.map((ods) => (
+                      <span
+                        key={ods.id}
+                        className="inline-flex items-center gap-2 rounded-full bg-neutral/10 px-3 py-1 text-xs font-semibold text-neutral"
+                      >
+                        <span className="grid h-5 w-5 place-items-center rounded-full border border-neutral/20 bg-white text-[11px]">
+                          {ods.id}
+                        </span>
+
+                        {ods.label}
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-neutral/20 p-5">
+                <h3 className="flex items-center gap-2 text-sm font-bold text-primary">
+                  <Upload size={16} />
+                  Arquivos
+                </h3>
+
+                <div className="mt-4 grid grid-cols-1 gap-4">
+                  <Info
+                    label="PDF complementar"
+                    value={form.gerais.pdfComplementar?.name || "—"}
+                  />
+
+                  <Info
+                    label="Comprovante externo"
+                    value={form.gerais.comprovanteExterno?.name || "—"}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-neutral/20 p-5">
+              <h3 className="flex items-center gap-2 text-sm font-bold text-primary">
+                <CalendarDays size={16} />
+                Cronograma
+              </h3>
+
+              <div className="mt-4 space-y-2">
+                {form.gerais.cronograma.map((item) => (
                   <div
-                    key={plano.id}
+                    key={item.id}
+                    className="rounded-xl border border-neutral/20 bg-neutral/5 p-3 text-sm text-neutral"
+                  >
+                    <span className="font-semibold text-primary">
+                      {formatCronogramaDuration(item.mesInicio, item.mesFim)}
+                    </span>{" "}
+                    — {item.atividade}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-neutral/20 p-5">
+              <h3 className="flex items-center gap-2 text-sm font-bold text-primary">
+                <Users size={16} />
+                Membros do projeto ({form.gerais.membros.length})
+              </h3>
+
+              <div className="mt-4 space-y-3">
+                {form.gerais.membros.map((membro) => (
+                  <div
+                    key={membro.id}
                     className="rounded-xl border border-neutral/20 bg-neutral/5 p-4"
                   >
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <p className="text-sm font-bold text-primary">
-                          Plano de trabalho {index + 1}
-                        </p>
+                    <p className="text-sm font-bold text-primary">{membro.nome}</p>
 
-                        <p className="mt-1 text-xs text-neutral">
-                          {plano.tipoBolsa} • {plano.direcionamento} • Cota{" "}
-                          {plano.cota}
-                        </p>
-                      </div>
-
-                      <span className="inline-flex w-fit items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-bold text-green-700">
-                        Vinculado
-                      </span>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <Info
-                        label="Período"
-                        value={`${plano.periodoIni} → ${plano.periodoFim}`}
-                      />
-
-                      <Info
-                        label="Vinculação institucional"
-                        value={plano.vinculacaoInstitucional}
-                      />
-
-                      <Info
-                        label="Área de conhecimento"
-                        value={plano.areaConhecimento}
-                      />
-
-                      <Info
-                        label="Palavras-chave"
-                        value={plano.palavrasChave}
-                      />
-
-                      <div className="sm:col-span-2">
-                        <Info
-                          label="Resumo do plano"
-                          value={plano.resumoPlano}
-                          preWrap
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <Info
-                          label="Cronograma de atividades"
-                          value={plano.cronogramaAtividades}
-                          preWrap
-                        />
-                      </div>
-
+                    <div className="mt-2 grid grid-cols-1 gap-3 text-sm text-neutral sm:grid-cols-2">
+                      <Info label="Papel" value={membro.papel} />
+                      <Info label="Vínculo" value={membro.vinculo} />
+                      <Info label="E-mail" value={membro.email} />
+                      <Info label="Lattes" value={membro.lattes} />
                     </div>
                   </div>
                 ))}
@@ -2409,10 +3699,10 @@ export default function ProjectCreateWizard() {
               <button
                 type="button"
                 onClick={submit}
-                disabled={saving || submitted || !canGoStep5}
+                disabled={saving || submitted || !canGoStep6}
                 className={cx(
                   "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
-                  saving || submitted || !canGoStep5
+                  saving || submitted || !canGoStep6
                     ? "cursor-not-allowed bg-neutral/10 text-neutral"
                     : "bg-primary text-white hover:bg-primary/90"
                 )}
@@ -2429,38 +3719,13 @@ export default function ProjectCreateWizard() {
 
         <div className="flex justify-center pt-2">
           <Link
-            to="/adm/admprojetos"
+            to="/coordenador/projetos"
             className="inline-flex items-center gap-2 rounded-xl border border-neutral/20 bg-white px-4 py-2 text-sm font-semibold text-primary transition hover:border-primary/40 hover:bg-neutral/5"
           >
-            Cancelar e voltar para projetos
+Finalizar e voltar para projetos
           </Link>
         </div>
       </div>
     </main>
-  )
-}
-
-function Info({
-  label,
-  value,
-  preWrap,
-}: {
-  label: string
-  value: string
-  preWrap?: boolean
-}) {
-  return (
-    <div>
-      <p className="text-[11px] font-bold uppercase text-neutral">{label}</p>
-
-      <p
-        className={cx(
-          "text-sm text-neutral",
-          preWrap && "whitespace-pre-wrap"
-        )}
-      >
-        {value}
-      </p>
-    </div>
   )
 }
