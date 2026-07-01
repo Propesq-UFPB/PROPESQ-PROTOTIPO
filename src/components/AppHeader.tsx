@@ -579,7 +579,7 @@ export default function AppHeader() {
   const adminSecondaryByPrimary: Record<string, NavItem[]> = {
     "/dashboard": [
       { to: "/dashboard", label: "Overview", icon: <Home size={16} />, end: true },
-      { to: "/adm/admprojetos", label: "Projetos", icon: <FolderKanban size={16} /> },
+      // { to: "/adm/admprojetos", label: "Projetos", icon: <FolderKanban size={16} /> },
     ],
     "/adm/admprojetos": [
       { to: "/adm/admprojetos", label: "Buscar Projetos", icon: <Eye size={16} />, end: true },

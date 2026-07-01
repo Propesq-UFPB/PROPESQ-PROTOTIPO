@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react"
+import { Link } from "react-router-dom"
 import {
   AlertTriangle,
+  ArrowLeft,
   Award,
   BadgeCheck,
   BarChart3,
@@ -16,6 +18,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react"
+import { Helmet } from "react-helmet"
 
 type QuotaSource = "CNPq" | "UFPB" | "VOLUNTARIO" | "NAO_CONTEMPLADO"
 
@@ -327,15 +330,15 @@ function SummaryCard({
   description?: string
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-neutral-light bg-white p-5 shadow-card">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-slate-500">{label}</p>
-          <strong className="mt-2 block text-2xl font-semibold text-slate-900">
+          <p className="text-sm font-medium text-neutral/70">{label}</p>
+          <strong className="mt-2 block text-2xl font-semibold text-primary">
             {value}
           </strong>
           {description ? (
-            <p className="mt-1 text-xs text-slate-500">{description}</p>
+            <p className="mt-1 text-xs text-neutral/70">{description}</p>
           ) : null}
         </div>
 
@@ -658,21 +661,36 @@ export default function Quotas() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-sm font-medium text-primary">
-                <Trophy size={15} />
-                Resultados
+    <div className="min-h-screen bg-neutral-light">
+      <Helmet>
+        <title>Distribuição de Cotas • PROPESQ</title>
+      </Helmet>
+
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        {/* Botão voltar */}
+        <div>
+          <Link
+            to="/adm/resultados/ranking"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <ArrowLeft size={16} />
+            Voltar para ranking
+          </Link>
+        </div>
+
+        <section className="rounded-3xl border border-slate-200 bg-white px-8 py-7 shadow-sm">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <Trophy size={14} />
+                Cotas
               </div>
 
-              <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+              <h1 className="mt-3 text-[28px] leading-tight font-bold tracking-tight text-primary">
                 Distribuição de Cotas
               </h1>
 
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                 Geração da distribuição de bolsas CNPq e UFPB com base no
                 ranking final classificatório, respeitando IFC, limite por
                 pesquisador, planos aptos, reservas especiais e disponibilidade
@@ -680,11 +698,11 @@ export default function Quotas() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-col gap-3 sm:flex-row shrink-0">
               <button
                 type="button"
                 onClick={handleRegenerateDistribution}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-slate-50"
               >
                 <RefreshCcw size={16} />
                 Gerar distribuição
@@ -693,7 +711,7 @@ export default function Quotas() {
               <button
                 type="button"
                 onClick={() => exportToCsv(distribution)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
               >
                 <Download size={16} />
                 Exportar lista final
@@ -740,17 +758,17 @@ export default function Quotas() {
         </section>
 
         <section className="grid gap-5 xl:grid-cols-[1fr_380px]">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-3xl border border-neutral-light bg-white p-6 shadow-card">
             <div className="flex items-start gap-3">
               <div className="rounded-2xl border border-primary/10 bg-primary/5 p-3 text-primary">
                 <ShieldCheck size={22} />
               </div>
 
               <div>
-                <h2 className="text-base font-semibold text-slate-950">
+                <h2 className="text-base font-semibold text-primary">
                   Regras aplicadas na distribuição
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-neutral/70">
                   A distribuição usa o ranking final como base e aplica a
                   ordem CNPq → UFPB.
                 </p>
@@ -758,41 +776,41 @@ export default function Quotas() {
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-800">
+              <div className="rounded-2xl border border-neutral-light bg-neutral-light/50 p-4">
+                <p className="text-sm font-semibold text-primary">
                   Pesquisador com IFC ≥ 7
                 </p>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-neutral/70">
                   Pode receber até 2 cotas, desde que tenha planos aprovados e
                   discentes indicados.
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-800">
+              <div className="rounded-2xl border border-neutral-light bg-neutral-light/50 p-4">
+                <p className="text-sm font-semibold text-primary">
                   Pesquisador com IFC menor que 7
                 </p>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-neutral/70">
                   Pode receber 1 cota somente se houver disponibilidade após a
                   distribuição principal.
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-800">
+              <div className="rounded-2xl border border-neutral-light bg-neutral-light/50 p-4">
+                <p className="text-sm font-semibold text-primary">
                   Ordem das fontes
                 </p>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-neutral/70">
                   Primeiro são atribuídas as cotas CNPq. Depois são atribuídas
                   as cotas UFPB.
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-800">
+              <div className="rounded-2xl border border-neutral-light bg-neutral-light/50 p-4">
+                <p className="text-sm font-semibold text-primary">
                   Planos sem bolsa
                 </p>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-neutral/70">
                   Planos aprovados não contemplados são mantidos como
                   voluntários.
                 </p>
@@ -800,24 +818,24 @@ export default function Quotas() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-3xl border border-neutral-light bg-white p-6 shadow-card">
             <div className="flex items-start gap-3">
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-amber-700">
                 <Sparkles size={22} />
               </div>
 
               <div>
-                <h2 className="text-base font-semibold text-slate-950">
+                <h2 className="text-base font-semibold text-primary">
                   Reservas especiais
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-neutral/70">
                   Ative ou desative as reservas antes de gerar a distribuição.
                 </p>
               </div>
             </div>
 
             <div className="mt-5 space-y-3">
-              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-4 transition hover:bg-slate-50">
+              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-neutral-light p-4 transition hover:bg-neutral-light/40">
                 <input
                   type="checkbox"
                   checked={applyNewDoctorReserve}
@@ -827,16 +845,16 @@ export default function Quotas() {
                   className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
                 />
                 <span>
-                  <span className="block text-sm font-semibold text-slate-800">
+                  <span className="block text-sm font-semibold text-primary">
                     Recém-doutor
                   </span>
-                  <span className="block text-sm text-slate-500">
+                  <span className="block text-sm text-neutral/70">
                     Prioriza candidatos marcados com reserva de recém-doutor.
                   </span>
                 </span>
               </label>
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-4 transition hover:bg-slate-50">
+              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-neutral-light p-4 transition hover:bg-neutral-light/40">
                 <input
                   type="checkbox"
                   checked={applyLeaveReserve}
@@ -846,16 +864,16 @@ export default function Quotas() {
                   className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
                 />
                 <span>
-                  <span className="block text-sm font-semibold text-slate-800">
+                  <span className="block text-sm font-semibold text-primary">
                     Licença-maternidade/licença-adotante
                   </span>
-                  <span className="block text-sm text-slate-500">
+                  <span className="block text-sm text-neutral/70">
                     Considera reservas vinculadas a afastamento legal.
                   </span>
                 </span>
               </label>
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-4 transition hover:bg-slate-50">
+              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-neutral-light p-4 transition hover:bg-neutral-light/40">
                 <input
                   type="checkbox"
                   checked={applyPriorityAreaReserve}
@@ -865,10 +883,10 @@ export default function Quotas() {
                   className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
                 />
                 <span>
-                  <span className="block text-sm font-semibold text-slate-800">
+                  <span className="block text-sm font-semibold text-primary">
                     Áreas prioritárias
                   </span>
-                  <span className="block text-sm text-slate-500">
+                  <span className="block text-sm text-neutral/70">
                     Aplica prioridade para áreas definidas no edital.
                   </span>
                 </span>
@@ -877,14 +895,14 @@ export default function Quotas() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 p-5">
+        <section className="rounded-3xl border border-neutral-light bg-white shadow-card">
+          <div className="border-b border-neutral-light p-5">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div>
-                <h2 className="text-base font-semibold text-slate-950">
+                <h2 className="text-base font-semibold text-primary">
                   Lista de distribuição
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-neutral/70">
                   Ranking final, fonte da cota, reservas e situação do plano.
                 </p>
               </div>
@@ -893,19 +911,19 @@ export default function Quotas() {
                 <div className="relative">
                   <Search
                     size={16}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral/50"
                   />
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Buscar por projeto, coordenador ou discente"
-                    className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/10 sm:w-80"
+                    className="h-11 w-full rounded-xl border border-neutral-light bg-white pl-9 pr-3 text-sm outline-none transition placeholder:text-neutral/50 focus:border-primary focus:ring-4 focus:ring-primary/10 sm:w-80"
                   />
                 </div>
 
                 <button
                   type="button"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-neutral-light bg-white px-4 text-sm font-semibold text-primary"
                 >
                   <Filter size={16} />
                   Filtros
@@ -917,7 +935,7 @@ export default function Quotas() {
               <select
                 value={selectedCenter}
                 onChange={(event) => setSelectedCenter(event.target.value)}
-                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+                className="h-11 rounded-xl border border-neutral-light bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
               >
                 <option value="TODOS">Todos os centros</option>
                 {centers.map((center) => (
@@ -930,7 +948,7 @@ export default function Quotas() {
               <select
                 value={selectedSource}
                 onChange={(event) => setSelectedSource(event.target.value)}
-                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+                className="h-11 rounded-xl border border-neutral-light bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
               >
                 <option value="TODAS">Todas as fontes</option>
                 <option value="CNPq">CNPq</option>
@@ -942,7 +960,7 @@ export default function Quotas() {
               <select
                 value={selectedStatus}
                 onChange={(event) => setSelectedStatus(event.target.value)}
-                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+                className="h-11 rounded-xl border border-neutral-light bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
               >
                 <option value="TODOS">Todos os status</option>
                 <option value="CONTEMPLADO_CNPQ">Contemplado CNPq</option>
@@ -966,7 +984,7 @@ export default function Quotas() {
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                     selectedTab === tab.key
                       ? "bg-primary text-white shadow-sm"
-                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      : "border border-neutral-light bg-white text-neutral hover:bg-neutral-light/50"
                   }`}
                 >
                   {tab.label}
@@ -978,29 +996,29 @@ export default function Quotas() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1200px] border-collapse text-left">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-neutral-light bg-neutral-light/50">
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-neutral/70">
                     Class.
                   </th>
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-neutral/70">
                     Coordenador
                   </th>
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-neutral/70">
                     Projeto / Plano
                   </th>
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-neutral/70">
                     IFC
                   </th>
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-neutral/70">
                     Fonte
                   </th>
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-neutral/70">
                     Reservas
                   </th>
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-neutral/70">
                     Status
                   </th>
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wide text-neutral/70">
                     Elegibilidade
                   </th>
                 </tr>
@@ -1010,43 +1028,43 @@ export default function Quotas() {
                 {filteredItems.map((item) => (
                   <tr
                     key={item.id}
-                    className="border-b border-slate-100 transition hover:bg-slate-50/80"
+                    className="border-b border-neutral-light transition hover:bg-neutral-light/30"
                   >
                     <td className="px-5 py-4 align-top">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-light bg-white text-sm font-semibold text-primary">
                         {item.rankingPosition}
                       </div>
                     </td>
 
                     <td className="px-5 py-4 align-top">
-                      <div className="font-semibold text-slate-900">
+                      <div className="font-semibold text-primary">
                         {item.coordinator}
                       </div>
-                      <div className="mt-1 text-sm text-slate-500">
+                      <div className="mt-1 text-sm text-neutral/70">
                         {item.center} • {item.area}
                       </div>
-                      <div className="mt-1 text-xs text-slate-400">
+                      <div className="mt-1 text-xs text-neutral/50">
                         Planos aprovados: {item.approvedPlans}
                       </div>
                     </td>
 
                     <td className="px-5 py-4 align-top">
-                      <div className="max-w-xl font-medium text-slate-900">
+                      <div className="max-w-xl font-medium text-primary">
                         {item.projectTitle}
                       </div>
-                      <div className="mt-1 text-sm text-slate-500">
+                      <div className="mt-1 text-sm text-neutral/70">
                         {item.workPlanTitle}
                       </div>
-                      <div className="mt-1 text-xs text-slate-400">
+                      <div className="mt-1 text-xs text-neutral/50">
                         Discente: {item.studentName ?? "Não indicado"}
                       </div>
                     </td>
 
                     <td className="px-5 py-4 align-top">
-                      <div className="font-semibold text-slate-900">
+                      <div className="font-semibold text-primary">
                         {formatNumber(item.ifc)}
                       </div>
-                      <div className="mt-1 text-xs text-slate-500">
+                      <div className="mt-1 text-xs text-neutral/70">
                         NP {formatNumber(item.np)} • FPPI{" "}
                         {formatNumber(item.fppi)}
                       </div>
@@ -1109,7 +1127,7 @@ export default function Quotas() {
                         !item.hasMaternityLeave &&
                         !item.hasAdoptionLeave &&
                         !item.isPriorityArea ? (
-                          <span className="text-sm text-slate-400">-</span>
+                          <span className="text-sm text-neutral/50">-</span>
                         ) : null}
                       </div>
                     </td>
@@ -1121,7 +1139,7 @@ export default function Quotas() {
                     </td>
 
                     <td className="px-5 py-4 align-top">
-                      <div className="flex max-w-sm items-start gap-2 text-sm text-slate-600">
+                      <div className="flex max-w-sm items-start gap-2 text-sm text-neutral/70">
                         {item.status === "PENDENTE_REVISAO" ? (
                           <AlertTriangle
                             size={16}
@@ -1130,7 +1148,7 @@ export default function Quotas() {
                         ) : (
                           <BarChart3
                             size={16}
-                            className="mt-0.5 shrink-0 text-slate-400"
+                            className="mt-0.5 shrink-0 text-neutral/40"
                           />
                         )}
                         <span>{item.eligibilityReason}</span>
@@ -1143,13 +1161,13 @@ export default function Quotas() {
                   <tr>
                     <td colSpan={8} className="px-5 py-12 text-center">
                       <div className="mx-auto max-w-md">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-400">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-neutral-light bg-neutral-light/50 text-neutral/50">
                           <Search size={20} />
                         </div>
-                        <h3 className="mt-4 text-sm font-semibold text-slate-900">
+                        <h3 className="mt-4 text-sm font-semibold text-primary">
                           Nenhum resultado encontrado
                         </h3>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-1 text-sm text-neutral/70">
                           Ajuste os filtros ou limpe a busca para visualizar a
                           distribuição.
                         </p>
@@ -1161,7 +1179,7 @@ export default function Quotas() {
             </table>
           </div>
         </section>
-      </div>
-    </main>
+      </main>
+    </div>
   )
 }

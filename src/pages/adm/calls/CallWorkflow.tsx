@@ -1,5 +1,8 @@
 import React, { useMemo, useState } from "react"
+import { Helmet } from "react-helmet"
+import { Link } from "react-router-dom"
 import {
+  ArrowLeft,
   Workflow,
   ShieldCheck,
   Save,
@@ -277,6 +280,9 @@ export default function CallWorkflow() {
   if (!selectedCall) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+        <Helmet>
+          <title>Gestão de Estados do Edital • PROPESQ</title>
+        </Helmet>
         <header className="space-y-1">
           <h1 className="text-xl font-bold text-primary">Gestão de Estados do Edital</h1>
           <p className="text-sm text-neutral">Nenhum edital encontrado.</p>
@@ -287,12 +293,56 @@ export default function CallWorkflow() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-xl font-bold text-primary">Gestão de Estados do Edital</h1>
-        <p className="text-sm text-neutral">
-          Selecione um edital para alterar o status e configurar permissões que liberam/bloqueiam ações no sistema.
-        </p>
-      </header>
+      <Helmet>
+        <title>Gestão de Estados do Edital • PROPESQ</title>
+      </Helmet>
+
+      <Link
+        to="/adm/calls/CreateCall"
+        className="inline-flex items-center gap-2 rounded-full border border-neutral-light bg-white px-4 py-2 text-sm text-primary hover:bg-neutral-50 transition-colors w-fit"
+      >
+        <ArrowLeft size={16} />
+        Voltar para criação de edital
+      </Link>
+
+      <div className="rounded-2xl border border-neutral-light bg-white p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 text-primary px-3 py-1 text-xs font-semibold border border-blue-100">
+              <BookOpen size={14} />
+              Editais
+            </span>
+
+            <div>
+              <h1 className="text-2xl font-bold text-primary">Gestão de Estados do Edital</h1>
+              <p className="text-sm text-neutral mt-1 max-w-2xl">
+                Selecione um edital para alterar o status e configurar permissões que liberam/bloqueiam ações no
+                sistema.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={restoreDefaultsForCall}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border border-neutral-light text-primary hover:bg-neutral-50 transition-colors"
+            >
+              <RotateCcw size={16} />
+              Restaurar padrão
+            </button>
+
+            <button
+              type="button"
+              onClick={saveWorkflow}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white bg-primary hover:opacity-90 transition-colors"
+            >
+              <Save size={16} />
+              Salvar
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* ===== Seleção do edital ===== */}
       <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-3">
@@ -485,29 +535,6 @@ export default function CallWorkflow() {
             Sugestão: combine <span className="font-semibold">status</span> + <span className="font-semibold">cronograma crítico</span> no backend
             (ex.: “Inscrições abertas” só libera submissão se a janela de submissão estiver ativa).
           </p>
-        </div>
-      </section>
-
-      {/* ===== Actions ===== */}
-      <section className="rounded-xl border border-neutral-light bg-white p-5">
-        <div className="flex items-center justify-between gap-3 flex-col md:flex-row">
-          <button
-            type="button"
-            onClick={restoreDefaultsForCall}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-neutral-light text-neutral hover:bg-neutral-50 w-full md:w-auto"
-          >
-            <RotateCcw size={16} />
-            Restaurar padrão do edital
-          </button>
-
-          <button
-            type="button"
-            onClick={saveWorkflow}
-            className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:opacity-90 w-full md:w-auto"
-          >
-            <Save size={16} />
-            Salvar workflow do edital
-          </button>
         </div>
       </section>
     </div>

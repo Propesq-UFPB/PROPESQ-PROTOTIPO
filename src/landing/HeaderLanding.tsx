@@ -24,14 +24,6 @@ const SYSTEMS: SystemItem[] = [
   },
 ]
 
-// Menu principal (desktop) — por enquanto só as seções da home
-const MAIN_MENU = [
-  { label: "Institucional", id: "about" },
-  { label: "Notícias", id: "news" },
-  { label: "Publicações", id: "publications" },
-  { label: "Contato", id: "contact" },
-] as const
-
 export default function HeaderLanding() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -117,7 +109,7 @@ export default function HeaderLanding() {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
-      {/* TOPBAR: só as “linhas” pequenas à direita */}
+      {/* TOPBAR */}
       <div className="border-b border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-6 h-11 flex items-center justify-end gap-6 text-xs text-slate-600">
           {topbarLinks.map((l) => (
@@ -146,52 +138,33 @@ export default function HeaderLanding() {
           <img src={logo} alt="PROPESQ" className="h-12 w-auto select-none" />
         </button>
 
-        {/* Desktop menu */}
-        <div className="hidden md:flex items-center gap-10">
-          <ul className="flex items-center gap-10 text-sm font-semibold text-slate-900">
-            {MAIN_MENU.map((item) => (
-              <li key={item.id}>
-                <button onClick={() => scrollToSection(item.id)} className="group relative py-2">
-                  {item.label}
-                  {/* underline animado (sem brilho) */}
-                  <span className="pointer-events-none absolute left-0 -bottom-1 h-[2px] w-full bg-blue-900 origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
-                </button>
-              </li>
-            ))}
-          </ul>
+        {/* Desktop */}
+        <div className="hidden md:flex items-center gap-3">
+          <Link
+            to="/publisher/login"
+            className={`
+              ${btnBase}
+              border border-blue-900 text-blue-900 bg-white
+              hover:bg-slate-50 hover:-translate-y-[1px]
+            `}
+            aria-label="Publicar notícias"
+          >
+            Publicar notícias
+            <span className={`${underline} bg-blue-900`} />
+          </Link>
 
-          {/* AÇÕES: diferenciar claramente */}
-          <div className="flex items-center gap-3">
-            {/* Publicar notícias (painel de publicações) - outline */}
-            <Link
-              to="/publisher/login"
-              className={`
-                ${btnBase}
-                border border-blue-900 text-blue-900 bg-white
-                hover:bg-slate-50 hover:-translate-y-[1px]
-              `}
-              aria-label="Acessar painel de publicações (notícias)"
-              title="Painel de publicações de notícias"
-            >
-              Publicar notícias
-              <span className={`${underline} bg-blue-900`} />
-            </Link>
-
-            {/* Entrar no sistema (SIG interno) - primário */}
-            <Link
-              to="/login"
-              className={`
-                ${btnBase}
-                bg-blue-900 text-white border border-blue-900
-                hover:-translate-y-[1px]
-              `}
-              aria-label="Entrar no sistema"
-              title="Entrar no sistema"
-            >
-              Entrar
-              <span className={`${underline} bg-white`} />
-            </Link>
-          </div>
+          <Link
+            to="/login"
+            className={`
+              ${btnBase}
+              bg-blue-900 text-white border border-blue-900
+              hover:-translate-y-[1px]
+            `}
+            aria-label="Entrar"
+          >
+            Entrar
+            <span className={`${underline} bg-white`} />
+          </Link>
         </div>
 
         {/* Mobile: botões + menu */}
@@ -236,7 +209,7 @@ export default function HeaderLanding() {
         </div>
       </nav>
 
-      {/* DRAWER (responsivo estilo CI) */}
+      {/* DRAWER*/}
       {drawerOpen && (
         <div className="fixed inset-0 z-[60]">
           {/* overlay */}
@@ -330,7 +303,7 @@ export default function HeaderLanding() {
                 )
               })}
 
-              {/* ações no drawer: separar bem */}
+              {/* ações no drawer*/}
               <div className="mt-6 grid grid-cols-1 gap-3">
                 <Link
                   to="/publisher/login"

@@ -10,7 +10,7 @@ import Systems from "./Systems"
 export default function LandingHome() {
   return (
     <>
-      <News />
+      {/*<News />*/}
       {/*<Proposals />*/}
       <Publications />
       {/*<Systems />*/}

@@ -1,5 +1,8 @@
 import React, { useMemo, useRef, useState } from "react"
+import { Helmet } from "react-helmet"
+import { Link } from "react-router-dom"
 import {
+  ArrowLeft,
   Upload,
   FileText,
   CalendarRange,
@@ -12,6 +15,8 @@ import {
   Eye,
   Clock,
   Tag,
+  BookOpen,
+  RotateCcw,
 } from "lucide-react"
 
 type Status = "DRAFT" | "PUBLISHED"
@@ -35,16 +40,16 @@ export default function CreateCall() {
 
   // ===== Form =====
   const [title, setTitle] = useState("")
-  const [code, setCode] = useState("") // ex.: EDITAL_01_2026
+  const [code, setCode] = useState("")
   const [baseYear, setBaseYear] = useState<string>(String(yearNow()))
   const [quotaStart, setQuotaStart] = useState<string>("")
   const [quotaEnd, setQuotaEnd] = useState<string>("")
   const [externalLink, setExternalLink] = useState<string>("")
 
-  // Metadados essenciais (mais estruturados)
+  // Metadados essenciais
   const [modality, setModality] = useState<string>("INICIACAO_CIENTIFICA")
-  const [funding, setFunding] = useState<string>("UFPB") // placeholder (pode virar select vindo de "Entidades & Bolsas")
-  const [tags, setTags] = useState<string>("") // texto; vira chips
+  const [funding, setFunding] = useState<string>("UFPB")
+  const [tags, setTags] = useState<string>("")
   const [notes, setNotes] = useState<string>("")
 
   // Status
@@ -61,11 +66,14 @@ export default function CreateCall() {
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean)
-    // remove duplicatas
+
     const seen = new Set<string>()
+
     return parts.filter((p) => {
       const k = normalize(p)
+
       if (seen.has(k)) return false
+
       seen.add(k)
       return true
     })
@@ -79,16 +87,17 @@ export default function CreateCall() {
 
   const requiredErrors = useMemo(() => {
     const errs: string[] = []
+
     if (!title.trim()) errs.push("Informe o título do edital.")
     if (!baseYear.trim()) errs.push("Informe o ano-base.")
-    if (!quotaStart || !quotaEnd) errs.push("Informe o período de vigência da cota (início e fim).")
+    if (!quotaStart || !quotaEnd) errs.push("Informe o período de vigência da cota.")
     if (dateError) errs.push(dateError)
     if (!file) errs.push("Faça upload do PDF do edital.")
+
     return errs
   }, [title, baseYear, quotaStart, quotaEnd, dateError, file])
 
   const canSaveDraft = useMemo(() => {
-    // rascunho pode existir com menos dados, mas exige pelo menos título
     return !!title.trim()
   }, [title])
 
@@ -97,54 +106,77 @@ export default function CreateCall() {
   // ===== Handlers =====
   function onPickFile(f?: File | null) {
     setFileError("")
+
     if (!f) {
       setFile(null)
       return
     }
+
     if (f.type !== "application/pdf") {
       setFile(null)
       setFileError("Formato inválido. Envie um arquivo PDF.")
       return
     }
-    // Limite simples (ajuste conforme sua regra)
+
     const maxMb = 25
     const mb = f.size / (1024 * 1024)
+
     if (mb > maxMb) {
       setFile(null)
       setFileError(`Arquivo muito grande (${Math.round(mb)}MB). Limite: ${maxMb}MB.`)
       return
     }
+
     setFile(f)
   }
 
   function removeFile() {
     setFile(null)
     setFileError("")
+
     if (inputRef.current) inputRef.current.value = ""
   }
 
   function autoCodeFromTitle() {
     const y = baseYear?.trim() || String(yearNow())
+
     const clean = title
       .trim()
       .toUpperCase()
       .replace(/[^\p{L}\p{N}]+/gu, "_")
       .replace(/_+/g, "_")
       .replace(/^_+|_+$/g, "")
+
     setCode(`${clean}_${y}`.slice(0, 40))
   }
 
   function saveDraft() {
     setStatus("DRAFT")
+
     // TODO: integrar com API
-    // payload: {title, code, baseYear, quotaStart, quotaEnd, modality, funding, tagsList, notes, externalLink, status: 'DRAFT', file}
+    // payload: {
+    //   title,
+    //   code,
+    //   baseYear,
+    //   quotaStart,
+    //   quotaEnd,
+    //   modality,
+    //   funding,
+    //   tagsList,
+    //   notes,
+    //   externalLink,
+    //   status: "DRAFT",
+    //   file,
+    // }
+
     alert("Rascunho salvo (placeholder).")
   }
 
   function publish() {
-    // validação final
     if (!canPublish) return
+
     setStatus("PUBLISHED")
+
     // TODO: integrar com API
     alert("Edital publicado (placeholder).")
   }
@@ -152,7 +184,9 @@ export default function CreateCall() {
   function resetForm() {
     setFile(null)
     setFileError("")
+
     if (inputRef.current) inputRef.current.value = ""
+
     setTitle("")
     setCode("")
     setBaseYear(String(yearNow()))
@@ -168,12 +202,51 @@ export default function CreateCall() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-xl font-bold text-primary">Criar Edital</h1>
-        <p className="text-sm text-neutral">
-          Registre o edital com upload do PDF e metadados essenciais (Ano-base e vigência da cota).
-        </p>
-      </header>
+      <Helmet>
+        <title>Criar Edital • PROPESQ</title>
+      </Helmet>
+
+      {/* ===== Header ===== */}
+      <div className="rounded-2xl border border-neutral-light bg-white p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 text-primary px-3 py-1 text-xs font-semibold border border-blue-100">
+              <BookOpen size={14} />
+              Editais
+            </span>
+
+            <div>
+              <h1 className="text-2xl font-bold text-primary">Criar Edital</h1>
+              <p className="text-sm text-neutral mt-1 max-w-2xl">
+                Registre um novo edital, envie o PDF oficial e informe os metadados essenciais
+                para controle de cotas, vigência, publicação e acompanhamento administrativo.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={resetForm}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border border-neutral-light text-primary hover:bg-neutral-50 transition-colors"
+            >
+              <RotateCcw size={16} />
+              Limpar
+            </button>
+
+            <button
+              type="button"
+              onClick={saveDraft}
+              disabled={!canSaveDraft}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white transition-colors
+                ${!canSaveDraft ? "bg-primary/40 cursor-not-allowed" : "bg-primary hover:opacity-90"}`}
+            >
+              <Save size={16} />
+              Salvar
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* ===== Progresso / Estado ===== */}
       <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-3">
@@ -201,14 +274,17 @@ export default function CreateCall() {
             <p className="text-xs text-neutral">PDF</p>
             <p className="text-sm font-semibold text-primary">{file ? "OK" : "Pendente"}</p>
           </div>
+
           <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4">
             <p className="text-xs text-neutral">Título</p>
             <p className="text-sm font-semibold text-primary">{title.trim() ? "OK" : "Pendente"}</p>
           </div>
+
           <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4">
             <p className="text-xs text-neutral">Ano-base</p>
             <p className="text-sm font-semibold text-primary">{baseYear.trim() ? "OK" : "Pendente"}</p>
           </div>
+
           <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4">
             <p className="text-xs text-neutral">Vigência</p>
             <p className="text-sm font-semibold text-primary">
@@ -221,15 +297,18 @@ export default function CreateCall() {
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
             <div className="flex items-start gap-2">
               <AlertTriangle size={16} className="mt-0.5 text-amber-700" />
+
               <div>
                 <p className="text-sm font-semibold text-amber-900">Pendências para publicar</p>
+
                 <ul className="list-disc list-inside text-sm text-amber-900/90 mt-1 space-y-1">
                   {requiredErrors.slice(0, 6).map((e) => (
                     <li key={e}>{e}</li>
                   ))}
                 </ul>
+
                 <p className="text-xs text-amber-900/80 mt-2">
-                  Você pode salvar rascunho mesmo com pendências (mínimo: título).
+                  Você pode salvar rascunho mesmo com pendências. Para isso, informe pelo menos o título.
                 </p>
               </div>
             </div>
@@ -260,14 +339,14 @@ export default function CreateCall() {
                   <div className="p-2 rounded-lg bg-neutral-light/60">
                     <FileText size={18} />
                   </div>
+
                   <div>
                     <p className="font-medium text-primary">
                       {file ? "PDF selecionado" : "Clique para selecionar o PDF"}
                     </p>
+
                     <p className="text-xs text-neutral mt-1">
-                      {file
-                        ? `${fileName} • ${fileSizeMb}MB`
-                        : "Somente PDF • limite sugerido: 25MB"}
+                      {file ? `${fileName} • ${fileSizeMb}MB` : "Somente PDF • limite sugerido: 25MB"}
                     </p>
                   </div>
                 </div>
@@ -312,6 +391,7 @@ export default function CreateCall() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <label className="text-sm">
               <span className="block text-xs text-neutral mb-1">Título do edital *</span>
+
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -321,7 +401,8 @@ export default function CreateCall() {
             </label>
 
             <label className="text-sm">
-              <span className="block text-xs text-neutral mb-1">Código interno (opcional)</span>
+              <span className="block text-xs text-neutral mb-1">Código interno opcional</span>
+
               <div className="flex gap-2">
                 <input
                   value={code}
@@ -329,6 +410,7 @@ export default function CreateCall() {
                   className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
                   placeholder="Ex.: EDITAL_PIBIC_2026"
                 />
+
                 <button
                   type="button"
                   onClick={autoCodeFromTitle}
@@ -337,13 +419,15 @@ export default function CreateCall() {
                   Gerar
                 </button>
               </div>
+
               <p className="text-[11px] text-neutral mt-1">
-                Útil para integração/relatórios. Você pode deixar em branco.
+                Útil para integração e relatórios. Você pode deixar em branco.
               </p>
             </label>
 
             <label className="text-sm">
               <span className="block text-xs text-neutral mb-1">Ano-base *</span>
+
               <input
                 value={baseYear}
                 onChange={(e) => setBaseYear(e.target.value)}
@@ -351,11 +435,13 @@ export default function CreateCall() {
                 className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="Ex.: 2026"
               />
+
               <p className="text-[11px] text-neutral mt-1">Ano de referência para cotas e relatórios.</p>
             </label>
 
             <label className="text-sm">
               <span className="block text-xs text-neutral mb-1">Modalidade</span>
+
               <select
                 value={modality}
                 onChange={(e) => setModality(e.target.value)}
@@ -370,20 +456,26 @@ export default function CreateCall() {
             </label>
 
             <label className="text-sm">
-              <span className="block text-xs text-neutral mb-1">Fonte/Programa (opcional)</span>
+              <span className="block text-xs text-neutral mb-1">Fonte/Programa opcional</span>
+
               <input
                 value={funding}
                 onChange={(e) => setFunding(e.target.value)}
                 className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="Ex.: PROPESQ / UFPB"
               />
-              {/*Nota: Idealmente é pra ser um select integrado a “Entidades & Tipos de Bolsa”.*/}
+
+              <p className="text-[11px] text-neutral mt-1">
+                Futuramente pode virar um select integrado a entidades e tipos de bolsa.
+              </p>
             </label>
 
             <label className="text-sm">
-              <span className="block text-xs text-neutral mb-1">Link externo (opcional)</span>
+              <span className="block text-xs text-neutral mb-1">Link externo opcional</span>
+
               <div className="relative">
                 <LinkIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral" />
+
                 <input
                   value={externalLink}
                   onChange={(e) => setExternalLink(e.target.value)}
@@ -394,13 +486,15 @@ export default function CreateCall() {
             </label>
 
             <label className="text-sm md:col-span-2">
-              <span className="block text-xs text-neutral mb-1">Tags (opcional)</span>
+              <span className="block text-xs text-neutral mb-1">Tags opcionais</span>
+
               <input
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
                 className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder="Ex.: PIBIC, IC, UFPB, 2026 (separe por vírgula)"
+                placeholder="Ex.: PIBIC, IC, UFPB, 2026"
               />
+
               {tagsList.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {tagsList.map((t) => (
@@ -416,7 +510,8 @@ export default function CreateCall() {
             </label>
 
             <label className="text-sm md:col-span-2">
-              <span className="block text-xs text-neutral mb-1">Observações internas (opcional)</span>
+              <span className="block text-xs text-neutral mb-1">Observações internas opcionais</span>
+
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -437,6 +532,7 @@ export default function CreateCall() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <label className="text-sm">
               <span className="block text-xs text-neutral mb-1">Início *</span>
+
               <input
                 type="date"
                 value={quotaStart}
@@ -444,8 +540,10 @@ export default function CreateCall() {
                 className="w-full border border-neutral-light rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
               />
             </label>
+
             <label className="text-sm">
               <span className="block text-xs text-neutral mb-1">Fim *</span>
+
               <input
                 type="date"
                 value={quotaEnd}
@@ -459,8 +557,10 @@ export default function CreateCall() {
 
           <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 flex gap-2">
             <Info size={16} className="mt-0.5 text-neutral" />
+
             <p className="text-xs text-neutral">
-              A vigência da cota é usada para controlar períodos de indicação/implementação de bolsas e relatórios do edital.
+              A vigência da cota é usada para controlar períodos de indicação, implementação de bolsas
+              e relatórios do edital.
             </p>
           </div>
         </div>

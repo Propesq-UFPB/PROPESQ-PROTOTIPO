@@ -1,5 +1,8 @@
 import React, { useMemo, useState } from "react"
+import { Helmet } from "react-helmet"
+import { Link } from "react-router-dom"
 import {
+  ArrowLeft,
   FileCheck,
   Search,
   BookOpen,
@@ -315,12 +318,49 @@ export default function ReportValidation() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-xl font-bold text-primary">Validação de Relatórios</h1>
-        <p className="text-sm text-neutral">
-          Relatórios são vinculados a projetos — um projeto pode ter vários relatórios. Use a lista por projeto para revisar, validar ou rejeitar.
-        </p>
-      </header>
+      <Helmet>
+        <title>Validação de Relatórios • PROPESQ</title>
+      </Helmet>
+
+      <Link
+        to="/adm/monitoring/replacements"
+        className="inline-flex items-center gap-2 rounded-full border border-neutral-light bg-white px-4 py-2 text-sm text-primary hover:bg-neutral-50 transition-colors w-fit"
+      >
+        <ArrowLeft size={16} />
+        Voltar para substituições
+      </Link>
+
+      <div className="rounded-2xl border border-neutral-light bg-white p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 text-primary px-3 py-1 text-xs font-semibold border border-blue-100">
+              <FileCheck size={14} />
+              Relatórios
+            </span>
+
+            <div>
+              <h1 className="text-2xl font-bold text-primary">Validação de Relatórios</h1>
+              <p className="text-sm text-neutral mt-1 max-w-2xl">
+                Relatórios são vinculados a projetos — um projeto pode ter vários relatórios. Use a lista por
+                projeto para revisar, validar ou rejeitar.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={validateBatch}
+              disabled={!selectedPendingOnly}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white transition-colors
+                ${!selectedPendingOnly ? "bg-primary/40 cursor-not-allowed" : "bg-primary hover:opacity-90"}
+              `}
+            >
+              <FileCheck size={16} />
+              Validar em lote
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Contexto do edital + KPIs */}
       <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-4">
@@ -388,22 +428,7 @@ export default function ReportValidation() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* LISTA (por projeto) */}
         <div className="lg:col-span-7">
-          <Section
-            title="Relatórios por Projeto"
-            icon={<FolderOpen size={18} />}
-            right={
-              <button
-                onClick={validateBatch}
-                disabled={!selectedPendingOnly}
-                className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white
-                  ${!selectedPendingOnly ? "bg-primary/40 cursor-not-allowed" : "bg-primary hover:opacity-90"}
-                `}
-              >
-                <FileCheck size={16} />
-                Validar em lote
-              </button>
-            }
-          >
+          <Section title="Relatórios por Projeto" icon={<FolderOpen size={18} />}>
             <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between mb-4">
               <div className="relative w-full md:max-w-md">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral" />
@@ -667,8 +692,6 @@ export default function ReportValidation() {
                         )
                       })}
                   </div>
-
-                  {/* Recomendação: manter logs (append-only), versão do arquivo, e permitir comentários do administrador/orientador */}
                 </div>
               </div>
             )}

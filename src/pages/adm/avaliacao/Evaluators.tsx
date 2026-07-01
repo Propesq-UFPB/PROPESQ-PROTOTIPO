@@ -17,6 +17,7 @@ import {
   Users,
   UserX,
 } from "lucide-react"
+import { Helmet } from "react-helmet"
 
 type Call = {
   id: string
@@ -543,6 +544,9 @@ PROPESQ`
 
   return (
     <div className="min-h-screen bg-neutral-light">
+      <Helmet>
+        <title>Avaliadores • PROPESQ</title>
+      </Helmet>
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="space-y-6">
           <header className="rounded-3xl border border-neutral-light bg-white p-6 shadow-sm">
@@ -556,16 +560,6 @@ PROPESQ`
                   Consulte, acompanhe e organize o banco de avaliadores internos,
                   externos, voluntários e consultores vinculados à PROPESQ.
                 </p>
-              </div>
-
-              <div className="flex flex-col gap-2 sm:flex-row lg:items-center">
-                <Link
-                  to="/adm/avaliacao/distribuicao"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-light bg-white px-4 py-2.5 text-sm font-semibold text-neutral transition hover:border-primary/30 hover:text-primary"
-                >
-                  <ClipboardList size={16} />
-                  Ir para Distribuição
-                </Link>
               </div>
             </div>
 

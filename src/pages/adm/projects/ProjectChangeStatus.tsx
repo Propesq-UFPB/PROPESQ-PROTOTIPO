@@ -7,8 +7,10 @@ import {
   Check,
   ChevronDown,
   Clock,
+  FileText,
   FolderKanban,
   History,
+  MessagesSquare,
   Search,
   ShieldCheck,
 } from "lucide-react"
@@ -87,11 +89,9 @@ const STATUS_OPTIONS: StatusOption[] = [
   { key: "AGUARDANDO_VALIDACAO", label: "Aguardando validação", phase: "CADASTRO", description: "Aguardando conferência/validação administrativa." },
   { key: "VALIDADO", label: "Validado", phase: "CADASTRO", description: "Cadastro conferido e aceito." },
   { key: "NAO_VALIDADO", label: "Não validado", phase: "CADASTRO", description: "Cadastro recusado/necessita correções." },
-  // CADASTRO (adicione junto dos outros)
-{ key: "CADASTRO_EM_ANDAMENTO", label: "Cadastro em andamento", phase: "CADASTRO", description: "Projeto em preenchimento/rascunho." },
-{ key: "NECESSITA_CORRECAO", label: "Necessita correção", phase: "CADASTRO", description: "Cadastro devolvido ao proponente para ajustes." },
-{ key: "CADASTRADO", label: "Cadastrado", phase: "CADASTRO", description: "Cadastro concluído (ainda pode não estar validado)." },
-
+  { key: "CADASTRO_EM_ANDAMENTO", label: "Cadastro em andamento", phase: "CADASTRO", description: "Projeto em preenchimento/rascunho." },
+  { key: "NECESSITA_CORRECAO", label: "Necessita correção", phase: "CADASTRO", description: "Cadastro devolvido ao proponente para ajustes." },
+  { key: "CADASTRADO", label: "Cadastrado", phase: "CADASTRO", description: "Cadastro concluído (ainda pode não estar validado)." },
 
   // AVALIAÇÃO
   { key: "DIST_AUTOMATICA", label: "Distribuído para avaliação automática", phase: "AVALIACAO", description: "Entrou na fila/execução da avaliação automática." },
@@ -329,46 +329,67 @@ export default function ProjectChangeStatus() {
   return (
     <div className="min-h-screen bg-neutral-light">
       <Helmet>
-        <title>Alterar Situação • Projetos • PROPESQ</title>
+        <title>Alterar Situação Projetos • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
-        {/* Top */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <button
-              onClick={() => nav(-1)}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
-            >
-              <ArrowLeft size={16} />
-              Voltar
-            </button>
+      <div className="mx-auto max-w-7xl px-6 py-6">
 
-            <h1 className="mt-3 text-xl font-bold text-primary">Alterar Situação do Projeto</h1>
-            <p className="text-sm text-neutral mt-1">
-              Mude apenas a situação/estado. Edição de dados do projeto deve ocorrer na página de edição.
-            </p>
+        {/* Botão voltar  */}
+        <div className="mb-4">
+          <Link
+            to="/adm/projetos"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <ArrowLeft size={16} />
+            Voltar para projetos
+          </Link>
+        </div>
+
+        {/* Header */}
+        <div className="rounded-3xl border border-neutral-light bg-white px-8 py-7 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+            <MessagesSquare size={14} />
+            Atualiação
           </div>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex-1">
 
-          {project && (
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <Link
-                to={`/adm/projetos/${project.id}`}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
-              >
-                <FolderKanban size={16} />
-                Ver projeto
-              </Link>
+              <h1 className="mt-3 text-[28px] leading-tight font-bold tracking-tight text-primary">
+                Atualizar projeto
+              </h1>
 
-              <span className={cx("px-3 py-1 rounded-full text-xs font-semibold", statusPillClass(currentLabel))}>
-                {currentLabel}
-              </span>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                Atualize a situação do projeto, revise as informações e registre,
+                quando necessário, uma observação para manter o histórico das
+                alterações realizadas.
+              </p>
             </div>
-          )}
+
+            {project && (
+              <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                <Link
+                  to={`/adm/projetos/${project.id}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-primary transition hover:bg-slate-50"
+                >
+                  <FolderKanban size={16} />
+                  Ver projeto
+                </Link>
+
+                <span
+                  className={cx(
+                    "rounded-full px-4 py-2 text-xs font-bold",
+                    statusPillClass(currentLabel)
+                  )}
+                >
+                  {currentLabel}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Busca de projeto */}
-        <div className="rounded-2xl border border-neutral-light bg-white shadow-card overflow-hidden">
+        <div className="rounded-2xl border border-neutral-light bg-white shadow-card overflow-hidden mb-6">
           <button
             type="button"
             onClick={() => setSearchOpen((v) => !v)}
@@ -426,7 +447,7 @@ export default function ProjectChangeStatus() {
                                   </p>
                                 </div>
                                 <span className={cx("shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold", statusPillClass(p.status))}>
-                                  {STATUS_OPTIONS.find((o) => o.key === (normalize(p.status || "").includes("aprov") ? "APROVADO" : ""))?.label || (p.status || "—")}
+                                  {p.status || "—"}
                                 </span>
                               </div>
                             </button>
@@ -459,7 +480,7 @@ export default function ProjectChangeStatus() {
         {!project ? (
           <div className="rounded-2xl border border-neutral-light bg-white shadow-card p-10 text-center">
             <p className="text-base text-neutral">Selecione um projeto para alterar a situação.</p>
-            <p className="text-sm text-neutral/70 mt-1">Use a seção “Busca de projeto”.</p>
+            <p className="text-sm text-neutral/70 mt-1">Use a seção "Busca de projeto".</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

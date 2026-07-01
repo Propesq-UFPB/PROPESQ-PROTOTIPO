@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet"
 import React from "react"
 import { Link } from "react-router-dom"
 import {
@@ -161,6 +162,9 @@ export default function AdminIPIReport() {
 
   return (
     <div className="min-h-screen bg-neutral-light">
+      <Helmet>
+        <title>Relatório de IPI • PROPESQ</title>
+      </Helmet>
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <Link
           to="/adm/avaliacao/avaliadores"

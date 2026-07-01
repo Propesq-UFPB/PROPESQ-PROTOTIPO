@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { useMemo, useState, type ReactNode } from "react"
 import { Link } from "react-router-dom"
+import { Helmet } from "react-helmet"
 
 type ProjectStatus =
   | "SUBMETIDO"
@@ -894,9 +895,12 @@ export default function AdminEvaluationDistribution() {
 
   return (
     <div className="min-h-screen bg-neutral-light">
+
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="space-y-6">
-
+        <Helmet>
+          <title>Distribuição de Avaliações • PROPESQ</title>
+        </Helmet>
         <div className="flex items-center justify-between">
           <Link
             to="/adm/avaliacao/avaliadores"
@@ -1321,7 +1325,7 @@ function PageHeader({
 
           <div>
 
-            <h1 className="text-2xl font-bold text-neutral-dark">
+            <h1 className="text-2xl font-bold text-primary">
               Distribuição de Projetos para Avaliação
             </h1>
 
@@ -1399,7 +1403,7 @@ function SectionTitle({
       </div>
 
       <div>
-        <h2 className="text-base font-semibold text-neutral-dark">{title}</h2>
+        <h2 className="text-base font-semibold text-primary">{title}</h2>
         {subtitle ? <p className="mt-1 text-sm text-neutral">{subtitle}</p> : null}
       </div>
     </div>

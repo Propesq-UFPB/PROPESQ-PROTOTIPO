@@ -14,7 +14,10 @@ import {
   RefreshCcw,
   Copy,
   History,
+  ArrowLeft,
 } from "lucide-react"
+import { Helmet } from "react-helmet"
+import { Link } from "react-router-dom"
 
 type Call = { id: string; title: string; baseYear: number }
 type Project = { id: string; callId: string; title: string; center?: string }
@@ -446,37 +449,57 @@ export default function AdmCertificates() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-xl font-bold text-primary">Certificados</h1>
-        <p className="text-sm text-neutral">
-          Gere PDFs com QR Code de autenticidade para participantes por{" "}
-          <span className="font-semibold text-primary">projeto</span> (opcional filtrar) e valide tokens.
-        </p>
-      </header>
+      <Helmet>
+        <title>Certificados • PROPESQ</title>
+      </Helmet>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setMode("pdf")}
-          className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors
-            ${mode === "pdf" ? "bg-primary text-white border-primary" : "bg-white text-primary border-primary"}
-          `}
-        >
-          <span className="inline-flex items-center gap-2">
-            <FileText size={16} /> Gerar PDFs
-          </span>
-        </button>
+      <Link
+        to="/adm/monitoring/replacements"
+        className="inline-flex items-center gap-2 rounded-full border border-neutral-light bg-white px-4 py-2 text-sm  text-primary hover:bg-neutral-50 transition-colors w-fit"
+      >
+        <ArrowLeft size={16} />
+        Voltar para substituições
+      </Link>
 
-        <button
-          onClick={() => setMode("qr")}
-          className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors
-            ${mode === "qr" ? "bg-primary text-white border-primary" : "bg-white text-primary border-primary"}
-          `}
-        >
-          <span className="inline-flex items-center gap-2">
-            <QrCode size={16} /> Verificar QR
-          </span>
-        </button>
+      <div className="rounded-2xl border border-neutral-light bg-white p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 text-primary px-3 py-1 text-xs font-semibold border border-blue-100">
+              <BadgeCheck size={14} />
+              Certificados
+            </span>
+
+            <div>
+              <h1 className="text-2xl font-bold text-primary">Certificados</h1>
+              <p className="text-sm text-neutral mt-1 max-w-2xl">
+                Gere PDFs com QR Code de autenticidade para participantes por{" "}
+                <span className="font-semibold text-primary">projeto</span> (filtro opcional) e valide tokens.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => setMode("qr")}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-colors
+                ${mode === "qr" ? "bg-primary text-white border-primary" : "bg-white text-primary border-neutral-light hover:bg-neutral-50"}
+              `}
+            >
+              <RefreshCcw size={16} />
+              Verificar QR
+            </button>
+
+            <button
+              onClick={() => setMode("pdf")}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors
+                ${mode === "pdf" ? "bg-primary text-white" : "bg-white text-primary border border-neutral-light hover:bg-neutral-50"}
+              `}
+            >
+              <FileText size={16} />
+              Gerar PDFs
+            </button>
+          </div>
+        </div>
       </div>
 
       {mode === "pdf" ? (

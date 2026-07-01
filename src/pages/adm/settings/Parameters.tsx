@@ -1,5 +1,16 @@
 import React, { useMemo, useState } from "react"
-import { Save, RotateCcw, Info } from "lucide-react"
+import { Helmet } from "react-helmet"
+import { Link } from "react-router-dom"
+import {
+  ArrowLeft,
+  Save,
+  RotateCcw,
+  Info,
+  Settings,
+  SlidersHorizontal,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react"
 
 type Params = {
   // 1) tolerância após prazo do edital
@@ -38,10 +49,12 @@ type Params = {
 
 function clampInt(v: number, min: number, max: number) {
   if (Number.isNaN(v)) return min
+
   return Math.min(max, Math.max(min, Math.trunc(v)))
 }
+
 function isEmailValid(email: string) {
-  // validação simples (para UI); backend deve validar também
+  // validação simples para UI; backend deve validar também
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
 }
 
@@ -60,7 +73,7 @@ const DEFAULTS: Params = {
 }
 
 export default function AdmResearchModuleParameters() {
-  // ✅ Depois: trocar por fetch/GET
+  // Depois: trocar por fetch/GET
   const [initial] = useState<Params>(DEFAULTS)
   const [form, setForm] = useState<Params>(DEFAULTS)
   const [saving, setSaving] = useState(false)
@@ -71,21 +84,41 @@ export default function AdmResearchModuleParameters() {
   const errors = useMemo(() => {
     const e: Partial<Record<keyof Params, string>> = {}
 
-    if (form.lateSubmissionToleranceDays < 0) e.lateSubmissionToleranceDays = "Não pode ser negativo."
-    if (form.maxRenewalsPerProject < 0) e.maxRenewalsPerProject = "Não pode ser negativo."
-    if (form.maxProjectDurationMonths <= 0) e.maxProjectDurationMonths = "Deve ser maior que zero."
-    if (form.maxQuotaRequestsPerProject <= 0) e.maxQuotaRequestsPerProject = "Deve ser maior que zero."
-    if (form.maxWorkPlansPerAdvisor <= 0) e.maxWorkPlansPerAdvisor = "Deve ser maior que zero."
-    if (form.scholarshipChangeCutoffDay < 1 || form.scholarshipChangeCutoffDay > 31)
+    if (form.lateSubmissionToleranceDays < 0) {
+      e.lateSubmissionToleranceDays = "Não pode ser negativo."
+    }
+
+    if (form.maxRenewalsPerProject < 0) {
+      e.maxRenewalsPerProject = "Não pode ser negativo."
+    }
+
+    if (form.maxProjectDurationMonths <= 0) {
+      e.maxProjectDurationMonths = "Deve ser maior que zero."
+    }
+
+    if (form.maxQuotaRequestsPerProject <= 0) {
+      e.maxQuotaRequestsPerProject = "Deve ser maior que zero."
+    }
+
+    if (form.maxWorkPlansPerAdvisor <= 0) {
+      e.maxWorkPlansPerAdvisor = "Deve ser maior que zero."
+    }
+
+    if (form.scholarshipChangeCutoffDay < 1 || form.scholarshipChangeCutoffDay > 31) {
       e.scholarshipChangeCutoffDay = "Use um dia entre 1 e 31."
+    }
 
-    if (form.emailScholarshipChanges.trim() && !isEmailValid(form.emailScholarshipChanges))
+    if (form.emailScholarshipChanges.trim() && !isEmailValid(form.emailScholarshipChanges)) {
       e.emailScholarshipChanges = "Email inválido."
+    }
 
-    if (form.emailInventionNotifications.trim() && !isEmailValid(form.emailInventionNotifications))
+    if (form.emailInventionNotifications.trim() && !isEmailValid(form.emailInventionNotifications)) {
       e.emailInventionNotifications = "Email inválido."
+    }
 
-    if (form.enicSummariesPerReviewer <= 0) e.enicSummariesPerReviewer = "Deve ser maior que zero."
+    if (form.enicSummariesPerReviewer <= 0) {
+      e.enicSummariesPerReviewer = "Deve ser maior que zero."
+    }
 
     return e
   }, [form])
@@ -94,7 +127,9 @@ export default function AdmResearchModuleParameters() {
 
   async function onSave() {
     if (hasErrors) return
+
     setSaving(true)
+
     try {
       // trocar por POST/PUT
       await new Promise((r) => setTimeout(r, 450))
@@ -111,63 +146,110 @@ export default function AdmResearchModuleParameters() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-      <header className="flex flex-col gap-2">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-xl font-bold text-primary">Parâmetros do Módulo de Pesquisa</h1>
-            <p className="text-sm text-neutral">
-              Defina regras globais que afetam submissões, projetos, bolsas, relatórios e distribuição do ENIC.
-            </p>
+      <Helmet>
+        <title>Parâmetros do Módulo de Pesquisa • PROPESQ</title>
+      </Helmet>
+
+      <Link
+        to="/adm/settings/scholarships"
+        className="inline-flex items-center gap-2 rounded-full border border-neutral-light bg-white px-4 py-2 text-sm text-primary hover:bg-neutral-50 transition-colors w-fit"
+      >
+        <ArrowLeft size={16} />
+        Voltar para bolsas
+      </Link>
+
+      {/* ===== Header no mesmo estilo das outras páginas ===== */}
+      <div className="rounded-2xl border border-neutral-light bg-white p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 text-primary px-3 py-1 text-xs font-semibold border border-blue-100">
+              <SlidersHorizontal size={14} />
+              Configurações
+            </span>
+
+            <div>
+              <h1 className="text-2xl font-bold text-primary">Parâmetros do Módulo de Pesquisa</h1>
+
+              <p className="text-sm text-neutral mt-1 max-w-2xl">
+                Defina regras globais que afetam submissões, projetos, bolsas, relatórios,
+                notificações e distribuição de resumos do ENIC.
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2 shrink-0">
             <button
+              type="button"
               onClick={onReset}
               disabled={!dirty || saving}
-              className="
-                inline-flex items-center gap-2
-                px-3 py-2 rounded-lg border border-neutral-light
-                text-sm font-semibold text-neutral
-                hover:bg-neutral-light
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border border-neutral-light text-primary hover:bg-neutral-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RotateCcw size={16} />
               Restaurar
             </button>
 
             <button
+              type="button"
               onClick={onSave}
               disabled={!dirty || hasErrors || saving}
-              className="
-                inline-flex items-center gap-2
-                px-3 py-2 rounded-lg
-                text-sm font-semibold
-                bg-primary text-white
-                hover:opacity-90
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white bg-primary hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={16} />
               {saving ? "Salvando..." : "Salvar"}
             </button>
           </div>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2 text-xs text-neutral">
-          <Info size={14} />
-          <span>
+      {/* ===== Status ===== */}
+      <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-4">
+        <div className="flex items-start justify-between gap-3 flex-col md:flex-row md:items-center">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Settings size={18} />
+              <h2 className="text-sm font-semibold text-primary">Status das configurações</h2>
+            </div>
+
+            <p className="text-sm text-neutral">
+              Acompanhe se existem alterações pendentes ou erros de preenchimento antes de salvar.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {hasErrors ? (
+              <span className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                <AlertTriangle size={14} />
+                Corrigir campos
+              </span>
+            ) : dirty ? (
+              <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+                <AlertTriangle size={14} />
+                Alterações não salvas
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                <CheckCircle2 size={14} />
+                Sem alterações
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 flex gap-2">
+          <Info size={16} className="mt-0.5 text-neutral" />
+
+          <p className="text-xs text-neutral">
             {hasErrors
               ? "Corrija os campos marcados para salvar."
               : dirty
                 ? "Há alterações não salvas."
                 : "Sem alterações."}
             {savedAt ? ` • Último salvamento: ${savedAt.toLocaleString()}` : ""}
-          </span>
+          </p>
         </div>
-      </header>
+      </section>
 
-      {/* GRID */}
+      {/* ===== GRID ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* ====== BLOCO 1: Submissões e Projetos ====== */}
         <section className="bg-white border border-neutral-light rounded-2xl p-5 space-y-4 shadow-sm">
@@ -275,7 +357,7 @@ export default function AdmResearchModuleParameters() {
             max={100}
             onChange={(v) => setForm((p) => ({ ...p, enicSummariesPerReviewer: v }))}
             error={errors.enicSummariesPerReviewer}
-            hint="Quantos resumos cada avaliador recebe (distribuição automática)."
+            hint="Quantos resumos cada avaliador recebe na distribuição automática."
           />
         </section>
       </div>
@@ -299,6 +381,7 @@ function FieldNumber(props: {
   return (
     <div className="space-y-1.5">
       <label className="text-xs font-bold text-neutral">{label}</label>
+
       <input
         type="number"
         value={value}
@@ -306,11 +389,15 @@ function FieldNumber(props: {
         max={max}
         onChange={(e) => onChange(clampInt(Number(e.target.value), min, max))}
         className={`
-          w-full px-3 py-2 rounded-lg border text-sm
-          outline-none
-          ${error ? "border-red-400 focus:ring-2 focus:ring-red-200" : "border-neutral-light focus:ring-2 focus:ring-accent/30"}
+          w-full px-3 py-2 rounded-lg border text-sm outline-none
+          ${
+            error
+              ? "border-red-400 focus:ring-2 focus:ring-red-200"
+              : "border-neutral-light focus:ring-2 focus:ring-primary/20"
+          }
         `}
       />
+
       {hint && <p className="text-[11px] text-neutral">{hint}</p>}
       {error && <p className="text-[11px] text-red-500 font-semibold">{error}</p>}
     </div>
@@ -330,25 +417,35 @@ function FieldText(props: {
   return (
     <div className="space-y-1.5">
       <label className="text-xs font-bold text-neutral">{label}</label>
+
       <input
         type="email"
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         className={`
-          w-full px-3 py-2 rounded-lg border text-sm
-          outline-none
-          ${error ? "border-red-400 focus:ring-2 focus:ring-red-200" : "border-neutral-light focus:ring-2 focus:ring-accent/30"}
+          w-full px-3 py-2 rounded-lg border text-sm outline-none
+          ${
+            error
+              ? "border-red-400 focus:ring-2 focus:ring-red-200"
+              : "border-neutral-light focus:ring-2 focus:ring-primary/20"
+          }
         `}
       />
+
       {hint && <p className="text-[11px] text-neutral">{hint}</p>}
       {error && <p className="text-[11px] text-red-500 font-semibold">{error}</p>}
     </div>
   )
 }
 
-function FieldToggle(props: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+function FieldToggle(props: {
+  label: string
+  value: boolean
+  onChange: (v: boolean) => void
+}) {
   const { label, value, onChange } = props
+
   return (
     <div className="flex items-center justify-between gap-3 border border-neutral-light rounded-xl p-3">
       <p className="text-xs font-bold text-neutral">{label}</p>
@@ -359,7 +456,7 @@ function FieldToggle(props: { label: string; value: boolean; onChange: (v: boole
         className={`
           relative inline-flex h-7 w-12 items-center rounded-full transition-colors
           ${value ? "bg-primary" : "bg-neutral-light"}
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20
         `}
         aria-pressed={value}
       >

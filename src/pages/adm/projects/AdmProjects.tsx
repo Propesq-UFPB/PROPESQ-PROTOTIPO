@@ -549,25 +549,6 @@ export default function AdmProjects() {
       </Helmet>
 
       <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">
-        {/* Header */}
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-primary">Projetos</h1>
-            <p className="mt-1 text-sm text-neutral">
-              Painel administrativo para busca, acompanhamento e acesso às ações dos
-              projetos.
-            </p>
-          </div>
-
-          <div className="flex gap-2">
-            <Link
-              to="/adm/projetos/novo"
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-95"
-            >
-              Cadastrar projeto
-            </Link>
-          </div>
-        </div>
 
         {/* Busca */}
         <div className="rounded-2xl border border-neutral-light bg-white shadow-card">
@@ -940,7 +921,7 @@ export default function AdmProjects() {
           )}
         </div>
 
-        {/* Resultado / Tabela */}
+        {/* Resultado */}
         {filtered.length === 0 ? (
           <div className="py-16 text-center text-sm text-neutral">
             Nenhum projeto encontrado.
@@ -949,7 +930,7 @@ export default function AdmProjects() {
           <div className="space-y-3">
             <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
               <h2 className="text-sm font-semibold text-primary">
-                Resultado / Tabela{" "}
+                Resultado {" "}
                 <span className="text-neutral/70">({filtered.length})</span>
               </h2>
               <p className="text-[11px] leading-4 text-neutral/60">

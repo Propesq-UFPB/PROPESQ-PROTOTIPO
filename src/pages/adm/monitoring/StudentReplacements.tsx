@@ -1,5 +1,8 @@
 import React, { useMemo, useState } from "react"
+import { Helmet } from "react-helmet"
+import { Link } from "react-router-dom"
 import {
+  ArrowLeft,
   Users,
   Search,
   History,
@@ -413,15 +416,30 @@ export default function StudentReplacements() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-6 py-6">
-      <header className="space-y-1">
-        <h1 className="text-xl font-bold text-primary">
-          Substituições de Discentes
-        </h1>
-        <p className="text-sm text-neutral">
-          Página de visualização: acompanhe as trocas (discente antigo →
-          discente novo) e o histórico registrado.
-        </p>
-      </header>
+      <Helmet>
+        <title>Substituições de Discentes • PROPESQ</title>
+      </Helmet>
+
+      <div className="rounded-2xl border border-neutral-light bg-white p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-primary">
+              <ArrowRightLeft size={14} />
+              Substituições
+            </span>
+
+            <div>
+              <h1 className="text-2xl font-bold text-primary">
+                Substituições de Discentes
+              </h1>
+              <p className="mt-1 max-w-2xl text-sm text-neutral">
+                Página de visualização: acompanhe as trocas (discente antigo →
+                discente novo) e o histórico registrado.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <section className="space-y-4 rounded-xl border border-neutral-light bg-white p-5">
         <div className="flex items-center gap-2">

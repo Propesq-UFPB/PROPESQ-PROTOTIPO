@@ -1,5 +1,19 @@
 import React, { useMemo, useState } from "react"
-import { Users, Plus, Pencil, Trash2, X, Check, Search, Info, ShieldCheck } from "lucide-react"
+import { Helmet } from "react-helmet"
+import { Link } from "react-router-dom"
+import {
+  ArrowLeft,
+  Users,
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+  Check,
+  Search,
+  Info,
+  ShieldCheck,
+  Settings,
+} from "lucide-react"
 
 type Audience =
   | "DOCENTE"
@@ -29,6 +43,7 @@ const AUDIENCE_LABEL: Record<Audience, string> = {
 function uid(prefix = "ut") {
   return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`
 }
+
 function normalize(s: string) {
   return s.trim().toLowerCase()
 }
@@ -76,8 +91,11 @@ export default function UserTypes() {
       .filter((t) => {
         if (statusFilter === "ACTIVE" && !t.active) return false
         if (statusFilter === "INACTIVE" && t.active) return false
+
         if (!q) return true
+
         const audText = t.audiences.map((a) => AUDIENCE_LABEL[a]).join(" ")
+
         return (
           normalize(t.name).includes(q) ||
           normalize(t.description ?? "").includes(q) ||
@@ -86,6 +104,7 @@ export default function UserTypes() {
       })
       .sort((a, b) => {
         if (a.active !== b.active) return a.active ? -1 : 1
+
         return a.name.localeCompare(b.name, "pt-BR")
       })
   }, [userTypes, q, statusFilter])
@@ -93,7 +112,12 @@ export default function UserTypes() {
   const stats = useMemo(() => {
     const total = userTypes.length
     const activeCount = userTypes.filter((t) => t.active).length
-    return { total, activeCount, inactiveCount: total - activeCount }
+
+    return {
+      total,
+      activeCount,
+      inactiveCount: total - activeCount,
+    }
   }, [userTypes])
 
   const nameError =
@@ -101,8 +125,14 @@ export default function UserTypes() {
     userTypes.some((t) => normalize(t.name) === normalize(name) && t.id !== editingId)
 
   const audienceGroups: { title: string; items: Audience[] }[] = [
-    { title: "Coordenador / Gestor", items: ["DOCENTE", "TECNICO_ADMINISTRATIVO", "POS_DOUTORANDO"] },
-    { title: "Discentes", items: ["DISCENTE_UFPB_MEDIO", "DISCENTE_UFPB_SUPERIOR", "DISCENTE_EXTERNO_SEM_SIGAA"] },
+    {
+      title: "Coordenador / Gestor",
+      items: ["DOCENTE", "TECNICO_ADMINISTRATIVO", "POS_DOUTORANDO"],
+    },
+    {
+      title: "Discentes",
+      items: ["DISCENTE_UFPB_MEDIO", "DISCENTE_UFPB_SUPERIOR", "DISCENTE_EXTERNO_SEM_SIGAA"],
+    },
   ]
 
   function openCreate() {
@@ -138,6 +168,7 @@ export default function UserTypes() {
 
   function save() {
     const n = name.trim()
+
     if (!n || nameError) return
     if (audiences.length === 0) return
 
@@ -149,8 +180,11 @@ export default function UserTypes() {
       active,
     }
 
-    if (editingId) setUserTypes((prev) => prev.map((t) => (t.id === editingId ? payload : t)))
-    else setUserTypes((prev) => [payload, ...prev])
+    if (editingId) {
+      setUserTypes((prev) => prev.map((t) => (t.id === editingId ? payload : t)))
+    } else {
+      setUserTypes((prev) => [payload, ...prev])
+    }
 
     closeModal()
   }
@@ -169,30 +203,66 @@ export default function UserTypes() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-xl font-bold text-primary">Tipos de Usuários</h1>
-        <p className="text-sm text-neutral">Configure perfis de acesso e quais públicos podem se enquadrar em cada um.</p>
-      </header>
+      <Helmet>
+        <title>Tipos de Usuários • PROPESQ</title>
+      </Helmet>
 
-      {/* ===== Resumo + Ações ===== */}
+      <Link
+        to="/adm/settings/scholarships"
+        className="inline-flex items-center gap-2 rounded-full border border-neutral-light bg-white px-4 py-2 text-sm text-primary hover:bg-neutral-50 transition-colors w-fit"
+      >
+        <ArrowLeft size={16} />
+        Voltar para bolsas
+      </Link>
+
+      {/* ===== Header no mesmo estilo do CallSchedule ===== */}
+      <div className="rounded-2xl border border-neutral-light bg-white p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 text-primary px-3 py-1 text-xs font-semibold border border-blue-100">
+              <Users size={14} />
+              Configurações
+            </span>
+
+            <div>
+              <h1 className="text-2xl font-bold text-primary">Tipos de Usuários</h1>
+
+              <p className="text-sm text-neutral mt-1 max-w-2xl">
+                Configure perfis de acesso e defina quais públicos podem se enquadrar em cada tipo
+                dentro dos fluxos da PROPESQ.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 shrink-0">
+            <span className="inline-flex items-center gap-2 rounded-full border border-neutral-light bg-neutral-50 px-4 py-2 text-sm font-semibold text-primary">
+              <Settings size={16} />
+              {stats.total} tipos
+            </span>
+
+            <button
+              type="button"
+              onClick={openCreate}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white bg-primary hover:opacity-90 transition-colors"
+            >
+              <Plus size={16} />
+              Novo tipo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== Resumo ===== */}
       <section className="rounded-xl border border-neutral-light bg-white p-5 space-y-4">
         <div className="flex items-start justify-between gap-3 flex-col md:flex-row md:items-center">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Users size={18} />
-              <h2 className="text-sm font-semibold text-primary">Perfis</h2>
+              <h2 className="text-sm font-semibold text-primary">Perfis cadastrados</h2>
             </div>
+
             <p className="text-sm text-neutral">Ex.: Coordenador de Projeto, Discente, Gestor.</p>
           </div>
-
-          <button
-            type="button"
-            onClick={openCreate}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:opacity-95"
-          >
-            <Plus size={16} />
-            Novo tipo
-          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -200,10 +270,12 @@ export default function UserTypes() {
             <p className="text-xs text-neutral">Total</p>
             <p className="text-lg font-bold text-primary">{stats.total}</p>
           </div>
+
           <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4">
             <p className="text-xs text-neutral">Ativos</p>
             <p className="text-lg font-bold text-primary">{stats.activeCount}</p>
           </div>
+
           <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4">
             <p className="text-xs text-neutral">Inativos</p>
             <p className="text-lg font-bold text-primary">{stats.inactiveCount}</p>
@@ -212,6 +284,7 @@ export default function UserTypes() {
 
         <div className="rounded-xl border border-neutral-light bg-neutral-50 p-4 flex gap-2">
           <Info size={16} className="mt-0.5 text-neutral" />
+
           <p className="text-xs text-neutral">
             Sugestão: desative perfis em uso ao invés de excluir, para preservar histórico.
           </p>
@@ -223,8 +296,10 @@ export default function UserTypes() {
         <div className="flex items-center justify-between gap-3 flex-col md:flex-row">
           <div className="w-full md:max-w-md">
             <label className="text-xs text-neutral">Buscar</label>
+
             <div className="relative mt-1">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral" />
+
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -237,6 +312,7 @@ export default function UserTypes() {
           <div className="flex items-end gap-3 flex-wrap justify-end">
             <div>
               <label className="text-xs text-neutral">Status</label>
+
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -247,6 +323,7 @@ export default function UserTypes() {
                 <option value="ALL">Todos</option>
               </select>
             </div>
+
             <div className="text-xs text-neutral md:text-right pb-2">
               {filtered.length} de {userTypes.length}
             </div>
@@ -258,6 +335,7 @@ export default function UserTypes() {
       <section className="rounded-xl border border-neutral-light bg-white overflow-hidden">
         <div className="px-5 py-4 border-b border-neutral-light flex items-center gap-2">
           <ShieldCheck size={18} />
+
           <h3 className="text-sm font-semibold text-primary">Lista de tipos</h3>
         </div>
 
@@ -301,10 +379,15 @@ export default function UserTypes() {
 
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border ${pill(t.active)}`}>
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border ${pill(
+                          t.active
+                        )}`}
+                      >
                         {t.active ? <Check size={14} /> : <X size={14} />}
                         {t.active ? "Ativo" : "Inativo"}
                       </span>
+
                       <button
                         type="button"
                         onClick={() => toggleActiveRow(t.id)}
@@ -343,21 +426,17 @@ export default function UserTypes() {
         </table>
       </section>
 
-      {/* ===== MODAL (compact + scroll) ===== */}
+      {/* ===== Modal ===== */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40" onClick={closeModal} />
 
           <div className="relative w-full max-w-3xl rounded-2xl bg-white border border-neutral-light shadow-lg">
-            {/* Header fixo */}
             <div className="flex items-start justify-between gap-3 p-4 border-b border-neutral-light">
               <div>
-                <h3 className="text-sm font-bold text-primary">
-                  {editingId ? "Editar tipo" : "Novo tipo"}
-                </h3>
-                <p className="text-xs text-neutral mt-1">
-                  Selecione os públicos permitidos (mín. 1).
-                </p>
+                <h3 className="text-sm font-bold text-primary">{editingId ? "Editar tipo" : "Novo tipo"}</h3>
+
+                <p className="text-xs text-neutral mt-1">Selecione os públicos permitidos. Mínimo: 1.</p>
               </div>
 
               <button
@@ -369,36 +448,47 @@ export default function UserTypes() {
               </button>
             </div>
 
-            {/* Corpo com rolagem */}
             <div className="p-4 max-h-[70vh] overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-xs text-neutral">Nome</label>
+
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ex.: Coordenador de Projeto"
                     className="w-full rounded-lg border border-neutral-light px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                   />
+
                   {nameError && <p className="text-xs text-red-600">Já existe um tipo com esse nome.</p>}
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-xs text-neutral">Status</label>
+
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setActive(true)}
                       className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold
-                        ${active ? "border-green-200 bg-green-50 text-green-700" : "border-neutral-light text-neutral hover:bg-neutral-50"}`}
+                        ${
+                          active
+                            ? "border-green-200 bg-green-50 text-green-700"
+                            : "border-neutral-light text-neutral hover:bg-neutral-50"
+                        }`}
                     >
                       Ativo
                     </button>
+
                     <button
                       type="button"
                       onClick={() => setActive(false)}
                       className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold
-                        ${!active ? "border-primary/30 bg-primary/10 text-primary" : "border-neutral-light text-neutral hover:bg-neutral-50"}`}
+                        ${
+                          !active
+                            ? "border-primary/30 bg-primary/10 text-primary"
+                            : "border-neutral-light text-neutral hover:bg-neutral-50"
+                        }`}
                     >
                       Inativo
                     </button>
@@ -406,7 +496,8 @@ export default function UserTypes() {
                 </div>
 
                 <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs text-neutral">Descrição (opcional)</label>
+                  <label className="text-xs text-neutral">Descrição opcional</label>
+
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -427,13 +518,19 @@ export default function UserTypes() {
                         <div className="space-y-2">
                           {g.items.map((a) => {
                             const checked = audiences.includes(a)
+
                             return (
                               <label
                                 key={a}
                                 className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm cursor-pointer
-                                  ${checked ? "border-primary/30 bg-primary/10" : "border-neutral-light hover:bg-neutral-50"}`}
+                                  ${
+                                    checked
+                                      ? "border-primary/30 bg-primary/10"
+                                      : "border-neutral-light hover:bg-neutral-50"
+                                  }`}
                               >
                                 <span className="text-neutral">{AUDIENCE_LABEL[a]}</span>
+
                                 <input
                                   type="checkbox"
                                   checked={checked}
@@ -448,14 +545,11 @@ export default function UserTypes() {
                     ))}
                   </div>
 
-                  {audiences.length === 0 && (
-                    <p className="text-xs text-red-600">Selecione pelo menos um público.</p>
-                  )}
+                  {audiences.length === 0 && <p className="text-xs text-red-600">Selecione pelo menos um público.</p>}
                 </div>
               </div>
             </div>
 
-            {/* Footer fixo */}
             <div className="p-4 border-t border-neutral-light flex items-center justify-end gap-2">
               <button
                 type="button"
@@ -470,7 +564,11 @@ export default function UserTypes() {
                 onClick={save}
                 disabled={!name.trim() || nameError || audiences.length === 0}
                 className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white
-                  ${!name.trim() || nameError || audiences.length === 0 ? "bg-primary/40 cursor-not-allowed" : "bg-primary hover:opacity-95"}`}
+                  ${
+                    !name.trim() || nameError || audiences.length === 0
+                      ? "bg-primary/40 cursor-not-allowed"
+                      : "bg-primary hover:opacity-95"
+                  }`}
               >
                 <Check size={16} />
                 Salvar

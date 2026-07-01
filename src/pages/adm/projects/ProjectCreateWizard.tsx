@@ -24,6 +24,7 @@ import {
   Upload,
   Users,
 } from "lucide-react"
+import { Helmet } from "react-helmet"
 
 /* ================= TIPOS ================= */
 
@@ -1315,7 +1316,7 @@ function Card({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-2xl border border-neutral/30 bg-white shadow-sm">
+    <section className="rounded-2xl border border-neutral-light bg-white shadow-sm">
       <div className="flex items-center gap-2 border-b border-neutral/20 px-6 py-4">
         {icon}
 
@@ -1652,7 +1653,7 @@ function CronogramaPicker({
 
       <div className="mt-4 space-y-2">
         {value.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-neutral/30 bg-white p-4 text-center">
+          <div className="rounded-xl border border-dashed border-neutral-light bg-white p-4 text-center">
             <p className="text-sm font-semibold text-primary">
               Nenhuma atividade adicionada ao cronograma.
             </p>
@@ -1715,7 +1716,7 @@ function FileInputBox({
           "flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center transition",
           disabled
             ? "cursor-not-allowed border-neutral/20 bg-neutral/5 text-neutral"
-            : "border-neutral/30 bg-white text-primary hover:border-primary/40 hover:bg-primary/5"
+            : "border-neutral-light bg-white text-primary hover:border-primary/40 hover:bg-primary/5"
         )}
       >
         <input
@@ -1942,6 +1943,11 @@ export default function CoordinatorProjectForm() {
   return (
     <main className="min-h-screen bg-[#F3F4F6]">
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+
+      <Helmet>
+        <title>Cadastrar Projetos • PROPESQ</title>
+      </Helmet>
+
         <div className="flex items-center justify-between">
           <Link
             to="/coordenador/projetos"
@@ -1952,7 +1958,7 @@ export default function CoordinatorProjectForm() {
           </Link>
         </div>
 
-        <section className="flex flex-col gap-4 rounded-3xl border border-neutral/30 bg-white p-6 shadow-sm lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-4 rounded-3xl border border-neutral-light bg-white p-6 shadow-sm lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
               <FileText size={14} />
@@ -1995,7 +2001,7 @@ export default function CoordinatorProjectForm() {
               6. Revisão
             </StepPill>
           </div>
-        </section>
+        </div>
 
         {step === 1 && (
           <Card
@@ -2934,7 +2940,7 @@ export default function CoordinatorProjectForm() {
 
               <div className="mt-4 space-y-3">
                 {form.gerais.membros.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-neutral/30 bg-neutral/5 p-5 text-center">
+                  <div className="rounded-xl border border-dashed border-neutral-light bg-neutral/5 p-5 text-center">
                     <p className="text-sm font-semibold text-primary">
                       Nenhum membro cadastrado.
                     </p>

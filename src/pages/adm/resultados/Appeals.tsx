@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
+import { Helmet } from "react-helmet"
 
 type AppealType =
   | "NOTA_PROJETO"
@@ -331,6 +332,9 @@ export default function AdminAppeals() {
   return (
     <div className="min-h-screen bg-neutral-light">
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <Helmet>
+          <title>Recursos e Reconsiderações • PROPESQ</title>
+        </Helmet>
         <div className="space-y-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <Link

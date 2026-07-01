@@ -1,4 +1,4 @@
-// src/pages/admin/projects/ProjectCommunication.tsx
+// não ta sendo usado - src/pages/admin/projects/ProjectCommunication.tsx
 import React, { useMemo, useRef, useState } from "react"
 import { Helmet } from "react-helmet"
 import { Link, useNavigate } from "react-router-dom"
@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Mail,
+  MessageSquare,
   Paperclip,
   Search,
   Send,
@@ -271,37 +272,54 @@ export default function ProjectCommunication() {
     setSent(false)
   }
 
-  return (
+return (
     <div className="min-h-screen bg-neutral-light">
       <Helmet>
-        <title>Comunicação • Projetos • PROPESQ</title>
+        <title>Comunicação • PROPESQ</title>
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
-        {/* Top */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <button
-              onClick={() => nav(-1)}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-light text-sm font-semibold text-primary hover:bg-neutral-light/50"
-            >
-              <ArrowLeft size={16} />
-              Voltar
-            </button>
+      <div className="mx-auto max-w-7xl px-6 py-6">
+        {/* Botão voltar */}
+        <div className="mb-4">
+          <button
+            onClick={() => nav(-1)}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <ArrowLeft size={16} />
+            Voltar
+          </button>
+        </div>
 
-            <h1 className="mt-3 text-xl font-bold text-primary">Comunicação</h1>
-            <p className="text-sm text-neutral mt-1">
-              Selecione projetos e envie mensagens para <span className="font-semibold">{mode === "COORDENADORES" ? "coordenadores" : "discentes"}</span>.
-            </p>
-          </div>
+        {/* Header */}
+        <div className="rounded-3xl border border-slate-200 bg-white px-8 py-7 shadow-sm mb-6">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
 
-          <div className="hidden md:flex items-center gap-2">
-            <StepPill active={step === 1} done={step === 2 || canGoStep2}>
-              1. Seleção
-            </StepPill>
-            <StepPill active={step === 2} done={sent}>
-              2. Mensagem
-            </StepPill>
+            <div className="flex-1 min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <MessageSquare size={14} />
+                Envio de mensagens
+              </div>
+
+              <h1 className="mt-3 text-[28px] leading-tight font-bold tracking-tight text-primary">
+                Comunicação
+              </h1>
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                Selecione projetos e envie mensagens para{" "}
+                <span className="font-semibold text-primary">
+                  {mode === "COORDENADORES" ? "coordenadores" : "discentes"}
+                </span>.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <StepPill active={step === 1} done={step === 2 || canGoStep2}>
+                1. Seleção
+              </StepPill>
+              <StepPill active={step === 2} done={sent}>
+                2. Mensagem
+              </StepPill>
+            </div>
           </div>
         </div>
 
